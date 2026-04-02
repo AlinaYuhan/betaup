@@ -1,0 +1,6 @@
+backend/target/
+frontend/node_modules/
+frontend/dist/
+.tools/
+backend-starter/
+backend-starter.zip
