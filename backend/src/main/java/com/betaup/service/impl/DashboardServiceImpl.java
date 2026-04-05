@@ -20,6 +20,7 @@ import com.betaup.repository.UserRepository;
 import com.betaup.security.service.CurrentUserService;
 import com.betaup.service.DashboardService;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -94,14 +95,13 @@ public class DashboardServiceImpl implements DashboardService {
     private DashboardSummaryDto buildClimberDashboard(User climber, DashboardRange range) {
         LocalDate today = LocalDate.now();
         LocalDate startDate = range.getStartDate(today);
-        List<ClimbLog> climbLogs = filterClimbsByRange(
-            climbLogRepository.findByUserIdOrderByDateDescCreatedAtDesc(climber.getId()),
-            startDate
-        );
-        List<Feedback> feedbackEntries = filterFeedbackByRange(
-            feedbackRepository.findByClimberIdOrderByCreatedAtDesc(climber.getId()),
-            startDate
-        );
+        LocalDateTime startDateTime = startDate == null ? null : startDate.atStartOfDay();
+        List<ClimbLog> climbLogs = startDate == null
+            ? climbLogRepository.findByUserIdOrderByDateDescCreatedAtDesc(climber.getId())
+            : climbLogRepository.findByUserIdAndDateGreaterThanEqualOrderByDateDescCreatedAtDesc(climber.getId(), startDate);
+        List<Feedback> feedbackEntries = startDateTime == null
+            ? feedbackRepository.findByClimberIdOrderByCreatedAtDesc(climber.getId())
+            : feedbackRepository.findByClimberIdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(climber.getId(), startDateTime);
         long totalLogs = climbLogs.size();
         long completed = climbLogs.stream().filter(log -> log.getStatus() == ClimbStatus.COMPLETED).count();
         long attempted = climbLogs.stream().filter(log -> log.getStatus() == ClimbStatus.ATTEMPTED).count();
@@ -156,12 +156,14 @@ public class DashboardServiceImpl implements DashboardService {
     private DashboardSummaryDto buildCoachDashboard(User coach, DashboardRange range) {
         LocalDate today = LocalDate.now();
         LocalDate startDate = range.getStartDate(today);
+        LocalDateTime startDateTime = startDate == null ? null : startDate.atStartOfDay();
         List<User> climbers = userRepository.findByRoleOrderByCreatedAtDesc(UserRole.CLIMBER);
-        List<ClimbLog> filteredClimbLogs = filterClimbsByRange(climbLogRepository.findAll(), startDate);
-        List<Feedback> coachFeedback = filterFeedbackByRange(
-            feedbackRepository.findByCoachIdOrderByCreatedAtDesc(coach.getId()),
-            startDate
-        );
+        List<ClimbLog> filteredClimbLogs = startDate == null
+            ? climbLogRepository.findAllByOrderByDateDescCreatedAtDesc()
+            : climbLogRepository.findByDateGreaterThanEqualOrderByDateDescCreatedAtDesc(startDate);
+        List<Feedback> coachFeedback = startDateTime == null
+            ? feedbackRepository.findByCoachIdOrderByCreatedAtDesc(coach.getId())
+            : feedbackRepository.findByCoachIdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(coach.getId(), startDateTime);
         Map<Long, Long> climbsPerClimber = filteredClimbLogs.stream()
             .collect(Collectors.groupingBy(climb -> climb.getUser().getId(), Collectors.counting()));
         Map<Long, Long> completedPerClimber = filteredClimbLogs.stream()
@@ -229,24 +231,6 @@ public class DashboardServiceImpl implements DashboardService {
                 "Badge rule management is now isolated behind dedicated coach-only routes instead of the public badge catalog route."
             ))
             .build();
-    }
-
-    private List<ClimbLog> filterClimbsByRange(List<ClimbLog> climbLogs, LocalDate startDate) {
-        if (startDate == null) {
-            return climbLogs;
-        }
-        return climbLogs.stream()
-            .filter(climbLog -> !climbLog.getDate().isBefore(startDate))
-            .toList();
-    }
-
-    private List<Feedback> filterFeedbackByRange(List<Feedback> feedbackEntries, LocalDate startDate) {
-        if (startDate == null) {
-            return feedbackEntries;
-        }
-        return feedbackEntries.stream()
-            .filter(feedback -> !feedback.getCreatedAt().toLocalDate().isBefore(startDate))
-            .toList();
     }
 
     private List<DashboardActivityDto> buildClimberActivity(List<ClimbLog> climbLogs, List<Feedback> feedbackEntries) {

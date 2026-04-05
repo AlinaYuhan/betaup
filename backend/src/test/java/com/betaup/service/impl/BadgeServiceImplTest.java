@@ -15,6 +15,7 @@ import com.betaup.repository.BadgeRepository;
 import com.betaup.repository.UserBadgeRepository;
 import com.betaup.security.service.CurrentUserService;
 import com.betaup.service.BadgeAutomationService;
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,6 +41,7 @@ class BadgeServiceImplTest {
     private BadgeServiceImpl badgeService;
 
     @Test
+    @SuppressWarnings("null")
     void createBadgeRuleShouldNormalizeKeyAndTriggerResync() {
         User coach = User.builder().id(1L).role(UserRole.COACH).build();
         CreateBadgeRuleRequest request = CreateBadgeRuleRequest.builder()
@@ -53,7 +55,7 @@ class BadgeServiceImplTest {
         when(currentUserService.requireRole(UserRole.COACH)).thenReturn(coach);
         when(badgeRepository.existsByBadgeKeyIgnoreCase("SEND_25")).thenReturn(false);
         when(badgeRepository.save(any(Badge.class))).thenAnswer(invocation -> {
-            Badge badge = invocation.getArgument(0);
+            Badge badge = Objects.requireNonNull(invocation.<Badge>getArgument(0), "saved badge must not be null");
             badge.setId(42L);
             return badge;
         });

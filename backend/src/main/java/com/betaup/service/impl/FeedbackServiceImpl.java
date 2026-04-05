@@ -19,6 +19,7 @@ import com.betaup.service.BadgeAutomationService;
 import com.betaup.service.FeedbackService;
 import com.betaup.util.PageableFactory;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -67,7 +68,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public ApiResponse<FeedbackDto> getFeedbackById(Long feedbackId) {
         User currentUser = currentUserService.getCurrentUser();
-        Feedback feedback = feedbackRepository.findById(feedbackId)
+        Feedback feedback = feedbackRepository.findDetailedById(feedbackId)
             .orElseThrow(() -> new ResourceNotFoundException("Feedback not found."));
 
         boolean allowed = currentUser.getRole() == UserRole.COACH
@@ -84,26 +85,30 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Transactional
     public ApiResponse<FeedbackDto> createFeedback(CreateFeedbackRequest request) {
         User coach = currentUserService.requireRole(UserRole.COACH);
-        User climber = userRepository.findById(request.getClimberId())
+        Long climberId = Objects.requireNonNull(request.getClimberId(), "climberId must not be null");
+        Long climbLogId = Objects.requireNonNull(request.getClimbLogId(), "climbLogId must not be null");
+
+        User climber = userRepository.findById(climberId)
             .orElseThrow(() -> new ResourceNotFoundException("Climber not found."));
         if (climber.getRole() != UserRole.CLIMBER) {
             throw new IllegalArgumentException("Feedback can only be created for a climber account.");
         }
 
-        ClimbLog climbLog = climbLogRepository.findById(request.getClimbLogId())
+        ClimbLog climbLog = climbLogRepository.findById(climbLogId)
             .orElseThrow(() -> new ResourceNotFoundException("Climb log not found."));
         if (!climbLog.getUser().getId().equals(climber.getId())) {
             throw new AccessDeniedException("Selected climb log does not belong to the selected climber.");
         }
 
+        Feedback feedbackToCreate = Feedback.builder()
+            .climbLog(climbLog)
+            .coach(coach)
+            .climber(climber)
+            .comment(request.getComment().trim())
+            .rating(request.getRating())
+            .build();
         Feedback feedback = feedbackRepository.save(
-            Feedback.builder()
-                .climbLog(climbLog)
-                .coach(coach)
-                .climber(climber)
-                .comment(request.getComment().trim())
-                .rating(request.getRating())
-                .build()
+            Objects.requireNonNull(feedbackToCreate, "feedback must not be null")
         );
         badgeAutomationService.evaluateUserBadges(climber);
 
@@ -124,13 +129,13 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Transactional
     public ApiResponse<Void> deleteFeedback(Long feedbackId) {
         Feedback feedback = findOwnedCoachFeedback(feedbackId);
-        feedbackRepository.delete(feedback);
+        feedbackRepository.delete(Objects.requireNonNull(feedback, "feedback must not be null"));
         return ApiResponse.success("Feedback deleted.", null);
     }
 
     private Feedback findOwnedCoachFeedback(Long feedbackId) {
         User coach = currentUserService.requireRole(UserRole.COACH);
-        Feedback feedback = feedbackRepository.findById(feedbackId)
+        Feedback feedback = feedbackRepository.findDetailedById(feedbackId)
             .orElseThrow(() -> new ResourceNotFoundException("Feedback not found."));
         if (!feedback.getCoach().getId().equals(coach.getId())) {
             throw new AccessDeniedException("You can only manage feedback created by your own account.");

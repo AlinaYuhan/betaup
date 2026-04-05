@@ -15,17 +15,20 @@ import com.betaup.exception.ResourceNotFoundException;
 import com.betaup.repository.ClimbLogRepository;
 import com.betaup.repository.FeedbackRepository;
 import com.betaup.repository.UserRepository;
+import com.betaup.repository.projection.UserCountProjection;
 import com.betaup.security.service.CurrentUserService;
 import com.betaup.service.CoachService;
+import com.betaup.util.PageableFactory;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.betaup.util.PageableFactory;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -57,15 +60,10 @@ public class CoachServiceImpl implements CoachService {
             )
         );
         String normalizedQuery = query == null || query.isBlank() ? null : query.trim();
-        Page<ClimberOverviewDto> data = userRepository.searchByRole(UserRole.CLIMBER, normalizedQuery, pageable)
-            .map(user -> ClimberOverviewDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .climbCount(climbLogRepository.countByUserId(user.getId()))
-                .feedbackCount(feedbackRepository.countByClimberId(user.getId()))
-                .build())
-            ;
+        Page<User> climberPage = userRepository.searchByRole(UserRole.CLIMBER, normalizedQuery, pageable);
+        Map<Long, Long> climbCounts = loadClimbCounts(climberPage.getContent());
+        Map<Long, Long> feedbackCounts = loadFeedbackCounts(climberPage.getContent());
+        Page<ClimberOverviewDto> data = climberPage.map(user -> toClimberOverview(user, climbCounts, feedbackCounts));
 
         return ApiResponse.success("Climber roster loaded.", PageResponse.from(data));
     }
@@ -73,15 +71,11 @@ public class CoachServiceImpl implements CoachService {
     @Override
     public ApiResponse<List<ClimberOverviewDto>> getClimberOptions() {
         currentUserService.requireRole(UserRole.COACH);
-        List<ClimberOverviewDto> data = userRepository.findByRoleOrderByNameAsc(UserRole.CLIMBER)
-            .stream()
-            .map(user -> ClimberOverviewDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .climbCount(climbLogRepository.countByUserId(user.getId()))
-                .feedbackCount(feedbackRepository.countByClimberId(user.getId()))
-                .build())
+        List<User> climbers = userRepository.findByRoleOrderByNameAsc(UserRole.CLIMBER);
+        Map<Long, Long> climbCounts = loadClimbCounts(climbers);
+        Map<Long, Long> feedbackCounts = loadFeedbackCounts(climbers);
+        List<ClimberOverviewDto> data = climbers.stream()
+            .map(user -> toClimberOverview(user, climbCounts, feedbackCounts))
             .toList();
 
         return ApiResponse.success("Climber options loaded.", data);
@@ -90,17 +84,18 @@ public class CoachServiceImpl implements CoachService {
     @Override
     public ApiResponse<ClimberDetailDto> getClimberDetail(Long climberId) {
         currentUserService.requireRole(UserRole.COACH);
-        User climber = userRepository.findById(climberId)
+        Long requiredClimberId = Objects.requireNonNull(climberId, "climberId must not be null");
+        User climber = userRepository.findById(requiredClimberId)
             .orElseThrow(() -> new ResourceNotFoundException("Climber not found."));
         if (climber.getRole() != UserRole.CLIMBER) {
             throw new IllegalArgumentException("Selected user is not a climber.");
         }
 
-        List<ClimbLogResponse> recentClimbs = climbLogRepository.findTop5ByUserIdOrderByDateDescCreatedAtDesc(climberId)
+        List<ClimbLogResponse> recentClimbs = climbLogRepository.findTop5ByUserIdOrderByDateDescCreatedAtDesc(requiredClimberId)
             .stream()
             .map(this::toClimbResponse)
             .toList();
-        List<FeedbackDto> recentFeedback = feedbackRepository.findTop5ByClimberIdOrderByCreatedAtDesc(climberId)
+        List<FeedbackDto> recentFeedback = feedbackRepository.findTop5ByClimberIdOrderByCreatedAtDesc(requiredClimberId)
             .stream()
             .map(feedback -> FeedbackDto.builder()
                 .id(feedback.getId())
@@ -124,15 +119,43 @@ public class CoachServiceImpl implements CoachService {
             .id(climber.getId())
             .name(climber.getName())
             .email(climber.getEmail())
-            .climbCount(climbLogRepository.countByUserId(climberId))
-            .completedCount(climbLogRepository.countByUserIdAndStatus(climberId, ClimbStatus.COMPLETED))
-            .attemptedCount(climbLogRepository.countByUserIdAndStatus(climberId, ClimbStatus.ATTEMPTED))
-            .feedbackCount(feedbackRepository.countByClimberId(climberId))
+            .climbCount(climbLogRepository.countByUserId(requiredClimberId))
+            .completedCount(climbLogRepository.countByUserIdAndStatus(requiredClimberId, ClimbStatus.COMPLETED))
+            .attemptedCount(climbLogRepository.countByUserIdAndStatus(requiredClimberId, ClimbStatus.ATTEMPTED))
+            .feedbackCount(feedbackRepository.countByClimberId(requiredClimberId))
             .recentClimbs(recentClimbs)
             .recentFeedback(recentFeedback)
             .build();
 
         return ApiResponse.success("Climber detail loaded.", data);
+    }
+
+    private ClimberOverviewDto toClimberOverview(User user, Map<Long, Long> climbCounts, Map<Long, Long> feedbackCounts) {
+        return ClimberOverviewDto.builder()
+            .id(user.getId())
+            .name(user.getName())
+            .email(user.getEmail())
+            .climbCount(climbCounts.getOrDefault(user.getId(), 0L))
+            .feedbackCount(feedbackCounts.getOrDefault(user.getId(), 0L))
+            .build();
+    }
+
+    private List<Long> extractUserIds(List<User> users) {
+        return users.stream().map(User::getId).toList();
+    }
+
+    private Map<Long, Long> loadClimbCounts(List<User> users) {
+        List<Long> userIds = extractUserIds(users);
+        return userIds.isEmpty() ? Map.of() : toCountMap(climbLogRepository.countByUserIds(userIds));
+    }
+
+    private Map<Long, Long> loadFeedbackCounts(List<User> users) {
+        List<Long> userIds = extractUserIds(users);
+        return userIds.isEmpty() ? Map.of() : toCountMap(feedbackRepository.countByClimberIds(userIds));
+    }
+
+    private Map<Long, Long> toCountMap(List<UserCountProjection> counts) {
+        return counts.stream().collect(Collectors.toMap(UserCountProjection::getUserId, UserCountProjection::getTotal));
     }
 
     private ClimbLogResponse toClimbResponse(ClimbLog climbLog) {

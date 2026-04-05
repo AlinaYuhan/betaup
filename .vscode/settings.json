@@ -1,0 +1,20 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.jdt.ls.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.10.7-hotspot",
+    "java.import.gradle.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.10.7-hotspot",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-21",
+            "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.10.7-hotspot",
+            "default": true
+        }
+    ],
+    "maven.terminal.useJavaHome": true,
+    "terminal.integrated.env.windows": {
+        "ANDROID_HOME": "F:\\Android\\Sdk",
+        "ANDROID_SDK_ROOT": "F:\\Android\\Sdk",
+        "JAVA_HOME": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.10.7-hotspot",
+        "PATH": "F:\\Android\\Sdk\\platform-tools;F:\\Android\\Sdk\\cmdline-tools\\latest\\bin;C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.10.7-hotspot\\bin;${env:PATH}"
+    }
+}

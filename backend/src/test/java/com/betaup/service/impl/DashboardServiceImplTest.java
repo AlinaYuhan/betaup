@@ -78,8 +78,14 @@ class DashboardServiceImplTest {
             .build();
 
         when(currentUserService.getCurrentUser()).thenReturn(climber);
-        when(climbLogRepository.findByUserIdOrderByDateDescCreatedAtDesc(5L)).thenReturn(List.of(completed, attempted));
-        when(feedbackRepository.findByClimberIdOrderByCreatedAtDesc(5L)).thenReturn(List.of(feedback));
+        when(climbLogRepository.findByUserIdAndDateGreaterThanEqualOrderByDateDescCreatedAtDesc(
+            org.mockito.ArgumentMatchers.eq(5L),
+            org.mockito.ArgumentMatchers.any(LocalDate.class)
+        )).thenReturn(List.of(completed, attempted));
+        when(feedbackRepository.findByClimberIdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+            org.mockito.ArgumentMatchers.eq(5L),
+            org.mockito.ArgumentMatchers.any(LocalDateTime.class)
+        )).thenReturn(List.of(feedback));
         when(userBadgeRepository.countByUserId(5L)).thenReturn(1L);
 
         var response = dashboardService.getDashboardSummary(DashboardRange.LAST_180_DAYS);

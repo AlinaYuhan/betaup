@@ -16,6 +16,7 @@ import com.betaup.service.BadgeAutomationService;
 import com.betaup.service.ClimbService;
 import com.betaup.util.PageableFactory;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,23 +64,25 @@ public class ClimbServiceImpl implements ClimbService {
     @Override
     public ApiResponse<ClimbLogResponse> getClimbLog(Long climbLogId) {
         User user = currentUserService.requireRole(UserRole.CLIMBER);
-        return ApiResponse.success("Climb log loaded.", toResponse(findOwnedClimbLog(user, climbLogId)));
+        Long requiredClimbLogId = Objects.requireNonNull(climbLogId, "climbLogId must not be null");
+        return ApiResponse.success("Climb log loaded.", toResponse(findOwnedClimbLog(user, requiredClimbLogId)));
     }
 
     @Override
     @Transactional
     public ApiResponse<ClimbLogResponse> createClimbLog(ClimbLogRequest request) {
         User user = currentUserService.requireRole(UserRole.CLIMBER);
+        ClimbLog climbLogToCreate = ClimbLog.builder()
+            .user(user)
+            .routeName(request.getRouteName().trim())
+            .difficulty(request.getDifficulty().trim())
+            .date(request.getDate())
+            .venue(request.getVenue().trim())
+            .status(request.getStatus())
+            .notes(request.getNotes() == null ? null : request.getNotes().trim())
+            .build();
         ClimbLog climbLog = climbLogRepository.save(
-            ClimbLog.builder()
-                .user(user)
-                .routeName(request.getRouteName().trim())
-                .difficulty(request.getDifficulty().trim())
-                .date(request.getDate())
-                .venue(request.getVenue().trim())
-                .status(request.getStatus())
-                .notes(request.getNotes() == null ? null : request.getNotes().trim())
-                .build()
+            Objects.requireNonNull(climbLogToCreate, "climb log must not be null")
         );
         badgeAutomationService.evaluateUserBadges(user);
 
@@ -90,7 +93,8 @@ public class ClimbServiceImpl implements ClimbService {
     @Transactional
     public ApiResponse<ClimbLogResponse> updateClimbLog(Long climbLogId, ClimbLogRequest request) {
         User user = currentUserService.requireRole(UserRole.CLIMBER);
-        ClimbLog climbLog = findOwnedClimbLog(user, climbLogId);
+        Long requiredClimbLogId = Objects.requireNonNull(climbLogId, "climbLogId must not be null");
+        ClimbLog climbLog = findOwnedClimbLog(user, requiredClimbLogId);
         climbLog.setRouteName(request.getRouteName().trim());
         climbLog.setDifficulty(request.getDifficulty().trim());
         climbLog.setDate(request.getDate());
@@ -106,17 +110,18 @@ public class ClimbServiceImpl implements ClimbService {
     @Transactional
     public ApiResponse<Void> deleteClimbLog(Long climbLogId) {
         User user = currentUserService.requireRole(UserRole.CLIMBER);
-        ClimbLog climbLog = findOwnedClimbLog(user, climbLogId);
-        if (feedbackRepository.countByClimbLogId(climbLogId) > 0) {
+        Long requiredClimbLogId = Objects.requireNonNull(climbLogId, "climbLogId must not be null");
+        ClimbLog climbLog = findOwnedClimbLog(user, requiredClimbLogId);
+        if (feedbackRepository.countByClimbLogId(requiredClimbLogId) > 0) {
             throw new IllegalArgumentException("Cannot delete a climb log that already has coach feedback.");
         }
 
-        climbLogRepository.delete(climbLog);
+        climbLogRepository.delete(Objects.requireNonNull(climbLog, "climb log must not be null"));
         return ApiResponse.success("Climb log deleted.", null);
     }
 
     private ClimbLog findOwnedClimbLog(User user, Long climbLogId) {
-        ClimbLog climbLog = climbLogRepository.findById(climbLogId)
+        ClimbLog climbLog = climbLogRepository.findDetailedById(climbLogId)
             .orElseThrow(() -> new ResourceNotFoundException("Climb log not found."));
         if (!climbLog.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("You do not have access to this climb log.");

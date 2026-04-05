@@ -17,6 +17,7 @@ import com.betaup.security.service.CurrentUserService;
 import com.betaup.service.BadgeAutomationService;
 import com.betaup.service.BadgeService;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +60,7 @@ public class BadgeServiceImpl implements BadgeService {
 
     @Override
     public ApiResponse<List<UserBadgeDto>> getMyBadges() {
-        Long userId = currentUserService.getCurrentUser().getId();
+        Long userId = Objects.requireNonNull(currentUserService.getCurrentUser().getId(), "user id must not be null");
         List<UserBadgeDto> data = userBadgeRepository.findByUserIdOrderByAwardedAtDesc(userId)
             .stream()
             .map(this::toUserBadgeDto)
@@ -85,14 +86,15 @@ public class BadgeServiceImpl implements BadgeService {
             throw new ConflictException("Badge key already exists.");
         }
 
+        Badge badgeToCreate = Badge.builder()
+            .badgeKey(badgeKey)
+            .name(request.getName().trim())
+            .description(request.getDescription().trim())
+            .threshold(request.getThreshold())
+            .criteriaType(request.getCriteriaType())
+            .build();
         Badge badge = badgeRepository.save(
-            Badge.builder()
-                .badgeKey(badgeKey)
-                .name(request.getName().trim())
-                .description(request.getDescription().trim())
-                .threshold(request.getThreshold())
-                .criteriaType(request.getCriteriaType())
-                .build()
+            Objects.requireNonNull(badgeToCreate, "badge must not be null")
         );
         badgeAutomationService.reconcileAllClimberBadges();
         return ApiResponse.success("Badge rule created.", toBadgeDto(badge));
@@ -102,7 +104,8 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public ApiResponse<BadgeDto> updateBadgeRule(Long badgeId, UpdateBadgeRuleRequest request) {
         currentUserService.requireRole(UserRole.COACH);
-        Badge badge = badgeRepository.findById(badgeId)
+        Long requiredBadgeId = Objects.requireNonNull(badgeId, "badgeId must not be null");
+        Badge badge = badgeRepository.findById(requiredBadgeId)
             .orElseThrow(() -> new ResourceNotFoundException("Badge rule not found."));
 
         badge.setName(request.getName().trim());
@@ -118,11 +121,12 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public ApiResponse<Void> deleteBadgeRule(Long badgeId) {
         currentUserService.requireRole(UserRole.COACH);
-        Badge badge = badgeRepository.findById(badgeId)
+        Long requiredBadgeId = Objects.requireNonNull(badgeId, "badgeId must not be null");
+        Badge badge = badgeRepository.findById(requiredBadgeId)
             .orElseThrow(() -> new ResourceNotFoundException("Badge rule not found."));
 
-        userBadgeRepository.deleteByBadgeId(badgeId);
-        badgeRepository.delete(badge);
+        userBadgeRepository.deleteByBadgeId(requiredBadgeId);
+        badgeRepository.delete(Objects.requireNonNull(badge, "badge must not be null"));
         badgeAutomationService.reconcileAllClimberBadges();
         return ApiResponse.success("Badge rule deleted.", null);
     }

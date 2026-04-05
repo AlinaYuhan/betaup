@@ -2,6 +2,7 @@ package com.betaup.util;
 
 import com.betaup.dto.common.PageQuery;
 import java.util.Map;
+import java.util.Objects;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,10 +23,11 @@ public final class PageableFactory {
         int size = pageQuery == null || pageQuery.getSize() == null ? defaultSize : Math.min(Math.max(pageQuery.getSize(), 1), 50);
 
         String requestedSortBy = pageQuery == null ? null : pageQuery.getSortBy();
-        String resolvedSortBy = sortableFields.getOrDefault(requestedSortBy, sortableFields.get(defaultSortBy));
+        String fallbackSortBy = sortableFields.getOrDefault(defaultSortBy, defaultSortBy);
+        String resolvedSortBy = sortableFields.getOrDefault(requestedSortBy, fallbackSortBy);
         Sort.Direction direction = resolveDirection(pageQuery == null ? null : pageQuery.getSortDir(), defaultDirection);
 
-        return PageRequest.of(page, size, Sort.by(direction, resolvedSortBy));
+        return PageRequest.of(page, size, Sort.by(Objects.requireNonNull(direction, "direction must not be null"), resolvedSortBy));
     }
 
     private static Sort.Direction resolveDirection(String rawDirection, Sort.Direction fallback) {

@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -24,7 +25,14 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "climb_logs")
+@Table(
+    name = "climb_logs",
+    indexes = {
+        @Index(name = "idx_climb_logs_user_date", columnList = "user_id, date, created_at"),
+        @Index(name = "idx_climb_logs_date", columnList = "date, created_at"),
+        @Index(name = "idx_climb_logs_user_status", columnList = "user_id, status")
+    }
+)
 @Getter
 @Setter
 @Builder

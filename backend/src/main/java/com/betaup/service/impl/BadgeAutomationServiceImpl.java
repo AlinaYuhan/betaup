@@ -12,9 +12,11 @@ import com.betaup.repository.FeedbackRepository;
 import com.betaup.repository.UserBadgeRepository;
 import com.betaup.repository.UserRepository;
 import com.betaup.service.BadgeAutomationService;
+import java.util.EnumMap;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -40,14 +42,15 @@ public class BadgeAutomationServiceImpl implements BadgeAutomationService {
 
     @Override
     public List<BadgeProgressDto> getProgressForUser(User user) {
-        List<UserBadge> earnedBadges = userBadgeRepository.findByUserIdOrderByAwardedAtDesc(user.getId());
+        Long userId = requireUserId(user);
+        List<UserBadge> earnedBadges = userBadgeRepository.findByUserIdOrderByAwardedAtDesc(userId);
         List<Badge> allBadges = badgeRepository.findAllByOrderByThresholdAsc();
+        Map<Long, UserBadge> earnedBadgesByBadgeId = earnedBadges.stream()
+            .collect(Collectors.toMap(userBadge -> userBadge.getBadge().getId(), Function.identity()));
+        Map<BadgeCriteriaType, Integer> progressByCriteria = buildProgressByCriteria(user);
 
         return allBadges.stream().map(badge -> {
-            UserBadge earnedBadge = earnedBadges.stream()
-                .filter(userBadge -> userBadge.getBadge().getId().equals(badge.getId()))
-                .findFirst()
-                .orElse(null);
+            UserBadge earnedBadge = earnedBadgesByBadgeId.get(badge.getId());
 
             return BadgeProgressDto.builder()
                 .badgeId(badge.getId())
@@ -56,7 +59,7 @@ public class BadgeAutomationServiceImpl implements BadgeAutomationService {
                 .description(badge.getDescription())
                 .criteriaType(badge.getCriteriaType())
                 .threshold(badge.getThreshold())
-                .currentValue(currentValueFor(user, badge.getCriteriaType()))
+                .currentValue(progressByCriteria.getOrDefault(badge.getCriteriaType(), 0))
                 .earned(earnedBadge != null)
                 .awardedAt(earnedBadge == null ? null : earnedBadge.getAwardedAt())
                 .build();
@@ -72,34 +75,46 @@ public class BadgeAutomationServiceImpl implements BadgeAutomationService {
     }
 
     private void reconcileUserBadges(User user, List<Badge> badges) {
-        Map<Long, UserBadge> existingBadges = userBadgeRepository.findByUserId(user.getId())
+        Long userId = requireUserId(user);
+        Map<Long, UserBadge> existingBadges = userBadgeRepository.findByUserId(userId)
             .stream()
             .collect(Collectors.toMap(userBadge -> userBadge.getBadge().getId(), Function.identity()));
+        Map<BadgeCriteriaType, Integer> progressByCriteria = buildProgressByCriteria(user);
 
         badges.forEach(badge -> {
-            int currentValue = currentValueFor(user, badge.getCriteriaType());
+            int currentValue = progressByCriteria.getOrDefault(badge.getCriteriaType(), 0);
             UserBadge awardedBadge = existingBadges.get(badge.getId());
             if (currentValue >= badge.getThreshold() && awardedBadge == null) {
+                UserBadge userBadgeToCreate = UserBadge.builder()
+                    .user(user)
+                    .badge(badge)
+                    .awardedAt(LocalDateTime.now())
+                    .build();
                 userBadgeRepository.save(
-                    UserBadge.builder()
-                        .user(user)
-                        .badge(badge)
-                        .awardedAt(LocalDateTime.now())
-                        .build()
+                    Objects.requireNonNull(userBadgeToCreate, "user badge must not be null")
                 );
             } else if (currentValue < badge.getThreshold() && awardedBadge != null) {
-                userBadgeRepository.delete(awardedBadge);
+                userBadgeRepository.delete(Objects.requireNonNull(awardedBadge, "awarded badge must not be null"));
             }
         });
     }
 
-    private int currentValueFor(User user, BadgeCriteriaType criteriaType) {
-        return switch (criteriaType) {
-            case TOTAL_LOGS -> Math.toIntExact(climbLogRepository.countByUserId(user.getId()));
-            case COMPLETED_CLIMBS -> Math.toIntExact(
-                climbLogRepository.countByUserIdAndStatus(user.getId(), ClimbStatus.COMPLETED)
-            );
-            case FEEDBACK_RECEIVED -> Math.toIntExact(feedbackRepository.countByClimberId(user.getId()));
-        };
+    private Map<BadgeCriteriaType, Integer> buildProgressByCriteria(User user) {
+        Long userId = requireUserId(user);
+        Map<BadgeCriteriaType, Integer> progressByCriteria = new EnumMap<>(BadgeCriteriaType.class);
+        progressByCriteria.put(BadgeCriteriaType.TOTAL_LOGS, Math.toIntExact(climbLogRepository.countByUserId(userId)));
+        progressByCriteria.put(
+            BadgeCriteriaType.COMPLETED_CLIMBS,
+            Math.toIntExact(climbLogRepository.countByUserIdAndStatus(userId, ClimbStatus.COMPLETED))
+        );
+        progressByCriteria.put(
+            BadgeCriteriaType.FEEDBACK_RECEIVED,
+            Math.toIntExact(feedbackRepository.countByClimberId(userId))
+        );
+        return progressByCriteria;
+    }
+
+    private Long requireUserId(User user) {
+        return Objects.requireNonNull(user.getId(), "user id must not be null");
     }
 }

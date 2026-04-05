@@ -37,7 +37,7 @@ public class DashboardController {
 
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
-            .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+            .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
             .body(exportBody.getBytes(StandardCharsets.UTF_8));
     }
 }

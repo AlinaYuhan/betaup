@@ -11,6 +11,7 @@ import com.betaup.repository.UserRepository;
 import com.betaup.security.jwt.JwtTokenProvider;
 import com.betaup.security.service.CurrentUserService;
 import com.betaup.service.AuthService;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -53,13 +54,14 @@ public class AuthServiceImpl implements AuthService {
             throw new ConflictException("An account with this email already exists.");
         }
 
+        User userToCreate = User.builder()
+            .name(request.getName().trim())
+            .email(email)
+            .passwordHash(passwordEncoder.encode(request.getPassword()))
+            .role(request.getRole())
+            .build();
         User user = userRepository.save(
-            User.builder()
-                .name(request.getName().trim())
-                .email(email)
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .build()
+            Objects.requireNonNull(userToCreate, "user must not be null")
         );
 
         return ApiResponse.success("Registration successful.", buildAuthResponse(user));

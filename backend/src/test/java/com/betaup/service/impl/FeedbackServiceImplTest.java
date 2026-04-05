@@ -21,6 +21,7 @@ import com.betaup.service.BadgeAutomationService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -75,8 +76,9 @@ class FeedbackServiceImplTest {
             .build();
 
         when(currentUserService.getCurrentUser()).thenReturn(coach);
+        List<Feedback> feedbackItems = Objects.requireNonNull(List.of(feedback), "feedback items must not be null");
         when(feedbackRepository.findCoachHistory(eq(10L), eq(20L), eq(5), any(Pageable.class)))
-            .thenReturn(new PageImpl<>(List.of(feedback), PageRequest.of(1, 6), 9));
+            .thenReturn(new PageImpl<>(feedbackItems, PageRequest.of(1, 6), 9));
 
         var response = feedbackService.getMyFeedback(20L, 5, new PageQuery(1, 6, "createdAt", "desc"));
 
