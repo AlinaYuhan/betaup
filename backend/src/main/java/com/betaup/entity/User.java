@@ -59,6 +59,24 @@ public class User {
     @Column(nullable = false, length = 20)
     private UserRole role;
 
+    @Column(length = 100)
+    private String city;
+
+    @Column(length = 300)
+    private String bio;
+
+    @Column(nullable = false)
+    private int followerCount = 0;
+
+    @Column(nullable = false)
+    private int followingCount = 0;
+
+    @Column(nullable = false)
+    private int totalClimbLogs = 0;
+
+    @Column(nullable = false)
+    private boolean isCoachCertified = false;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

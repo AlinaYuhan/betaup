@@ -13,9 +13,9 @@ class ClimberShell extends StatefulWidget {
 }
 
 class _ClimberShellState extends State<ClimberShell> {
-  final _dashboardKey = GlobalKey<_ClimberDashboardTabState>();
-  final _logsKey = GlobalKey<_ClimbLogsTabState>();
-  final _badgesKey = GlobalKey<_BadgeProgressTabState>();
+  final _dashboardKey = GlobalKey<ClimberDashboardTabState>();
+  final _logsKey = GlobalKey<ClimbLogsTabState>();
+  final _badgesKey = GlobalKey<BadgeProgressTabState>();
   final _feedbackKey = GlobalKey<_MyFeedbackTabState>();
 
   int _currentIndex = 0;
@@ -138,10 +138,10 @@ class ClimberDashboardTab extends StatefulWidget {
   const ClimberDashboardTab({super.key});
 
   @override
-  State<ClimberDashboardTab> createState() => _ClimberDashboardTabState();
+  State<ClimberDashboardTab> createState() => ClimberDashboardTabState();
 }
 
-class _ClimberDashboardTabState extends State<ClimberDashboardTab> {
+class ClimberDashboardTabState extends State<ClimberDashboardTab> {
   static const _ranges = [
     ("LAST_30_DAYS", "30d"),
     ("LAST_90_DAYS", "90d"),
@@ -383,10 +383,10 @@ class ClimbLogsTab extends StatefulWidget {
   final Future<void> Function(int? climbId) onEditRequested;
 
   @override
-  State<ClimbLogsTab> createState() => _ClimbLogsTabState();
+  State<ClimbLogsTab> createState() => ClimbLogsTabState();
 }
 
-class _ClimbLogsTabState extends State<ClimbLogsTab> {
+class ClimbLogsTabState extends State<ClimbLogsTab> {
   static const _sortOptions = [
     ("date:desc", "Newest session date"),
     ("date:asc", "Oldest session date"),
@@ -918,10 +918,10 @@ class BadgeProgressTab extends StatefulWidget {
   const BadgeProgressTab({super.key});
 
   @override
-  State<BadgeProgressTab> createState() => _BadgeProgressTabState();
+  State<BadgeProgressTab> createState() => BadgeProgressTabState();
 }
 
-class _BadgeProgressTabState extends State<BadgeProgressTab> {
+class BadgeProgressTabState extends State<BadgeProgressTab> {
   List<BadgeProgress> _items = const [];
   bool _isLoading = true;
   String _error = "";

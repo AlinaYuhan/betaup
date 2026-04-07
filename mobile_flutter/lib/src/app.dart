@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'data/models.dart';
 import 'session/app_session.dart';
 import 'theme/app_theme.dart';
 import 'ui/auth_screen.dart';
-import 'ui/climber_pages.dart';
-import 'ui/coach_pages.dart';
 import 'ui/common.dart';
+import 'ui/main_shell.dart';
 
 class BetaUpApp extends StatefulWidget {
   const BetaUpApp({super.key});
@@ -46,11 +44,8 @@ class _BetaUpAppState extends State<BetaUpApp> {
               return const SplashScreen();
             }
 
-            final user = _session.user;
-            if (_session.isAuthenticated && user != null) {
-              return user.role == UserRole.coach
-                  ? const CoachShell()
-                  : const ClimberShell();
+            if (_session.isAuthenticated && _session.user != null) {
+              return const MainShell();
             }
 
             return const AuthScreen();

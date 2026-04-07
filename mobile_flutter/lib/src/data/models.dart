@@ -64,7 +64,9 @@ enum ClimbStatus {
 enum BadgeCriteriaType {
   totalLogs("TOTAL_LOGS", "Total logs"),
   completedClimbs("COMPLETED_CLIMBS", "Completed climbs"),
-  feedbackReceived("FEEDBACK_RECEIVED", "Feedback received");
+  feedbackReceived("FEEDBACK_RECEIVED", "Feedback received"),
+  gymCheckins("GYM_CHECKINS", "Gym check-ins"),
+  uniqueGyms("UNIQUE_GYMS", "Unique gyms");
 
   const BadgeCriteriaType(this.rawValue, this.label);
 
@@ -109,12 +111,24 @@ class UserProfile {
     required this.name,
     required this.email,
     required this.role,
+    this.city = "",
+    this.bio = "",
+    this.followerCount = 0,
+    this.followingCount = 0,
+    this.totalClimbLogs = 0,
+    this.isCoachCertified = false,
   });
 
   final int id;
   final String name;
   final String email;
   final UserRole role;
+  final String city;
+  final String bio;
+  final int followerCount;
+  final int followingCount;
+  final int totalClimbLogs;
+  final bool isCoachCertified;
 
   factory UserProfile.fromJson(JsonMap json) {
     return UserProfile(
@@ -122,6 +136,12 @@ class UserProfile {
       name: _asString(json["name"]),
       email: _asString(json["email"]),
       role: UserRole.fromRaw(_asString(json["role"], "CLIMBER")),
+      city: _asString(json["city"]),
+      bio: _asString(json["bio"]),
+      followerCount: _asInt(json["followerCount"]),
+      followingCount: _asInt(json["followingCount"]),
+      totalClimbLogs: _asInt(json["totalClimbLogs"]),
+      isCoachCertified: json["isCoachCertified"] == true,
     );
   }
 
@@ -131,6 +151,12 @@ class UserProfile {
       "name": name,
       "email": email,
       "role": role.rawValue,
+      "city": city,
+      "bio": bio,
+      "followerCount": followerCount,
+      "followingCount": followingCount,
+      "totalClimbLogs": totalClimbLogs,
+      "isCoachCertified": isCoachCertified,
     };
   }
 }
@@ -563,6 +589,122 @@ class ClimberDetail {
       recentFeedback: (json["recentFeedback"] as List<dynamic>? ?? const [])
           .map((item) => FeedbackEntry.fromJson(JsonMap.from(item as Map)))
           .toList(),
+    );
+  }
+}
+
+class Gym {
+  const Gym({
+    required this.id,
+    required this.name,
+    required this.city,
+    required this.address,
+    required this.lat,
+    required this.lng,
+    required this.phone,
+    required this.openHours,
+    required this.types,
+    required this.bookingUrl,
+    required this.coverImageUrl,
+    required this.logoUrl,
+  });
+
+  final int id;
+  final String name;
+  final String city;
+  final String address;
+  final double lat;
+  final double lng;
+  final String phone;
+  final String openHours;
+  final String types;
+  final String bookingUrl;
+  final String coverImageUrl;
+  final String logoUrl;
+
+  factory Gym.fromJson(JsonMap json) {
+    return Gym(
+      id: _asInt(json["id"]),
+      name: _asString(json["name"]),
+      city: _asString(json["city"]),
+      address: _asString(json["address"]),
+      lat: (json["lat"] as num?)?.toDouble() ?? 0.0,
+      lng: (json["lng"] as num?)?.toDouble() ?? 0.0,
+      phone: _asString(json["phone"]),
+      openHours: _asString(json["openHours"]),
+      types: _asString(json["types"]),
+      bookingUrl: _asString(json["bookingUrl"]),
+      coverImageUrl: _asString(json["coverImageUrl"]),
+      logoUrl: _asString(json["logoUrl"]),
+    );
+  }
+
+  JsonMap toJson() => {
+        "id": id,
+        "name": name,
+        "city": city,
+        "address": address,
+        "lat": lat,
+        "lng": lng,
+        "phone": phone,
+        "openHours": openHours,
+        "types": types,
+        "bookingUrl": bookingUrl,
+        "coverImageUrl": coverImageUrl,
+        "logoUrl": logoUrl,
+      };
+}
+
+class CheckInResult {
+  const CheckInResult({
+    required this.checkInId,
+    required this.gymId,
+    required this.gymName,
+    required this.gpsVerified,
+    required this.checkedAt,
+    required this.newBadgeKeys,
+  });
+
+  final int? checkInId;
+  final int gymId;
+  final String gymName;
+  final bool gpsVerified;
+  final DateTime? checkedAt;
+  final List<String> newBadgeKeys;
+
+  factory CheckInResult.fromJson(JsonMap json) {
+    return CheckInResult(
+      checkInId: json["checkInId"] == null ? null : _asInt(json["checkInId"]),
+      gymId: _asInt(json["gymId"]),
+      gymName: _asString(json["gymName"]),
+      gpsVerified: json["gpsVerified"] == true,
+      checkedAt: _asDateTime(json["checkedAt"]),
+      newBadgeKeys: (json["newBadgeKeys"] as List<dynamic>? ?? const [])
+          .map((k) => _asString(k))
+          .toList(),
+    );
+  }
+}
+
+class LeaderboardEntry {
+  const LeaderboardEntry({
+    required this.rank,
+    required this.userId,
+    required this.name,
+    required this.score,
+  });
+
+  final int rank;
+  final int userId;
+  final String name;
+  final int score;
+
+  factory LeaderboardEntry.fromJson(JsonMap json) {
+    return LeaderboardEntry(
+      rank: _asInt(json["rank"]),
+      userId: _asInt(json["userId"]),
+      name: _asString(json["name"]),
+      score: _asInt(json["score"]),
     );
   }
 }

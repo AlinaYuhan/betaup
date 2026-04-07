@@ -242,6 +242,45 @@ class ApiClient {
     await _send("DELETE", "/badges/rules/$id");
   }
 
+  Future<List<Gym>> fetchGyms({String? city}) async {
+    final data = await _send(
+      "GET",
+      "/gyms",
+      queryParameters: {"city": city},
+    );
+    return (data as List<dynamic>)
+        .map((item) => Gym.fromJson(JsonMap.from(item as Map)))
+        .toList();
+  }
+
+  Future<CheckInResult> checkIn({
+    required int gymId,
+    double? userLat,
+    double? userLng,
+  }) async {
+    final data = await _send(
+      "POST",
+      "/checkins",
+      body: {
+        "gymId": gymId,
+        if (userLat != null) "userLat": userLat,
+        if (userLng != null) "userLng": userLng,
+      },
+    );
+    return CheckInResult.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<List<LeaderboardEntry>> fetchLeaderboard({String type = "badges"}) async {
+    final data = await _send(
+      "GET",
+      "/leaderboard",
+      queryParameters: {"type": type},
+    );
+    return (data as List<dynamic>)
+        .map((item) => LeaderboardEntry.fromJson(JsonMap.from(item as Map)))
+        .toList();
+  }
+
   Future<dynamic> _send(
     String method,
     String path, {

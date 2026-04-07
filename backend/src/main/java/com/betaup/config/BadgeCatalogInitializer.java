@@ -52,6 +52,43 @@ public class BadgeCatalogInitializer implements ApplicationRunner {
                 .description("Receive three coach feedback entries.")
                 .threshold(3)
                 .criteriaType(BadgeCriteriaType.FEEDBACK_RECEIVED)
+                .build(),
+            // Location badges (check-in count)
+            Badge.builder()
+                .badgeKey("FIRST_CHECKIN")
+                .name("初次到馆")
+                .description("完成你的第一次到馆打卡！")
+                .threshold(1)
+                .criteriaType(BadgeCriteriaType.GYM_CHECKINS)
+                .build(),
+            Badge.builder()
+                .badgeKey("CHECKIN_10")
+                .name("攀岩达人")
+                .description("累计打卡10次。")
+                .threshold(10)
+                .criteriaType(BadgeCriteriaType.GYM_CHECKINS)
+                .build(),
+            Badge.builder()
+                .badgeKey("CHECKIN_50")
+                .name("攀岩狂人")
+                .description("累计打卡50次，你是真正的攀岩达人！")
+                .threshold(50)
+                .criteriaType(BadgeCriteriaType.GYM_CHECKINS)
+                .build(),
+            // Collection badges (unique gyms)
+            Badge.builder()
+                .badgeKey("EXPLORER_3")
+                .name("城市探索者")
+                .description("探索3家不同的攀岩馆。")
+                .threshold(3)
+                .criteriaType(BadgeCriteriaType.UNIQUE_GYMS)
+                .build(),
+            Badge.builder()
+                .badgeKey("EXPLORER_10")
+                .name("攀岩地图")
+                .description("探索10家不同的攀岩馆，集齐全国地图！")
+                .threshold(10)
+                .criteriaType(BadgeCriteriaType.UNIQUE_GYMS)
                 .build()
         );
 

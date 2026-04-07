@@ -85,6 +85,12 @@ public class AuthServiceImpl implements AuthService {
             .name(user.getName())
             .email(user.getEmail())
             .role(user.getRole())
+            .city(user.getCity())
+            .bio(user.getBio())
+            .followerCount(user.getFollowerCount())
+            .followingCount(user.getFollowingCount())
+            .totalClimbLogs(user.getTotalClimbLogs())
+            .isCoachCertified(user.isCoachCertified())
             .build();
     }
 }

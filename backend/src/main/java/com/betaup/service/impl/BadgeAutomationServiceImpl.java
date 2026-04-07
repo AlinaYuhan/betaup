@@ -7,6 +7,7 @@ import com.betaup.entity.ClimbStatus;
 import com.betaup.entity.User;
 import com.betaup.entity.UserBadge;
 import com.betaup.repository.BadgeRepository;
+import com.betaup.repository.CheckInRepository;
 import com.betaup.repository.ClimbLogRepository;
 import com.betaup.repository.FeedbackRepository;
 import com.betaup.repository.UserBadgeRepository;
@@ -32,6 +33,7 @@ public class BadgeAutomationServiceImpl implements BadgeAutomationService {
     private final ClimbLogRepository climbLogRepository;
     private final FeedbackRepository feedbackRepository;
     private final UserRepository userRepository;
+    private final CheckInRepository checkInRepository;
 
     @Override
     @Transactional
@@ -110,6 +112,14 @@ public class BadgeAutomationServiceImpl implements BadgeAutomationService {
         progressByCriteria.put(
             BadgeCriteriaType.FEEDBACK_RECEIVED,
             Math.toIntExact(feedbackRepository.countByClimberId(userId))
+        );
+        progressByCriteria.put(
+            BadgeCriteriaType.GYM_CHECKINS,
+            Math.toIntExact(checkInRepository.countByUserId(userId))
+        );
+        progressByCriteria.put(
+            BadgeCriteriaType.UNIQUE_GYMS,
+            Math.toIntExact(checkInRepository.countDistinctGymsByUserId(userId))
         );
         return progressByCriteria;
     }

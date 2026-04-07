@@ -19,6 +19,12 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
 app:
   jwt:
     secret: ${BETAUP_JWT_SECRET:betaUpRoundOneSecretKeyChangeMe1234567890}

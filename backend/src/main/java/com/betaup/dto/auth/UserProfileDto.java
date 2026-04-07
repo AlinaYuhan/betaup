@@ -16,4 +16,10 @@ public class UserProfileDto {
     private String name;
     private String email;
     private UserRole role;
+    private String city;
+    private String bio;
+    private int followerCount;
+    private int followingCount;
+    private int totalClimbLogs;
+    private boolean isCoachCertified;
 }
