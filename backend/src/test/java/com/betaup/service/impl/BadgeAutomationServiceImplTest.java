@@ -13,6 +13,7 @@ import com.betaup.entity.ClimbStatus;
 import com.betaup.entity.User;
 import com.betaup.entity.UserBadge;
 import com.betaup.repository.BadgeRepository;
+import com.betaup.repository.CheckInRepository;
 import com.betaup.repository.ClimbLogRepository;
 import com.betaup.repository.FeedbackRepository;
 import com.betaup.repository.UserBadgeRepository;
@@ -43,6 +44,9 @@ class BadgeAutomationServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private CheckInRepository checkInRepository;
+
     @InjectMocks
     private BadgeAutomationServiceImpl badgeAutomationService;
 
@@ -52,6 +56,7 @@ class BadgeAutomationServiceImplTest {
         Badge totalLogsFive = badge(1L, BadgeCriteriaType.TOTAL_LOGS, 5, "TOTAL_5");
         Badge totalLogsTen = badge(2L, BadgeCriteriaType.TOTAL_LOGS, 10, "TOTAL_10");
         Badge feedbackOne = badge(3L, BadgeCriteriaType.FEEDBACK_RECEIVED, 1, "FDBK_1");
+        Badge checkInFive = badge(4L, BadgeCriteriaType.GYM_CHECKINS, 5, "CHECKIN_5");
         UserBadge earnedBadge = UserBadge.builder()
             .id(99L)
             .user(climber)
@@ -60,18 +65,23 @@ class BadgeAutomationServiceImplTest {
             .build();
 
         when(userBadgeRepository.findByUserIdOrderByAwardedAtDesc(7L)).thenReturn(List.of(earnedBadge));
-        when(badgeRepository.findAllByOrderByThresholdAsc()).thenReturn(List.of(totalLogsFive, totalLogsTen, feedbackOne));
+        when(badgeRepository.findAllByOrderByThresholdAsc())
+            .thenReturn(List.of(totalLogsFive, totalLogsTen, feedbackOne, checkInFive));
         when(climbLogRepository.countByUserId(7L)).thenReturn(8L);
         when(climbLogRepository.countByUserIdAndStatus(7L, ClimbStatus.COMPLETED)).thenReturn(3L);
         when(feedbackRepository.countByClimberId(7L)).thenReturn(1L);
+        when(checkInRepository.countByUserId(7L)).thenReturn(4L);
+        when(checkInRepository.countDistinctGymsByUserId(7L)).thenReturn(2L);
 
         List<BadgeProgressDto> progress = badgeAutomationService.getProgressForUser(climber);
 
-        assertThat(progress).hasSize(3);
-        assertThat(progress).extracting(BadgeProgressDto::getCurrentValue).containsExactly(8, 8, 1);
+        assertThat(progress).hasSize(4);
+        assertThat(progress).extracting(BadgeProgressDto::getCurrentValue).containsExactly(8, 8, 1, 4);
         verify(climbLogRepository, times(1)).countByUserId(7L);
         verify(climbLogRepository, times(1)).countByUserIdAndStatus(7L, ClimbStatus.COMPLETED);
         verify(feedbackRepository, times(1)).countByClimberId(7L);
+        verify(checkInRepository, times(1)).countByUserId(7L);
+        verify(checkInRepository, times(1)).countDistinctGymsByUserId(7L);
     }
 
     @Test
@@ -87,12 +97,16 @@ class BadgeAutomationServiceImplTest {
         when(climbLogRepository.countByUserId(7L)).thenReturn(8L);
         when(climbLogRepository.countByUserIdAndStatus(7L, ClimbStatus.COMPLETED)).thenReturn(3L);
         when(feedbackRepository.countByClimberId(7L)).thenReturn(1L);
+        when(checkInRepository.countByUserId(7L)).thenReturn(4L);
+        when(checkInRepository.countDistinctGymsByUserId(7L)).thenReturn(2L);
 
         badgeAutomationService.evaluateUserBadges(climber);
 
         verify(climbLogRepository, times(1)).countByUserId(7L);
         verify(climbLogRepository, times(1)).countByUserIdAndStatus(7L, ClimbStatus.COMPLETED);
         verify(feedbackRepository, times(1)).countByClimberId(7L);
+        verify(checkInRepository, times(1)).countByUserId(7L);
+        verify(checkInRepository, times(1)).countDistinctGymsByUserId(7L);
         verify(userBadgeRepository, times(2)).save(any(UserBadge.class));
     }
 

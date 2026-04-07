@@ -109,20 +109,26 @@ class GlassCard extends StatelessWidget {
     super.key,
     this.padding = const EdgeInsets.all(20),
     this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    this.backgroundColor,
+    this.borderColor,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry margin;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: backgroundColor ?? Colors.white.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        border: Border.all(
+          color: borderColor ?? Colors.white.withValues(alpha: 0.16),
+        ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x22000000),
@@ -270,6 +276,8 @@ class ErrorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
+      backgroundColor: const Color(0x33261117),
+      borderColor: const Color(0x66FF7B7B),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -278,12 +286,18 @@ class ErrorCard extends StatelessWidget {
             color: Color(0xFFFF7B7B),
           ),
           const SizedBox(height: 14),
-          Text(message, style: Theme.of(context).textTheme.bodyLarge),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: const Color(0xFFF7EDF0),
+                ),
+          ),
           if (onRetry != null) ...[
             const SizedBox(height: 16),
-            OutlinedButton(
+            ElevatedButton.icon(
               onPressed: () => onRetry!.call(),
-              child: const Text("Retry"),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text("Retry"),
             ),
           ],
         ],
@@ -465,10 +479,12 @@ class SummaryList extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item.label, style: Theme.of(context).textTheme.titleMedium),
+                    Text(item.label,
+                        style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 4),
                     if (item.helper.trim().isNotEmpty)
-                      Text(item.helper, style: Theme.of(context).textTheme.bodySmall),
+                      Text(item.helper,
+                          style: Theme.of(context).textTheme.bodySmall),
                   ],
                 ),
               ),
@@ -526,19 +542,22 @@ class ActivityFeed extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item.title, style: Theme.of(context).textTheme.titleMedium),
+                    Text(item.title,
+                        style: Theme.of(context).textTheme.titleMedium),
                     if (item.subtitle.trim().isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(item.subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                      Text(item.subtitle,
+                          style: Theme.of(context).textTheme.bodyMedium),
                     ],
                     if (item.meta.trim().isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
                         item.meta.toUpperCase(),
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: const Color(0xFF93A6C2),
-                              letterSpacing: 1.2,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: const Color(0xFF93A6C2),
+                                  letterSpacing: 1.2,
+                                ),
                       ),
                     ],
                   ],
@@ -585,7 +604,6 @@ class _GlowOrb extends StatelessWidget {
 void showAppSnackBar(ScaffoldMessengerState messenger, String message) {
   messenger.showSnackBar(
     SnackBar(
-      behavior: SnackBarBehavior.floating,
       backgroundColor: const Color(0xFF132238),
       content: Text(message),
     ),

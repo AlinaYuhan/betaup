@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: ${BETAUP_DB_URL:jdbc:mysql://127.0.0.1:3306/cpt208?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${BETAUP_DB_USERNAME:root}
+    password: ${BETAUP_DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+

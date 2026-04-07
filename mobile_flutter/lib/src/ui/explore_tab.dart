@@ -11,10 +11,10 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../data/api_client.dart';
 import '../data/models.dart';
 import '../session/app_session.dart';
+import 'common.dart';
 
 // WebView only works on Android and iOS (not Web, not Windows/macOS/Linux)
-bool get _webViewSupported =>
-    !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+bool get _webViewSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
 class ExploreTab extends StatefulWidget {
   const ExploreTab({super.key});
@@ -26,13 +26,13 @@ class ExploreTab extends StatefulWidget {
 class _ExploreTabState extends State<ExploreTab> {
   late final WebViewController _webController;
   late final ConfettiController _confettiController;
-  List<Gym> _gyms = [];
   bool _mapReady = false;
 
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 3));
     if (_webViewSupported) _initWebView();
   }
 
@@ -66,7 +66,6 @@ class _ExploreTabState extends State<ExploreTab> {
     final client = ApiClient(readToken: () => session.token);
     try {
       final gyms = await client.fetchGyms();
-      setState(() => _gyms = gyms);
       final jsonStr = jsonEncode(gyms.map((g) => g.toJson()).toList());
       await _webController.runJavaScript('loadGyms(${jsonEncode(jsonStr)})');
     } catch (_) {
@@ -137,7 +136,12 @@ class _ExploreTabState extends State<ExploreTab> {
                   child: ConfettiWidget(
                     confettiController: _confettiController,
                     blastDirectionality: BlastDirectionality.explosive,
-                    colors: const [Colors.orange, Colors.deepOrange, Colors.amber, Colors.yellow],
+                    colors: const [
+                      Colors.orange,
+                      Colors.deepOrange,
+                      Colors.amber,
+                      Colors.yellow
+                    ],
                     numberOfParticles: 40,
                   ),
                 ),
@@ -158,7 +162,8 @@ class _ExploreTabState extends State<ExploreTab> {
         return;
       }
       final pos = await Geolocator.getCurrentPosition();
-      await _webController.runJavaScript('locateUser(${pos.latitude}, ${pos.longitude})');
+      await _webController
+          .runJavaScript('locateUser(${pos.latitude}, ${pos.longitude})');
     } catch (_) {}
   }
 }
@@ -190,33 +195,90 @@ class _GymListFallbackState extends State<_GymListFallback> {
       final session = SessionScope.of(context);
       final client = ApiClient(readToken: () => session.token);
       final gyms = await client.fetchGyms();
-      if (mounted) setState(() { _gyms = gyms; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _gyms = gyms;
+          _loading = false;
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
-    return ListView.builder(
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final theme = Theme.of(context);
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       itemCount: _gyms.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final gym = _gyms[index];
-        return ListTile(
-          leading: const Icon(Icons.location_on, color: Colors.orange),
-          title: Text(gym.name),
-          subtitle: Text("${gym.city} · ${gym.address}"),
-          onTap: () => showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useSafeArea: true,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            builder: (_) => GymDetailSheet(
-              gym: gym,
-              onBadgeUnlocked: widget.onBadgeUnlocked,
+        return GlassCard(
+          margin: EdgeInsets.zero,
+          padding: EdgeInsets.zero,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(28),
+              onTap: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (_) => GymDetailSheet(
+                  gym: gym,
+                  onBadgeUnlocked: widget.onBadgeUnlocked,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: const Color(0x24FF7A18),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0x44FF7A18)),
+                      ),
+                      child: const Icon(Icons.location_on_rounded,
+                          color: Colors.orange),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            gym.name,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "${gym.city} · ${gym.address}",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: const Color(0xFFD5E0EE),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         );
@@ -253,6 +315,7 @@ class _GymDetailSheetState extends State<GymDetailSheet> {
         lng = pos.longitude;
       }
 
+      if (!mounted) return;
       final session = SessionScope.of(context);
       final client = ApiClient(readToken: () => session.token);
       final result = await client.checkIn(
@@ -288,7 +351,8 @@ class _GymDetailSheetState extends State<GymDetailSheet> {
     final typeChips = gym.types
         .split(',')
         .where((t) => t.isNotEmpty)
-        .map((t) => Chip(label: Text(t.trim()), visualDensity: VisualDensity.compact))
+        .map((t) =>
+            Chip(label: Text(t.trim()), visualDensity: VisualDensity.compact))
         .toList();
 
     return DraggableScrollableSheet(
@@ -310,15 +374,25 @@ class _GymDetailSheetState extends State<GymDetailSheet> {
             ),
           ),
           const SizedBox(height: 16),
-          Text(gym.name, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+          Text(gym.name,
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(gym.city, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey)),
+          Text(gym.city,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: Colors.grey)),
           const SizedBox(height: 12),
           if (typeChips.isNotEmpty) Wrap(spacing: 8, children: typeChips),
           const SizedBox(height: 16),
           _InfoRow(icon: Icons.location_on_outlined, text: gym.address),
-          if (gym.phone.isNotEmpty) _InfoRow(icon: Icons.phone_outlined, text: gym.phone),
-          if (gym.openHours.isNotEmpty) _InfoRow(icon: Icons.access_time_outlined, text: gym.openHours),
+          if (gym.phone.isNotEmpty)
+            _InfoRow(icon: Icons.phone_outlined, text: gym.phone),
+          if (gym.openHours.isNotEmpty)
+            _InfoRow(icon: Icons.access_time_outlined, text: gym.openHours),
           const SizedBox(height: 24),
           if (_checkingIn)
             const Center(child: CircularProgressIndicator())
@@ -363,7 +437,8 @@ class _InfoRow extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: Colors.grey.shade600),
           const SizedBox(width: 10),
-          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
+          Expanded(
+              child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
         ],
       ),
     );

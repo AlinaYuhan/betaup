@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../session/app_session.dart';
-import 'common.dart';
 import 'explore_tab.dart';
 import 'profile_tab.dart';
 import 'record_tab.dart';
@@ -102,11 +101,18 @@ class _ComingSoonTab extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
+            Icon(
+              icon,
+              size: 64,
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+            ),
             const SizedBox(height: 16),
-            Text("$label 功能即将上线", style: Theme.of(context).textTheme.titleMedium),
+            Text("$label 功能即将上线",
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            Text("Phase 2 开发中 🚀", style: Theme.of(context).textTheme.bodySmall),
+            Text("Phase 2 开发中 🚀",
+                style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
       ),
