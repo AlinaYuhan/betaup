@@ -111,7 +111,10 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
         ?.numericValue ?? 0;
 
     return Container(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.4),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
@@ -273,7 +276,7 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
               ),
               backgroundColor: isMe ? Colors.orange : null,
             ),
-            tileColor: isMe ? Colors.orange.withOpacity(0.08) : null,
+            tileColor: isMe ? Colors.orange.withValues(alpha: 0.08) : null,
           );
         },
       ),
