@@ -1,3 +1,3 @@
 export function getHomePathForRole(role) {
-  return role === "COACH" ? "/coach/dashboard" : "/climber/dashboard";
+  return role === "COACH" ? "/coach/dashboard" : "/climber/explore";
 }

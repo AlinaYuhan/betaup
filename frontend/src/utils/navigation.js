@@ -1,4 +1,5 @@
 export const climberNavigation = [
+  { to: "/climber/explore", label: "Explore", helper: "Gym map" },
   { to: "/climber/dashboard", label: "Dashboard", helper: "Training pulse" },
   { to: "/climber/climbs", label: "Climb Logs", helper: "Session journal" },
   { to: "/climber/climbs/new", label: "New Log", helper: "Quick entry" },

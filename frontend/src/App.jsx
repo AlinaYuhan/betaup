@@ -5,6 +5,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import BadgesPage from "./pages/climber/BadgesPage";
 import ClimbLogsPage from "./pages/climber/ClimbLogsPage";
 import ClimberDashboardPage from "./pages/climber/ClimberDashboardPage";
+import GymExplorePage from "./pages/climber/GymExplorePage";
 import MyFeedbackPage from "./pages/climber/MyFeedbackPage";
 import NewClimbLogPage from "./pages/climber/NewClimbLogPage";
 import ClimberDetailPage from "./pages/coach/ClimberDetailPage";
@@ -31,6 +32,8 @@ export default function App() {
           </ProtectedRoute>
         }
       >
+        <Route index element={<Navigate to="explore" replace />} />
+        <Route path="explore" element={<GymExplorePage />} />
         <Route path="dashboard" element={<ClimberDashboardPage />} />
         <Route path="climbs" element={<ClimbLogsPage />} />
         <Route path="climbs/new" element={<NewClimbLogPage />} />
@@ -46,6 +49,7 @@ export default function App() {
           </ProtectedRoute>
         }
       >
+        <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<CoachDashboardPage />} />
         <Route path="climbers" element={<ClimbersPage />} />
         <Route path="climbers/:id" element={<ClimberDetailPage />} />
