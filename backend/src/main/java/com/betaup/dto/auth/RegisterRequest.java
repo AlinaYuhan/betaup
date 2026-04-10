@@ -28,6 +28,5 @@ public class RegisterRequest {
     @Size(min = 8, max = 128)
     private String password;
 
-    @NotNull
-    private UserRole role;
+    private UserRole role; // optional — defaults to CLIMBER on the server
 }

@@ -3,6 +3,7 @@ package com.betaup.service.impl;
 import com.betaup.dto.auth.AuthResponse;
 import com.betaup.dto.auth.LoginRequest;
 import com.betaup.dto.auth.RegisterRequest;
+import com.betaup.dto.auth.UpdateProfileRequest;
 import com.betaup.dto.auth.UserProfileDto;
 import com.betaup.dto.common.ApiResponse;
 import com.betaup.entity.User;
@@ -50,15 +51,19 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public ApiResponse<AuthResponse> register(RegisterRequest request) {
         String email = request.getEmail().trim().toLowerCase();
+        String name = request.getName().trim();
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ConflictException("An account with this email already exists.");
+            throw new ConflictException("该邮箱已被注册。");
+        }
+        if (userRepository.existsByNameIgnoreCase(name)) {
+            throw new ConflictException("该昵称已被使用，请换一个。");
         }
 
         User userToCreate = User.builder()
-            .name(request.getName().trim())
+            .name(name)
             .email(email)
             .passwordHash(passwordEncoder.encode(request.getPassword()))
-            .role(request.getRole())
+            .role(request.getRole() != null ? request.getRole() : com.betaup.entity.UserRole.CLIMBER)
             .build();
         User user = userRepository.save(
             Objects.requireNonNull(userToCreate, "user must not be null")
@@ -70,6 +75,23 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ApiResponse<UserProfileDto> getCurrentUserProfile() {
         return ApiResponse.success("Current user loaded.", toUserProfile(currentUserService.getCurrentUser()));
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<UserProfileDto> updateProfile(UpdateProfileRequest request) {
+        User user = currentUserService.getCurrentUser();
+        if (request.getName() != null && !request.getName().isBlank()) {
+            String newName = request.getName().trim();
+            if (userRepository.existsByNameIgnoreCaseAndIdNot(newName, user.getId())) {
+                throw new ConflictException("该昵称已被使用，请换一个。");
+            }
+            user.setName(newName);
+        }
+        if (request.getCity() != null) user.setCity(request.getCity().trim());
+        if (request.getBio() != null) user.setBio(request.getBio().trim());
+        userRepository.save(user);
+        return ApiResponse.success("Profile updated.", toUserProfile(user));
     }
 
     private AuthResponse buildAuthResponse(User user) {

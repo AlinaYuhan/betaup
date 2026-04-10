@@ -270,6 +270,67 @@ class ApiClient {
     return CheckInResult.fromJson(JsonMap.from(data as Map));
   }
 
+  Future<List<Post>> fetchPosts({String? type, int page = 0, int size = 20}) async {
+    final data = await _send("GET", "/posts",
+        queryParameters: {"type": type, "page": page, "size": size});
+    return (data as List<dynamic>)
+        .map((item) => Post.fromJson(JsonMap.from(item as Map)))
+        .toList();
+  }
+
+  Future<Post> createPost({required String content, required PostType type}) async {
+    final data = await _send("POST", "/posts",
+        body: {"content": content, "type": type.rawValue});
+    return Post.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<void> deletePost(int postId) async {
+    await _send("DELETE", "/posts/$postId");
+  }
+
+  Future<void> likePost(int postId) async {
+    await _send("POST", "/posts/$postId/like");
+  }
+
+  Future<void> unlikePost(int postId) async {
+    await _send("DELETE", "/posts/$postId/like");
+  }
+
+  Future<List<Comment>> fetchComments(int postId) async {
+    final data = await _send("GET", "/posts/$postId/comments");
+    return (data as List<dynamic>)
+        .map((item) => Comment.fromJson(JsonMap.from(item as Map)))
+        .toList();
+  }
+
+  Future<Comment> addComment(int postId, String content) async {
+    final data = await _send("POST", "/posts/$postId/comments",
+        body: {"content": content});
+    return Comment.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<UserProfile> updateProfile({String? name, String? city, String? bio}) async {
+    final data = await _send("PUT", "/auth/profile", body: {
+      if (name != null) "name": name,
+      if (city != null) "city": city,
+      if (bio != null) "bio": bio,
+    });
+    return UserProfile.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<PublicUserProfile> fetchUser(int userId) async {
+    final data = await _send("GET", "/users/$userId");
+    return PublicUserProfile.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<void> followUser(int userId) async {
+    await _send("POST", "/users/$userId/follow");
+  }
+
+  Future<void> unfollowUser(int userId) async {
+    await _send("DELETE", "/users/$userId/follow");
+  }
+
   Future<List<LeaderboardEntry>> fetchLeaderboard({String type = "badges"}) async {
     final data = await _send(
       "GET",

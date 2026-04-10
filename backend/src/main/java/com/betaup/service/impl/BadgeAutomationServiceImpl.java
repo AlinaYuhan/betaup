@@ -9,7 +9,10 @@ import com.betaup.entity.UserBadge;
 import com.betaup.repository.BadgeRepository;
 import com.betaup.repository.CheckInRepository;
 import com.betaup.repository.ClimbLogRepository;
+import com.betaup.repository.CommentRepository;
 import com.betaup.repository.FeedbackRepository;
+import com.betaup.repository.PostLikeRepository;
+import com.betaup.repository.PostRepository;
 import com.betaup.repository.UserBadgeRepository;
 import com.betaup.repository.UserRepository;
 import com.betaup.service.BadgeAutomationService;
@@ -34,6 +37,9 @@ public class BadgeAutomationServiceImpl implements BadgeAutomationService {
     private final FeedbackRepository feedbackRepository;
     private final UserRepository userRepository;
     private final CheckInRepository checkInRepository;
+    private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     @Transactional
@@ -120,6 +126,18 @@ public class BadgeAutomationServiceImpl implements BadgeAutomationService {
         progressByCriteria.put(
             BadgeCriteriaType.UNIQUE_GYMS,
             Math.toIntExact(checkInRepository.countDistinctGymsByUserId(userId))
+        );
+        progressByCriteria.put(
+            BadgeCriteriaType.POSTS_CREATED,
+            Math.toIntExact(postRepository.countByUserId(userId))
+        );
+        progressByCriteria.put(
+            BadgeCriteriaType.LIKES_RECEIVED,
+            Math.toIntExact(postLikeRepository.countByPostUserId(userId))
+        );
+        progressByCriteria.put(
+            BadgeCriteriaType.COMMENTS_MADE,
+            Math.toIntExact(commentRepository.countByUserId(userId))
         );
         return progressByCriteria;
     }

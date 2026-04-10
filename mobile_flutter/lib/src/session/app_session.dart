@@ -89,6 +89,14 @@ class AppSession extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> refreshUser() async {
+    try {
+      _user = await api.fetchCurrentUser();
+      await _persist();
+      notifyListeners();
+    } catch (_) {}
+  }
+
   Future<void> logout() async {
     _token = null;
     _user = null;

@@ -22,7 +22,6 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _registerMode = false;
   bool _isSubmitting = false;
   String _error = "";
-  UserRole _selectedRole = UserRole.climber;
 
   @override
   void dispose() {
@@ -59,7 +58,7 @@ class _AuthScreenState extends State<AuthScreen> {
           name: name,
           email: email,
           password: password,
-          role: _selectedRole,
+          role: UserRole.climber,
         );
       } else {
         final email = _loginEmailController.text.trim();
@@ -204,26 +203,6 @@ class _AuthScreenState extends State<AuthScreen> {
                           labelText: "Password",
                           hintText: "At least 8 characters",
                         ),
-                      ),
-                      const SizedBox(height: 14),
-                      DropdownButtonFormField<UserRole>(
-                        initialValue: _selectedRole,
-                        items: UserRole.values
-                            .map(
-                              (role) => DropdownMenuItem<UserRole>(
-                                value: role,
-                                child: Text(role.label),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (role) {
-                          if (role != null) {
-                            setState(() {
-                              _selectedRole = role;
-                            });
-                          }
-                        },
-                        decoration: const InputDecoration(labelText: "Role"),
                       ),
                     ] else ...[
                       TextField(

@@ -83,11 +83,41 @@ class _ProfileHeader extends StatefulWidget {
 
 class _ProfileHeaderState extends State<_ProfileHeader> {
   DashboardSummary? _summary;
+  bool _loaded = false;
 
   @override
-  void initState() {
-    super.initState();
-    _loadSummary();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadSummary();
+    }
+  }
+
+  Future<void> _showEditSheet(BuildContext context) async {
+    // Read session HERE — valid context from button press
+    final session = SessionScope.of(context);
+    final client = ApiClient(readToken: () => session.token);
+    final user = widget.user;
+
+    final updated = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _EditProfileSheet(
+        initialName: user.name,
+        initialCity: user.city,
+        initialBio: user.bio,
+        client: client,
+      ),
+    );
+    if (updated == true) {
+      await session.refreshUser(); // 刷新 session，让头部姓名立刻更新
+      _loadSummary();
+    }
   }
 
   Future<void> _loadSummary() async {
@@ -111,7 +141,7 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
         ?.numericValue ?? 0;
 
     return Container(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.4),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(102),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
@@ -146,6 +176,13 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                         visualDensity: VisualDensity.compact,
                       ),
                     ],
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.grey),
+                      onPressed: () => _showEditSheet(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -273,9 +310,104 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
               ),
               backgroundColor: isMe ? Colors.orange : null,
             ),
-            tileColor: isMe ? Colors.orange.withOpacity(0.08) : null,
+            tileColor: isMe ? Colors.orange.withAlpha(20) : null,
           );
         },
+      ),
+    );
+  }
+}
+
+class _EditProfileSheet extends StatefulWidget {
+  const _EditProfileSheet({
+    required this.initialName,
+    required this.initialCity,
+    required this.initialBio,
+    required this.client,
+  });
+  final String initialName;
+  final String initialCity;
+  final String initialBio;
+  final ApiClient client;
+
+  @override
+  State<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<_EditProfileSheet> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _cityCtrl;
+  late final TextEditingController _bioCtrl;
+  bool _saving = false;
+  String? _errorMsg;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.initialName);
+    _cityCtrl = TextEditingController(text: widget.initialCity);
+    _bioCtrl = TextEditingController(text: widget.initialBio);
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _cityCtrl.dispose();
+    _bioCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() { _saving = true; _errorMsg = null; });
+    try {
+      await widget.client.updateProfile(
+        name: _nameCtrl.text.trim(),
+        city: _cityCtrl.text.trim(),
+        bio: _bioCtrl.text.trim(),
+      );
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) setState(() { _errorMsg = e.toString(); _saving = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20, right: 20, top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("编辑资料", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: "昵称", border: OutlineInputBorder())),
+          const SizedBox(height: 12),
+          TextField(controller: _cityCtrl, decoration: const InputDecoration(labelText: "所在城市", border: OutlineInputBorder())),
+          const SizedBox(height: 12),
+          TextField(controller: _bioCtrl, maxLines: 3, decoration: const InputDecoration(labelText: "个人简介", border: OutlineInputBorder())),
+          if (_errorMsg != null) ...[
+            const SizedBox(height: 8),
+            Text("保存失败：$_errorMsg", style: const TextStyle(color: Colors.red, fontSize: 13)),
+          ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _saving ? null : _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+              ),
+              child: _saving
+                  ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                  : const Text("保存"),
+            ),
+          ),
+        ],
       ),
     );
   }

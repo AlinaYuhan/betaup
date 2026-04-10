@@ -3,6 +3,7 @@ package com.betaup.controller;
 import com.betaup.dto.auth.AuthResponse;
 import com.betaup.dto.auth.LoginRequest;
 import com.betaup.dto.auth.RegisterRequest;
+import com.betaup.dto.auth.UpdateProfileRequest;
 import com.betaup.dto.auth.UserProfileDto;
 import com.betaup.dto.common.ApiResponse;
 import com.betaup.service.AuthService;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,5 +42,12 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileDto>> me() {
         return ResponseEntity.ok(authService.getCurrentUserProfile());
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<UserProfileDto>> updateProfile(
+        @Valid @RequestBody UpdateProfileRequest request
+    ) {
+        return ResponseEntity.ok(authService.updateProfile(request));
     }
 }

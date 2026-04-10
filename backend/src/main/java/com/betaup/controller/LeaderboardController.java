@@ -3,7 +3,6 @@ package com.betaup.controller;
 import com.betaup.dto.common.ApiResponse;
 import com.betaup.dto.leaderboard.LeaderboardEntry;
 import com.betaup.entity.User;
-import com.betaup.entity.UserRole;
 import com.betaup.repository.CheckInRepository;
 import com.betaup.repository.UserBadgeRepository;
 import com.betaup.repository.UserRepository;
@@ -36,7 +35,7 @@ public class LeaderboardController {
     public ResponseEntity<ApiResponse<List<LeaderboardEntry>>> getLeaderboard(
         @RequestParam(defaultValue = "badges") String type
     ) {
-        List<User> climbers = userRepository.findByRoleOrderByCreatedAtDesc(UserRole.CLIMBER);
+        List<User> climbers = userRepository.findAll();
 
         List<LeaderboardEntry> entries = new ArrayList<>();
         for (User user : climbers) {

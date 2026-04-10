@@ -89,6 +89,35 @@ public class BadgeCatalogInitializer implements ApplicationRunner {
                 .description("探索10家不同的攀岩馆，集齐全国地图！")
                 .threshold(10)
                 .criteriaType(BadgeCriteriaType.UNIQUE_GYMS)
+                .build(),
+            // Social badges
+            Badge.builder()
+                .badgeKey("FIRST_POST")
+                .name("初次发声")
+                .description("发布你的第一条动态！")
+                .threshold(1)
+                .criteriaType(BadgeCriteriaType.POSTS_CREATED)
+                .build(),
+            Badge.builder()
+                .badgeKey("POST_10")
+                .name("社区活跃者")
+                .description("累计发布10条动态。")
+                .threshold(10)
+                .criteriaType(BadgeCriteriaType.POSTS_CREATED)
+                .build(),
+            Badge.builder()
+                .badgeKey("LIKED_10")
+                .name("人气攀岩者")
+                .description("你的动态累计获得10个点赞！")
+                .threshold(10)
+                .criteriaType(BadgeCriteriaType.LIKES_RECEIVED)
+                .build(),
+            Badge.builder()
+                .badgeKey("COMMENT_10")
+                .name("热心评论员")
+                .description("累计评论10次。")
+                .threshold(10)
+                .criteriaType(BadgeCriteriaType.COMMENTS_MADE)
                 .build()
         );
 

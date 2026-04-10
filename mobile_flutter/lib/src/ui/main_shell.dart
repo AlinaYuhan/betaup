@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../session/app_session.dart';
+import 'community_tab.dart';
 import 'explore_tab.dart';
 import 'profile_tab.dart';
 import 'record_tab.dart';
@@ -70,7 +71,7 @@ class _MainShellState extends State<MainShell> {
     final pages = [
       const ExploreTab(),
       const RecordTab(),
-      const _ComingSoonTab(label: "社区", icon: Icons.people),
+      const CommunityTab(),
       ProfileTab(user: user, onLogout: _logout),
     ];
 
@@ -83,38 +84,6 @@ class _MainShellState extends State<MainShell> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),
         destinations: _destinations,
-      ),
-    );
-  }
-}
-
-class _ComingSoonTab extends StatelessWidget {
-  const _ComingSoonTab({required this.label, required this.icon});
-  final String label;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(label)),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 64,
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text("$label 功能即将上线",
-                style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text("Phase 2 开发中 🚀",
-                style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
       ),
     );
   }

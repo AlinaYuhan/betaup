@@ -708,3 +708,129 @@ class LeaderboardEntry {
     );
   }
 }
+
+enum PostType {
+  general("GENERAL", "动态"),
+  findPartner("FIND_PARTNER", "找搭子");
+
+  const PostType(this.rawValue, this.label);
+  final String rawValue;
+  final String label;
+
+  static PostType fromRaw(String raw) => values.firstWhere(
+        (t) => t.rawValue == raw,
+        orElse: () => PostType.general,
+      );
+}
+
+class Post {
+  const Post({
+    required this.id,
+    required this.authorId,
+    required this.authorName,
+    required this.content,
+    required this.type,
+    required this.likeCount,
+    required this.commentCount,
+    required this.likedByMe,
+    required this.createdAt,
+  });
+
+  final int id;
+  final int authorId;
+  final String authorName;
+  final String content;
+  final PostType type;
+  final int likeCount;
+  final int commentCount;
+  final bool likedByMe;
+  final DateTime? createdAt;
+
+  factory Post.fromJson(JsonMap json) => Post(
+        id: _asInt(json["id"]),
+        authorId: _asInt(json["authorId"]),
+        authorName: _asString(json["authorName"]),
+        content: _asString(json["content"]),
+        type: PostType.fromRaw(_asString(json["type"], "GENERAL")),
+        likeCount: _asInt(json["likeCount"]),
+        commentCount: _asInt(json["commentCount"]),
+        likedByMe: json["likedByMe"] == true,
+        createdAt: _asDateTime(json["createdAt"]),
+      );
+
+  Post copyWith({int? likeCount, bool? likedByMe}) => Post(
+        id: id,
+        authorId: authorId,
+        authorName: authorName,
+        content: content,
+        type: type,
+        likeCount: likeCount ?? this.likeCount,
+        commentCount: commentCount,
+        likedByMe: likedByMe ?? this.likedByMe,
+        createdAt: createdAt,
+      );
+}
+
+class Comment {
+  const Comment({
+    required this.id,
+    required this.authorId,
+    required this.authorName,
+    required this.content,
+    required this.createdAt,
+  });
+
+  final int id;
+  final int authorId;
+  final String authorName;
+  final String content;
+  final DateTime? createdAt;
+
+  factory Comment.fromJson(JsonMap json) => Comment(
+        id: _asInt(json["id"]),
+        authorId: _asInt(json["authorId"]),
+        authorName: _asString(json["authorName"]),
+        content: _asString(json["content"]),
+        createdAt: _asDateTime(json["createdAt"]),
+      );
+}
+
+class PublicUserProfile {
+  const PublicUserProfile({
+    required this.id,
+    required this.name,
+    required this.isCoachCertified,
+    required this.followerCount,
+    required this.followingCount,
+    required this.totalClimbLogs,
+    required this.followedByMe,
+  });
+
+  final int id;
+  final String name;
+  final bool isCoachCertified;
+  final int followerCount;
+  final int followingCount;
+  final int totalClimbLogs;
+  final bool followedByMe;
+
+  factory PublicUserProfile.fromJson(JsonMap json) => PublicUserProfile(
+        id: _asInt(json["id"]),
+        name: _asString(json["name"]),
+        isCoachCertified: json["coachCertified"] == true,
+        followerCount: _asInt(json["followerCount"]),
+        followingCount: _asInt(json["followingCount"]),
+        totalClimbLogs: _asInt(json["totalClimbLogs"]),
+        followedByMe: json["followedByMe"] == true,
+      );
+
+  PublicUserProfile copyWith({bool? followedByMe}) => PublicUserProfile(
+        id: id,
+        name: name,
+        isCoachCertified: isCoachCertified,
+        followerCount: followedByMe == true ? this.followerCount + 1 : (followedByMe == false ? this.followerCount - 1 : this.followerCount),
+        followingCount: followingCount,
+        totalClimbLogs: totalClimbLogs,
+        followedByMe: followedByMe ?? this.followedByMe,
+      );
+}
