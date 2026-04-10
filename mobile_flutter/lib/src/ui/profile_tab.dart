@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/api_client.dart';
 import '../data/models.dart';
 import '../session/app_session.dart';
+import 'follow_list_sheet.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key, required this.user, required this.onLogout});
@@ -120,6 +121,24 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
     }
   }
 
+  Future<void> _openFollowList(BuildContext context, {required bool isFollowers}) async {
+    final session = SessionScope.of(context);
+    final client = ApiClient(readToken: () => session.token);
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => FollowListSheet(
+        userId: widget.user.id,
+        isFollowers: isFollowers,
+        client: client,
+      ),
+    );
+  }
+
   Future<void> _loadSummary() async {
     try {
       final session = SessionScope.of(context);
@@ -194,9 +213,15 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                     const SizedBox(width: 12),
                     _StatChip(label: "完成", value: completed),
                     const SizedBox(width: 12),
-                    _StatChip(label: "关注", value: user.followingCount),
+                    GestureDetector(
+                      onTap: () => _openFollowList(context, isFollowers: false),
+                      child: _StatChip(label: "关注", value: user.followingCount),
+                    ),
                     const SizedBox(width: 12),
-                    _StatChip(label: "粉丝", value: user.followerCount),
+                    GestureDetector(
+                      onTap: () => _openFollowList(context, isFollowers: true),
+                      child: _StatChip(label: "粉丝", value: user.followerCount),
+                    ),
                   ],
                 ),
               ],

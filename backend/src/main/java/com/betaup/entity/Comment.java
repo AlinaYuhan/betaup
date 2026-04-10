@@ -24,6 +24,10 @@ public class Comment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // null = top-level comment; non-null = reply to that comment's id
+    @Column(name = "parent_id")
+    private Long parentId;
+
     @Column(nullable = false, length = 300)
     private String content;
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../data/api_client.dart';
 import '../data/models.dart';
 import '../session/app_session.dart';
+import 'user_profile_sheet.dart';
 
 class CommunityTab extends StatefulWidget {
   const CommunityTab({super.key});
@@ -37,7 +39,6 @@ class _CommunityTabState extends State<CommunityTab>
   }
 
   Future<void> _showCreatePost() async {
-    // Read session HERE (valid context), pass client into the sheet
     final session = SessionScope.of(context);
     final client = ApiClient(readToken: () => session.token);
 
@@ -94,12 +95,18 @@ class _FeedListState extends State<_FeedList> {
   List<Post> _posts = [];
   bool _loading = true;
   bool _loaded = false;
+  int? _lastProfileVersion;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final version = SessionScope.of(context).profileVersion;
     if (!_loaded) {
       _loaded = true;
+      _lastProfileVersion = version;
+      _load();
+    } else if (_lastProfileVersion != version) {
+      _lastProfileVersion = version;
       _load();
     }
   }
@@ -127,7 +134,6 @@ class _FeedListState extends State<_FeedList> {
   }
 
   Future<void> _toggleLike(Post post) async {
-    // Called from button press — context is valid here
     final session = SessionScope.of(context);
     final client = ApiClient(readToken: () => session.token);
     try {
@@ -136,9 +142,10 @@ class _FeedListState extends State<_FeedList> {
         if (mounted) {
           setState(() {
             final i = _posts.indexWhere((p) => p.id == post.id);
-            if (i >= 0)
-              _posts[i] = post.copyWith(
-                  likeCount: post.likeCount - 1, likedByMe: false);
+            if (i >= 0) {
+              _posts[i] =
+                  post.copyWith(likeCount: post.likeCount - 1, likedByMe: false);
+            }
           });
         }
       } else {
@@ -146,19 +153,45 @@ class _FeedListState extends State<_FeedList> {
         if (mounted) {
           setState(() {
             final i = _posts.indexWhere((p) => p.id == post.id);
-            if (i >= 0)
+            if (i >= 0) {
               _posts[i] =
                   post.copyWith(likeCount: post.likeCount + 1, likedByMe: true);
+            }
           });
         }
       }
     } catch (_) {}
   }
 
+  Future<void> _deletePost(Post post) async {
+    final session = SessionScope.of(context);
+    final client = ApiClient(readToken: () => session.token);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("删除动态"),
+        content: const Text("确定要删除这条动态吗？"),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("取消")),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("删除", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await client.deletePost(post.id);
+      if (mounted) setState(() => _posts.removeWhere((p) => p.id == post.id));
+    } catch (_) {}
+  }
+
   Future<void> _openUserProfile(Post post) async {
     final session = SessionScope.of(context);
     final currentUserId = session.user?.id;
-    // Don't show profile sheet when tapping own posts
     if (currentUserId == post.authorId) return;
     final client = ApiClient(readToken: () => session.token);
     await showModalBottomSheet(
@@ -168,14 +201,12 @@ class _FeedListState extends State<_FeedList> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => _UserProfileSheet(userId: post.authorId, client: client),
+      builder: (_) => UserProfileSheet(userId: post.authorId, client: client),
     );
-    // Refresh feed in case follow counts changed
     _load();
   }
 
   Future<void> _openComments(Post post) async {
-    // Read session HERE (valid context), pass client into the sheet
     final session = SessionScope.of(context);
     final client = ApiClient(readToken: () => session.token);
 
@@ -186,9 +217,12 @@ class _FeedListState extends State<_FeedList> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => _CommentsSheet(post: post, client: client),
+      builder: (_) => _CommentsSheet(
+        post: post,
+        client: client,
+        currentUserId: SessionScope.of(context).user?.id,
+      ),
     );
-    // Reload feed to pick up updated commentCount
     _load();
   }
 
@@ -209,6 +243,9 @@ class _FeedListState extends State<_FeedList> {
           onLike: () => _toggleLike(_posts[i]),
           onComment: () => _openComments(_posts[i]),
           onAuthorTap: () => _openUserProfile(_posts[i]),
+          onDelete: SessionScope.of(context).user?.id == _posts[i].authorId
+              ? () => _deletePost(_posts[i])
+              : null,
         ),
       ),
     );
@@ -221,101 +258,107 @@ class _PostCard extends StatelessWidget {
     required this.onLike,
     required this.onComment,
     required this.onAuthorTap,
+    this.onDelete,
   });
   final Post post;
   final VoidCallback onLike;
   final VoidCallback onComment;
   final VoidCallback onAuthorTap;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
     final timeStr = post.createdAt != null
         ? DateFormat("MM-dd HH:mm").format(post.createdAt!)
         : "";
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: onAuthorTap,
-            child: Row(
+    return GestureDetector(
+      onLongPress: onDelete,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: onAuthorTap,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.orange,
+                    child: Text(
+                      post.authorName.isNotEmpty
+                          ? post.authorName[0].toUpperCase()
+                          : "?",
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(post.authorName,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        Text(timeStr,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                  if (post.type == PostType.findPartner)
+                    const Chip(
+                      label: Text("找搭子",
+                          style: TextStyle(fontSize: 11, color: Colors.white)),
+                      backgroundColor: Colors.teal,
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(post.content,
+                style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 10),
+            Row(
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.orange,
-                  child: Text(
-                    post.authorName.isNotEmpty
-                        ? post.authorName[0].toUpperCase()
-                        : "?",
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                IconButton(
+                  icon: Icon(
+                    post.likedByMe ? Icons.favorite : Icons.favorite_border,
+                    color: post.likedByMe ? Colors.red : Colors.grey,
+                    size: 20,
                   ),
+                  onPressed: onLike,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(post.authorName,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(timeStr,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelSmall
-                              ?.copyWith(color: Colors.grey)),
-                    ],
-                  ),
+                const SizedBox(width: 4),
+                Text("${post.likeCount}",
+                    style: Theme.of(context).textTheme.labelMedium),
+                const SizedBox(width: 16),
+                IconButton(
+                  icon: const Icon(Icons.chat_bubble_outline,
+                      size: 20, color: Colors.grey),
+                  onPressed: onComment,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
-                if (post.type == PostType.findPartner)
-                  const Chip(
-                    label: Text("找搭子",
-                        style: TextStyle(fontSize: 11, color: Colors.white)),
-                    backgroundColor: Colors.teal,
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  ),
+                const SizedBox(width: 4),
+                Text("${post.commentCount}",
+                    style: Theme.of(context).textTheme.labelMedium),
               ],
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(post.content, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(
-                  post.likedByMe ? Icons.favorite : Icons.favorite_border,
-                  color: post.likedByMe ? Colors.red : Colors.grey,
-                  size: 20,
-                ),
-                onPressed: onLike,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-              const SizedBox(width: 4),
-              Text("${post.likeCount}",
-                  style: Theme.of(context).textTheme.labelMedium),
-              const SizedBox(width: 16),
-              IconButton(
-                icon: const Icon(Icons.chat_bubble_outline,
-                    size: 20, color: Colors.grey),
-                onPressed: onComment,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-              const SizedBox(width: 4),
-              Text("${post.commentCount}",
-                  style: Theme.of(context).textTheme.labelMedium),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-// ApiClient is passed in — no SessionScope.of(context) inside the sheet
 class _CreatePostSheet extends StatefulWidget {
   const _CreatePostSheet({required this.client});
   final ApiClient client;
@@ -354,7 +397,9 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       debugPrint("[POST] createPost error: $e");
-      if (mounted) setState(() { _errorMsg = e.toString(); _submitting = false; });
+      if (mounted) {
+        setState(() { _errorMsg = e.toString(); _submitting = false; });
+      }
     }
   }
 
@@ -400,7 +445,8 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
               ChoiceChip(
                 label: const Text("找搭子"),
                 selected: _type == PostType.findPartner,
-                onSelected: (_) => setState(() => _type = PostType.findPartner),
+                onSelected: (_) =>
+                    setState(() => _type = PostType.findPartner),
               ),
             ],
           ),
@@ -433,11 +479,15 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
   }
 }
 
-// ApiClient is passed in — no SessionScope.of(context) inside the sheet
 class _CommentsSheet extends StatefulWidget {
-  const _CommentsSheet({required this.post, required this.client});
+  const _CommentsSheet({
+    required this.post,
+    required this.client,
+    required this.currentUserId,
+  });
   final Post post;
   final ApiClient client;
+  final int? currentUserId;
 
   @override
   State<_CommentsSheet> createState() => _CommentsSheetState();
@@ -445,31 +495,31 @@ class _CommentsSheet extends StatefulWidget {
 
 class _CommentsSheetState extends State<_CommentsSheet> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   List<Comment> _comments = [];
   bool _loaded = false;
   bool _submitting = false;
+  Comment? _replyTarget;
 
   @override
   void initState() {
     super.initState();
-    // Safe: client is passed in, no SessionScope needed
     _loadComments();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   Future<void> _loadComments() async {
     try {
       final comments = await widget.client.fetchComments(widget.post.id);
-      if (mounted)
-        setState(() {
-          _comments = comments;
-          _loaded = true;
-        });
+      if (mounted) {
+        setState(() { _comments = comments; _loaded = true; });
+      }
     } catch (_) {
       if (mounted) setState(() => _loaded = true);
     }
@@ -480,20 +530,92 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     if (content.isEmpty) return;
     setState(() => _submitting = true);
     try {
-      final comment = await widget.client.addComment(widget.post.id, content);
+      final comment = await widget.client.addComment(
+        widget.post.id,
+        content,
+        parentId: _replyTarget?.id,
+      );
       _controller.clear();
-      if (mounted)
+      if (mounted) {
         setState(() {
           _comments.add(comment);
+          _replyTarget = null;
           _submitting = false;
         });
-    } catch (e) {
+      }
+    } catch (_) {
       if (mounted) setState(() => _submitting = false);
     }
   }
 
+  Future<void> _deleteComment(Comment c) async {
+    try {
+      await widget.client.deleteComment(widget.post.id, c.id);
+      if (mounted) {
+        setState(() => _comments.removeWhere((x) => x.id == c.id));
+      }
+    } catch (_) {}
+  }
+
+  void _setReply(Comment c) {
+    setState(() => _replyTarget = c);
+    _focusNode.requestFocus();
+  }
+
+  /// Long-press menu: 回复 / 复制 / 删除(own only)
+  Future<void> _showCommentMenu(Comment c) async {
+    final isOwn = widget.currentUserId == c.authorId;
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.reply),
+              title: const Text("回复"),
+              onTap: () => Navigator.pop(context, "回复"),
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text("复制"),
+              onTap: () => Navigator.pop(context, "复制"),
+            ),
+            if (isOwn)
+              ListTile(
+                leading:
+                    const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text("删除",
+                    style: TextStyle(color: Colors.red)),
+                onTap: () => Navigator.pop(context, "删除"),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (selected == "回复") {
+      _setReply(c);
+    } else if (selected == "复制") {
+      await Clipboard.setData(ClipboardData(text: c.content));
+    } else if (selected == "删除") {
+      await _deleteComment(c);
+    }
+  }
+
+  /// Flat ordered list: top-level comments, each followed by its replies.
+  List<Comment> get _ordered {
+    final tops = _comments.where((c) => c.parentId == null).toList();
+    final result = <Comment>[];
+    for (final top in tops) {
+      result.add(top);
+      result.addAll(_comments.where((c) => c.parentId == top.id));
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ordered = _ordered;
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.6,
@@ -512,32 +634,69 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           Expanded(
             child: !_loaded
                 ? const Center(child: CircularProgressIndicator())
-                : _comments.isEmpty
+                : ordered.isEmpty
                     ? const Center(child: Text("还没有评论，来说第一句！"))
                     : ListView.builder(
                         controller: scrollController,
-                        itemCount: _comments.length,
+                        itemCount: ordered.length,
                         itemBuilder: (_, i) {
-                          final c = _comments[i];
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.orange,
-                              child: Text(
-                                c.authorName.isNotEmpty
-                                    ? c.authorName[0].toUpperCase()
-                                    : "?",
-                                style: const TextStyle(color: Colors.white),
+                          final c = ordered[i];
+                          final isReply = c.parentId != null;
+                          return GestureDetector(
+                            // Tap any comment → enter reply mode
+                            onTap: () => _setReply(c),
+                            // Long press → action menu
+                            onLongPress: () => _showCommentMenu(c),
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  left: isReply ? 48.0 : 0.0),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  radius: isReply ? 14 : 20,
+                                  backgroundColor: isReply
+                                      ? Colors.grey
+                                      : Colors.orange,
+                                  child: Text(
+                                    c.authorName.isNotEmpty
+                                        ? c.authorName[0].toUpperCase()
+                                        : "?",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: isReply ? 11 : 14),
+                                  ),
+                                ),
+                                title: Text(c.authorName,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: isReply ? 12 : 13)),
+                                subtitle: Text(c.content),
                               ),
                             ),
-                            title: Text(c.authorName,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 13)),
-                            subtitle: Text(c.content),
                           );
                         },
                       ),
           ),
           const Divider(height: 1),
+          if (_replyTarget != null)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              color: Colors.orange.withAlpha(20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text("回复 ${_replyTarget!.authorName}",
+                        style: const TextStyle(
+                            fontSize: 12, color: Colors.orange)),
+                  ),
+                  GestureDetector(
+                    onTap: () => setState(() => _replyTarget = null),
+                    child: const Icon(Icons.close,
+                        size: 16, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
           Padding(
             padding: EdgeInsets.only(
               left: 12,
@@ -550,10 +709,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: "写评论...",
+                    focusNode: _focusNode,
+                    decoration: InputDecoration(
+                      hintText: _replyTarget != null
+                          ? "回复 ${_replyTarget!.authorName}..."
+                          : "写评论...",
                       isDense: true,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                     onSubmitted: (_) => _submitComment(),
                   ),
@@ -573,134 +735,6 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _UserProfileSheet extends StatefulWidget {
-  const _UserProfileSheet({required this.userId, required this.client});
-  final int userId;
-  final ApiClient client;
-
-  @override
-  State<_UserProfileSheet> createState() => _UserProfileSheetState();
-}
-
-class _UserProfileSheetState extends State<_UserProfileSheet> {
-  PublicUserProfile? _profile;
-  bool _loading = true;
-  bool _toggling = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    try {
-      final profile = await widget.client.fetchUser(widget.userId);
-      if (mounted) setState(() { _profile = profile; _loading = false; });
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _toggleFollow() async {
-    final p = _profile;
-    if (p == null || _toggling) return;
-    setState(() => _toggling = true);
-    try {
-      if (p.followedByMe) {
-        await widget.client.unfollowUser(p.id);
-      } else {
-        await widget.client.followUser(p.id);
-      }
-      if (mounted) setState(() {
-        _profile = p.copyWith(followedByMe: !p.followedByMe);
-        _toggling = false;
-      });
-    } catch (_) {
-      if (mounted) setState(() => _toggling = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      child: _loading
-          ? const SizedBox(height: 120, child: Center(child: CircularProgressIndicator()))
-          : _profile == null
-              ? const SizedBox(height: 80, child: Center(child: Text("加载失败")))
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(
-                      radius: 36,
-                      backgroundColor: Colors.orange,
-                      child: Text(
-                        _profile!.name.isNotEmpty ? _profile!.name[0].toUpperCase() : "?",
-                        style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(_profile!.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                        if (_profile!.isCoachCertified) ...[
-                          const SizedBox(width: 8),
-                          const Chip(
-                            label: Text("认证教练", style: TextStyle(fontSize: 11, color: Colors.white)),
-                            backgroundColor: Colors.deepOrange,
-                            padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _Stat(label: "粉丝", value: _profile!.followerCount),
-                        _Stat(label: "关注", value: _profile!.followingCount),
-                        _Stat(label: "日志", value: _profile!.totalClimbLogs),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _toggling ? null : _toggleFollow,
-                        icon: Icon(_profile!.followedByMe ? Icons.person_remove : Icons.person_add),
-                        label: Text(_profile!.followedByMe ? "取消关注" : "关注"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _profile!.followedByMe ? Colors.grey : Colors.orange,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size.fromHeight(44),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-    );
-  }
-}
-
-class _Stat extends StatelessWidget {
-  const _Stat({required this.label, required this.value});
-  final String label;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value.toString(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.grey)),
-      ],
     );
   }
 }

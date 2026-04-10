@@ -303,10 +303,14 @@ class ApiClient {
         .toList();
   }
 
-  Future<Comment> addComment(int postId, String content) async {
+  Future<Comment> addComment(int postId, String content, {int? parentId}) async {
     final data = await _send("POST", "/posts/$postId/comments",
-        body: {"content": content});
+        body: {"content": content, if (parentId != null) "parentId": parentId});
     return Comment.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<void> deleteComment(int postId, int commentId) async {
+    await _send("DELETE", "/posts/$postId/comments/$commentId");
   }
 
   Future<UserProfile> updateProfile({String? name, String? city, String? bio}) async {
@@ -329,6 +333,41 @@ class ApiClient {
 
   Future<void> unfollowUser(int userId) async {
     await _send("DELETE", "/users/$userId/follow");
+  }
+
+  Future<List<AppNotification>> fetchNotifications() async {
+    final data = await _send("GET", "/notifications");
+    return (data as List<dynamic>)
+        .map((item) => AppNotification.fromJson(JsonMap.from(item as Map)))
+        .toList();
+  }
+
+  Future<int> fetchUnreadCount() async {
+    final data = await _send("GET", "/notifications/unread-count");
+    return (data as num).toInt();
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    await _send("POST", "/notifications/mark-all-read");
+  }
+
+  Future<Post> fetchPost(int postId) async {
+    final data = await _send("GET", "/posts/$postId");
+    return Post.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<List<FollowUser>> fetchFollowers(int userId) async {
+    final data = await _send("GET", "/users/$userId/followers");
+    return (data as List<dynamic>)
+        .map((item) => FollowUser.fromJson(JsonMap.from(item as Map)))
+        .toList();
+  }
+
+  Future<List<FollowUser>> fetchFollowing(int userId) async {
+    final data = await _send("GET", "/users/$userId/following");
+    return (data as List<dynamic>)
+        .map((item) => FollowUser.fromJson(JsonMap.from(item as Map)))
+        .toList();
   }
 
   Future<List<LeaderboardEntry>> fetchLeaderboard({String type = "badges"}) async {

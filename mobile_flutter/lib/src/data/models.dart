@@ -774,6 +774,7 @@ class Post {
 class Comment {
   const Comment({
     required this.id,
+    this.parentId,
     required this.authorId,
     required this.authorName,
     required this.content,
@@ -781,6 +782,7 @@ class Comment {
   });
 
   final int id;
+  final int? parentId;
   final int authorId;
   final String authorName;
   final String content;
@@ -788,10 +790,63 @@ class Comment {
 
   factory Comment.fromJson(JsonMap json) => Comment(
         id: _asInt(json["id"]),
+        parentId: json["parentId"] != null ? _asInt(json["parentId"]) : null,
         authorId: _asInt(json["authorId"]),
         authorName: _asString(json["authorName"]),
         content: _asString(json["content"]),
         createdAt: _asDateTime(json["createdAt"]),
+      );
+}
+
+class AppNotification {
+  const AppNotification({
+    required this.id,
+    required this.type,
+    required this.actorId,
+    required this.actorName,
+    required this.referenceId,
+    required this.content,
+    required this.isRead,
+    required this.createdAt,
+  });
+
+  final int id;
+  final String type; // FOLLOW | COMMENT | LIKE
+  final int actorId;
+  final String actorName;
+  final int referenceId;
+  final String content;
+  final bool isRead;
+  final DateTime? createdAt;
+
+  factory AppNotification.fromJson(JsonMap json) => AppNotification(
+        id: _asInt(json["id"]),
+        type: _asString(json["type"]),
+        actorId: _asInt(json["actorId"]),
+        actorName: _asString(json["actorName"]),
+        referenceId: _asInt(json["referenceId"]),
+        content: _asString(json["content"]),
+        isRead: json["isRead"] == true,
+        createdAt: _asDateTime(json["createdAt"]),
+      );
+}
+
+/// Lightweight user item used in follower / following lists.
+class FollowUser {
+  const FollowUser({
+    required this.id,
+    required this.name,
+    required this.isCoachCertified,
+  });
+
+  final int id;
+  final String name;
+  final bool isCoachCertified;
+
+  factory FollowUser.fromJson(JsonMap json) => FollowUser(
+        id: _asInt(json["id"]),
+        name: _asString(json["name"]),
+        isCoachCertified: json["coachCertified"] == true,
       );
 }
 
@@ -828,7 +883,7 @@ class PublicUserProfile {
         id: id,
         name: name,
         isCoachCertified: isCoachCertified,
-        followerCount: followedByMe == true ? this.followerCount + 1 : (followedByMe == false ? this.followerCount - 1 : this.followerCount),
+        followerCount: followedByMe == true ? followerCount + 1 : (followedByMe == false ? followerCount - 1 : followerCount),
         followingCount: followingCount,
         totalClimbLogs: totalClimbLogs,
         followedByMe: followedByMe ?? this.followedByMe,

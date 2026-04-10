@@ -18,12 +18,14 @@ class AppSession extends ChangeNotifier {
   String? _token;
   UserProfile? _user;
   bool _isInitializing = true;
+  int _profileVersion = 0;
 
   bool get isInitializing => _isInitializing;
   bool get isAuthenticated =>
       (_token?.isNotEmpty ?? false) && _user != null;
   String? get token => _token;
   UserProfile? get user => _user;
+  int get profileVersion => _profileVersion;
 
   Future<void> initialize() async {
     _isInitializing = true;
@@ -92,6 +94,7 @@ class AppSession extends ChangeNotifier {
   Future<void> refreshUser() async {
     try {
       _user = await api.fetchCurrentUser();
+      _profileVersion++;
       await _persist();
       notifyListeners();
     } catch (_) {}

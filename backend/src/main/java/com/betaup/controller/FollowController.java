@@ -3,10 +3,13 @@ package com.betaup.controller;
 import com.betaup.dto.common.ApiResponse;
 import com.betaup.dto.user.PublicUserDto;
 import com.betaup.entity.Follow;
+import com.betaup.entity.Notification;
 import com.betaup.entity.User;
 import com.betaup.repository.FollowRepository;
+import com.betaup.repository.NotificationRepository;
 import com.betaup.repository.UserRepository;
 import com.betaup.security.service.CurrentUserService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +21,7 @@ public class FollowController {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
     private final CurrentUserService currentUserService;
 
     @GetMapping("/{targetId}")
@@ -55,6 +59,14 @@ public class FollowController {
             target.setFollowerCount(target.getFollowerCount() + 1);
             userRepository.save(me);
             userRepository.save(target);
+            notificationRepository.save(Notification.builder()
+                .recipient(target)
+                .type("FOLLOW")
+                .actorId(me.getId())
+                .actorName(me.getName())
+                .referenceId(me.getId())
+                .content(me.getName() + " 关注了你")
+                .build());
         }
         return ResponseEntity.ok(ApiResponse.success("Followed.", null));
     }
@@ -79,5 +91,31 @@ public class FollowController {
         User me = currentUserService.getCurrentUser();
         boolean following = followRepository.existsByFollowerIdAndFollowingId(me.getId(), targetId);
         return ResponseEntity.ok(ApiResponse.success("Status loaded.", following));
+    }
+
+    /** 获取 targetId 的粉丝列表 */
+    @GetMapping("/{targetId}/followers")
+    public ResponseEntity<ApiResponse<List<PublicUserDto>>> getFollowers(@PathVariable Long targetId) {
+        List<PublicUserDto> list = followRepository.findByFollowingId(targetId).stream()
+            .map(f -> PublicUserDto.builder()
+                .id(f.getFollower().getId())
+                .name(f.getFollower().getName())
+                .isCoachCertified(f.getFollower().isCoachCertified())
+                .build())
+            .toList();
+        return ResponseEntity.ok(ApiResponse.success("Followers loaded.", list));
+    }
+
+    /** 获取 targetId 的关注列表 */
+    @GetMapping("/{targetId}/following")
+    public ResponseEntity<ApiResponse<List<PublicUserDto>>> getFollowing(@PathVariable Long targetId) {
+        List<PublicUserDto> list = followRepository.findByFollowerId(targetId).stream()
+            .map(f -> PublicUserDto.builder()
+                .id(f.getFollowing().getId())
+                .name(f.getFollowing().getName())
+                .isCoachCertified(f.getFollowing().isCoachCertified())
+                .build())
+            .toList();
+        return ResponseEntity.ok(ApiResponse.success("Following loaded.", list));
     }
 }

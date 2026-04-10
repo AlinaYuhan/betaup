@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../session/app_session.dart';
 import 'community_tab.dart';
 import 'explore_tab.dart';
+import 'notification_tab.dart';
 import 'profile_tab.dart';
 import 'record_tab.dart';
 
@@ -15,29 +16,21 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
+  int _unreadCount = 0;
 
-  static const _destinations = [
-    NavigationDestination(
-      icon: Icon(Icons.explore_outlined),
-      selectedIcon: Icon(Icons.explore),
-      label: "探索",
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.fitness_center_outlined),
-      selectedIcon: Icon(Icons.fitness_center),
-      label: "记录",
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.people_outline),
-      selectedIcon: Icon(Icons.people),
-      label: "社区",
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
-      label: "我的",
-    ),
-  ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refreshUnreadCount();
+  }
+
+  Future<void> _refreshUnreadCount() async {
+    try {
+      final session = SessionScope.of(context);
+      final count = await session.api.fetchUnreadCount();
+      if (mounted) setState(() => _unreadCount = count);
+    } catch (_) {}
+  }
 
   Future<void> _logout() async {
     final shouldLogout = await showDialog<bool>(
@@ -72,8 +65,17 @@ class _MainShellState extends State<MainShell> {
       const ExploreTab(),
       const RecordTab(),
       const CommunityTab(),
+      NotificationTab(onRead: _refreshUnreadCount),
       ProfileTab(user: user, onLogout: _logout),
     ];
+
+    Widget notifIcon(IconData icon) {
+      if (_unreadCount == 0) return Icon(icon);
+      return Badge(
+        label: Text(_unreadCount > 99 ? "99+" : "$_unreadCount"),
+        child: Icon(icon),
+      );
+    }
 
     return Scaffold(
       body: IndexedStack(
@@ -82,8 +84,38 @@ class _MainShellState extends State<MainShell> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
-        destinations: _destinations,
+        onDestinationSelected: (index) {
+          setState(() => _currentIndex = index);
+          // Clear badge when entering notification tab
+          if (index == 3) setState(() => _unreadCount = 0);
+        },
+        destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.explore_outlined),
+            selectedIcon: Icon(Icons.explore),
+            label: "探索",
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.fitness_center_outlined),
+            selectedIcon: Icon(Icons.fitness_center),
+            label: "记录",
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.people_outline),
+            selectedIcon: Icon(Icons.people),
+            label: "社区",
+          ),
+          NavigationDestination(
+            icon: notifIcon(Icons.notifications_outlined),
+            selectedIcon: notifIcon(Icons.notifications),
+            label: "通知",
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: "我的",
+          ),
+        ],
       ),
     );
   }

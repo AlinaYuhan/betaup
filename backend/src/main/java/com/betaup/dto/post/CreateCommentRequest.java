@@ -9,4 +9,6 @@ public class CreateCommentRequest {
     @NotBlank
     @Size(max = 300)
     private String content;
+
+    private Long parentId; // null = top-level; non-null = reply
 }

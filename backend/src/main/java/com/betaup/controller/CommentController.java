@@ -4,9 +4,11 @@ import com.betaup.dto.common.ApiResponse;
 import com.betaup.dto.post.CommentDto;
 import com.betaup.dto.post.CreateCommentRequest;
 import com.betaup.entity.Comment;
+import com.betaup.entity.Notification;
 import com.betaup.entity.Post;
 import com.betaup.entity.User;
 import com.betaup.repository.CommentRepository;
+import com.betaup.repository.NotificationRepository;
 import com.betaup.repository.PostRepository;
 import com.betaup.security.service.CurrentUserService;
 import jakarta.validation.Valid;
@@ -22,6 +24,7 @@ public class CommentController {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final NotificationRepository notificationRepository;
     private final CurrentUserService currentUserService;
 
     @GetMapping
@@ -42,11 +45,23 @@ public class CommentController {
         Comment comment = Comment.builder()
             .post(post)
             .user(user)
+            .parentId(request.getParentId())
             .content(request.getContent().trim())
             .build();
         commentRepository.save(comment);
         post.setCommentCount(post.getCommentCount() + 1);
         postRepository.save(post);
+        // Notify post author (skip if commenting on own post)
+        if (!post.getUser().getId().equals(user.getId())) {
+            notificationRepository.save(Notification.builder()
+                .recipient(post.getUser())
+                .type("COMMENT")
+                .actorId(user.getId())
+                .actorName(user.getName())
+                .referenceId(post.getId())
+                .content(user.getName() + " 评论了你的动态")
+                .build());
+        }
         return ResponseEntity.ok(ApiResponse.success("Comment added.", toDto(comment)));
     }
 
@@ -72,6 +87,7 @@ public class CommentController {
     private CommentDto toDto(Comment comment) {
         return CommentDto.builder()
             .id(comment.getId())
+            .parentId(comment.getParentId())
             .authorId(comment.getUser().getId())
             .authorName(comment.getUser().getName())
             .content(comment.getContent())

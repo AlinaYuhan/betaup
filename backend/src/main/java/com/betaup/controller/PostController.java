@@ -3,10 +3,12 @@ package com.betaup.controller;
 import com.betaup.dto.common.ApiResponse;
 import com.betaup.dto.post.CreatePostRequest;
 import com.betaup.dto.post.PostDto;
+import com.betaup.entity.Notification;
 import com.betaup.entity.Post;
 import com.betaup.entity.PostType;
 import com.betaup.entity.User;
 import com.betaup.entity.PostLike;
+import com.betaup.repository.NotificationRepository;
 import com.betaup.repository.PostLikeRepository;
 import com.betaup.repository.PostRepository;
 import com.betaup.security.service.CurrentUserService;
@@ -25,6 +27,7 @@ public class PostController {
 
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
+    private final NotificationRepository notificationRepository;
     private final CurrentUserService currentUserService;
 
     @GetMapping
@@ -43,6 +46,14 @@ public class PostController {
             .map(p -> toDto(p, currentUserId))
             .toList();
         return ResponseEntity.ok(ApiResponse.success("Posts loaded.", dtos));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<PostDto>> getPost(@PathVariable Long id) {
+        Long currentUserId = tryGetCurrentUserId();
+        Post post = postRepository.findWithUserById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Post not found."));
+        return ResponseEntity.ok(ApiResponse.success("Post loaded.", toDto(post, currentUserId)));
     }
 
     @PostMapping
@@ -86,12 +97,23 @@ public class PostController {
     @PostMapping("/{id}/like")
     public ResponseEntity<ApiResponse<Void>> likePost(@PathVariable Long id) {
         User user = currentUserService.getCurrentUser();
-        Post post = postRepository.findById(id)
+        Post post = postRepository.findWithUserById(id)
             .orElseThrow(() -> new IllegalArgumentException("Post not found."));
         if (!postLikeRepository.existsByUserIdAndPostId(user.getId(), id)) {
             postLikeRepository.save(PostLike.builder().user(user).post(post).build());
             post.setLikeCount(post.getLikeCount() + 1);
             postRepository.save(post);
+            // Notify post author (skip if liking own post)
+            if (!post.getUser().getId().equals(user.getId())) {
+                notificationRepository.save(Notification.builder()
+                    .recipient(post.getUser())
+                    .type("LIKE")
+                    .actorId(user.getId())
+                    .actorName(user.getName())
+                    .referenceId(post.getId())
+                    .content(user.getName() + " 赞了你的动态")
+                    .build());
+            }
         }
         return ResponseEntity.ok(ApiResponse.success("Liked.", null));
     }
