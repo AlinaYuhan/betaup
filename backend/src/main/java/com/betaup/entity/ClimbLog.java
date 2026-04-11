@@ -12,7 +12,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
@@ -48,12 +47,10 @@ public class ClimbLog {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @NotBlank
     @Size(max = 160)
-    @Column(nullable = false, length = 160)
+    @Column(length = 160)
     private String routeName;
 
-    @NotBlank
     @Size(max = 64)
     @Column(nullable = false, length = 64)
     private String difficulty;
@@ -62,14 +59,23 @@ public class ClimbLog {
     @Column(nullable = false)
     private LocalDate date;
 
-    @NotBlank
     @Size(max = 120)
     @Column(nullable = false, length = 120)
     private String venue;
 
+    @Column(name = "session_id")
+    private Long sessionId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ClimbStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private ClimbResult result;
+
+    @Column(nullable = false, columnDefinition = "INT NOT NULL DEFAULT 1")
+    private int attempts;
 
     @Size(max = 1000)
     @Column(length = 1000)

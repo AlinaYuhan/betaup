@@ -150,6 +150,7 @@ class ClimberDashboardTabState extends State<ClimberDashboardTab> {
   ];
 
   DashboardSummary? _dashboard;
+  List<GradeStat>? _gradeStats;
   bool _isLoading = true;
   String _error = "";
   String _range = "LAST_180_DAYS";
@@ -158,9 +159,20 @@ class ClimberDashboardTabState extends State<ClimberDashboardTab> {
   void initState() {
     super.initState();
     _loadDashboard();
+    _loadGradeStats();
   }
 
-  Future<void> reload() => _loadDashboard();
+  Future<void> reload() {
+    _loadGradeStats();
+    return _loadDashboard();
+  }
+
+  Future<void> _loadGradeStats() async {
+    try {
+      final stats = await SessionScope.of(context).api.fetchGradeStats();
+      if (mounted) setState(() => _gradeStats = stats);
+    } catch (_) {}
+  }
 
   Future<void> _loadDashboard() async {
     setState(() {
@@ -292,6 +304,20 @@ class ClimberDashboardTabState extends State<ClimberDashboardTab> {
           ),
           if (_error.isNotEmpty)
             ErrorCard(message: _error, onRetry: _loadDashboard),
+          // Grade stats card
+          if (_gradeStats != null && _gradeStats!.isNotEmpty)
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SectionLabel("难度完成率"),
+                  const SizedBox(height: 10),
+                  Text("各V级完成情况", style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  ..._gradeStats!.map((stat) => _GradeStatRow(stat: stat)),
+                ],
+              ),
+            ),
           GlassCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,6 +394,84 @@ class ClimberDashboardTabState extends State<ClimberDashboardTab> {
                 ],
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GradeStatRow extends StatelessWidget {
+  const _GradeStatRow({required this.stat});
+  final GradeStat stat;
+
+  @override
+  Widget build(BuildContext context) {
+    final sendFrac = stat.total > 0 ? stat.sends / stat.total : 0.0;
+    final flashFrac = stat.total > 0 ? stat.flashes / stat.total : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 36,
+            child: Text(stat.difficulty,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFFF7A18),
+                    )),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Stack(
+              children: [
+                // background track
+                Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                // send bar (green)
+                FractionallySizedBox(
+                  widthFactor: sendFrac.clamp(0.0, 1.0),
+                  child: Container(
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF5ED9A6),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                ),
+                // flash bar (gold, narrower overlay)
+                FractionallySizedBox(
+                  widthFactor: flashFrac.clamp(0.0, 1.0),
+                  child: Container(
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFD700),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            "${stat.sends}/${stat.total}",
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: const Color(0xFF92A5BF),
+                ),
+          ),
+          if (stat.flashes > 0) ...[
+            const SizedBox(width: 4),
+            Text("⚡${stat.flashes}",
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: const Color(0xFFFFD700),
+                    )),
+          ],
         ],
       ),
     );
@@ -575,10 +679,13 @@ class ClimbLogsTabState extends State<ClimbLogsTab> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(climb.routeName, style: Theme.of(context).textTheme.titleLarge),
+                              Text(
+                                climb.routeName.isNotEmpty ? climb.routeName : climb.difficulty,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
                               const SizedBox(height: 6),
                               Text(
-                                "${climb.difficulty} at ${climb.venue}",
+                                "${climb.difficulty}  •  ${climb.venue}",
                                 style: Theme.of(context).textTheme.bodyLarge,
                               ),
                               const SizedBox(height: 8),
@@ -593,9 +700,23 @@ class ClimbLogsTabState extends State<ClimbLogsTab> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        StatusChip(
-                          label: climb.status.label,
-                          color: statusColor(climb.status),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            StatusChip(
+                              label: climb.result.shortLabel,
+                              color: resultColor(climb.result),
+                            ),
+                            if (climb.result != ClimbResult.flash) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                "${climb.attempts}次",
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      color: const Color(0xFF92A5BF),
+                                    ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
@@ -660,22 +781,30 @@ class ClimbEditorPage extends StatefulWidget {
   const ClimbEditorPage({
     super.key,
     this.existingId,
+    this.activeSessionId,
+    this.defaultVenue,
   });
 
   final int? existingId;
+  final int? activeSessionId; // set when launched from SessionPage
+  final String? defaultVenue; // pre-fill venue from session
 
   @override
   State<ClimbEditorPage> createState() => _ClimbEditorPageState();
 }
 
+// V-grade ordering: VB, V0 ... V12
+const _kGrades = ["VB", "V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12"];
+
 class _ClimbEditorPageState extends State<ClimbEditorPage> {
   final _routeController = TextEditingController();
-  final _difficultyController = TextEditingController();
   final _venueController = TextEditingController();
   final _notesController = TextEditingController();
 
   DateTime? _selectedDate = DateTime.now();
-  ClimbStatus _status = ClimbStatus.completed;
+  String _selectedDifficulty = _kGrades[0]; // default VB, slider always has position
+  ClimbResult _result = ClimbResult.send;
+  int _attempts = 1;
   bool _isLoading = false;
   bool _isSaving = false;
   String _error = "";
@@ -687,13 +816,14 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
     super.initState();
     if (_isEditing) {
       _loadExisting();
+    } else if (widget.defaultVenue != null && widget.defaultVenue!.isNotEmpty) {
+      _venueController.text = widget.defaultVenue!;
     }
   }
 
   @override
   void dispose() {
     _routeController.dispose();
-    _difficultyController.dispose();
     _venueController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -707,30 +837,21 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
 
     try {
       final climb = await SessionScope.of(context).api.fetchClimb(widget.existingId!);
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _routeController.text = climb.routeName;
-        _difficultyController.text = climb.difficulty;
         _venueController.text = climb.venue;
         _notesController.text = climb.notes;
         _selectedDate = climb.date;
-        _status = climb.status;
+        _selectedDifficulty = climb.difficulty.isNotEmpty ? climb.difficulty : _kGrades[0];
+        _result = climb.result;
+        _attempts = climb.attempts;
       });
     } on ApiException catch (error) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _error = error.message;
-      });
+      if (!mounted) return;
+      setState(() { _error = error.message; });
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() { _isLoading = false; });
     }
   }
 
@@ -742,42 +863,27 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
       firstDate: DateTime(now.year - 5),
       lastDate: DateTime(now.year + 1),
     );
-
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
+    if (picked != null) setState(() { _selectedDate = picked; });
   }
 
   Future<void> _save() async {
     FocusScope.of(context).unfocus();
-    final routeName = _routeController.text.trim();
-    final difficulty = _difficultyController.text.trim();
-    final venue = _venueController.text.trim();
-
-    if (routeName.isEmpty ||
-        difficulty.isEmpty ||
-        venue.isEmpty ||
-        _selectedDate == null) {
-      setState(() {
-        _error = "Route, difficulty, date, and venue are required.";
-      });
+    if (_venueController.text.trim().isEmpty || _selectedDate == null) {
+      setState(() { _error = "请填写场馆和日期。"; });
       return;
     }
 
-    setState(() {
-      _isSaving = true;
-      _error = "";
-    });
+    setState(() { _isSaving = true; _error = ""; });
 
     final payload = <String, dynamic>{
-      "routeName": routeName,
-      "difficulty": difficulty,
+      "routeName": _routeController.text.trim().isEmpty ? null : _routeController.text.trim(),
+      "difficulty": _selectedDifficulty,
       "date": formatShortDate(_selectedDate),
-      "venue": venue,
-      "status": _status.rawValue,
+      "venue": _venueController.text.trim(),
+      "result": _result.rawValue,
+      "attempts": _attempts,
       "notes": _notesController.text.trim(),
+      if (widget.activeSessionId != null) "sessionId": widget.activeSessionId,
     };
 
     try {
@@ -787,32 +893,21 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
       } else {
         await api.createClimb(payload);
       }
-
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       Navigator.of(context).pop(true);
     } on ApiException catch (error) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _error = error.message;
-      });
+      if (!mounted) return;
+      setState(() { _error = error.message; });
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
-      }
+      if (mounted) setState(() { _isSaving = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return BetaUpScaffold(
-      title: _isEditing ? "Edit Climb" : "New Climb",
-      subtitle: _isEditing ? "Update an existing session" : "Write directly to the backend",
+      title: _isEditing ? "编辑记录" : "记录攀爬",
+      subtitle: _isEditing ? "修改已有记录" : "记录这次攀爬",
       child: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
@@ -823,69 +918,145 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SectionLabel("Climb form"),
-                  const SizedBox(height: 14),
+                  // ── Difficulty slider ──────────────────────────────────────
+                  const SectionLabel("难度"),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      _selectedDifficulty,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFFF7A18),
+                      ),
+                    ),
+                  ),
+                  Slider(
+                    value: _kGrades.indexOf(_selectedDifficulty).toDouble(),
+                    min: 0,
+                    max: (_kGrades.length - 1).toDouble(),
+                    divisions: _kGrades.length - 1,
+                    activeColor: const Color(0xFFFF7A18),
+                    onChanged: (v) => setState(() => _selectedDifficulty = _kGrades[v.round()]),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("VB", style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                        Text("V12", style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── Result selector ───────────────────────────────────────
+                  const SectionLabel("结果"),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: ClimbResult.values.map((r) {
+                      final selected = _result == r;
+                      return Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: OutlinedButton(
+                            onPressed: () => setState(() {
+                              _result = r;
+                              if (r == ClimbResult.flash) _attempts = 1;
+                            }),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: selected ? resultColor(r).withValues(alpha: 0.15) : null,
+                              side: BorderSide(
+                                color: selected ? resultColor(r) : Colors.grey.shade700,
+                                width: selected ? 2 : 1,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: Text(
+                              r.label,
+                              style: TextStyle(
+                                color: selected ? resultColor(r) : null,
+                                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── Attempts counter (hidden for Flash) ───────────────────
+                  if (_result != ClimbResult.flash) ...[
+                    const SectionLabel("尝试次数"),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: _attempts > 1 ? () => setState(() => _attempts--) : null,
+                          icon: const Icon(Icons.remove_circle_outline),
+                          iconSize: 28,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "$_attempts",
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: () => setState(() => _attempts++),
+                          icon: const Icon(Icons.add_circle_outline),
+                          iconSize: 28,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // ── Route name (optional) ──────────────────────────────────
+                  const SectionLabel("线路名（选填）"),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: _routeController,
                     decoration: const InputDecoration(
-                      labelText: "Route name",
-                      hintText: "Orange Arete",
+                      hintText: "留空表示未命名路线",
                     ),
                   ),
                   const SizedBox(height: 14),
-                  TextField(
-                    controller: _difficultyController,
-                    decoration: const InputDecoration(
-                      labelText: "Difficulty",
-                      hintText: "V5 / 6c",
-                    ),
-                  ),
-                  const SizedBox(height: 14),
+
+                  // ── Date picker ────────────────────────────────────────────
                   InkWell(
                     onTap: _pickDate,
                     borderRadius: BorderRadius.circular(20),
                     child: InputDecorator(
-                      decoration: const InputDecoration(labelText: "Date"),
+                      decoration: const InputDecoration(labelText: "日期"),
                       child: Text(formatShortDate(_selectedDate)),
                     ),
                   ),
                   const SizedBox(height: 14),
+
+                  // ── Venue ──────────────────────────────────────────────────
                   TextField(
                     controller: _venueController,
                     decoration: const InputDecoration(
-                      labelText: "Venue",
+                      labelText: "场馆",
                       hintText: "Campus Wall",
                     ),
                   ),
                   const SizedBox(height: 14),
-                  DropdownButtonFormField<ClimbStatus>(
-                    initialValue: _status,
-                    items: ClimbStatus.values
-                        .map(
-                          (status) => DropdownMenuItem<ClimbStatus>(
-                            value: status,
-                            child: Text(status.label),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (status) {
-                      if (status != null) {
-                        setState(() {
-                          _status = status;
-                        });
-                      }
-                    },
-                    decoration: const InputDecoration(labelText: "Status"),
-                  ),
-                  const SizedBox(height: 14),
+
+                  // ── Notes ──────────────────────────────────────────────────
                   TextField(
                     controller: _notesController,
-                    maxLines: 5,
+                    maxLines: 4,
                     decoration: const InputDecoration(
-                      labelText: "Notes",
-                      hintText: "How the session felt, attempts, beta, and next steps.",
+                      labelText: "备注（选填）",
+                      hintText: "动作心得、Beta、下次目标…",
                     ),
                   ),
+
                   if (_error.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Container(
@@ -903,7 +1074,7 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
                   ElevatedButton.icon(
                     onPressed: _isSaving ? null : _save,
                     icon: Icon(_isSaving ? Icons.hourglass_top_rounded : Icons.save_rounded),
-                    label: Text(_isSaving ? "Saving..." : (_isEditing ? "Update climb" : "Save climb")),
+                    label: Text(_isSaving ? "保存中..." : (_isEditing ? "更新记录" : "保存记录")),
                   ),
                 ],
               ),

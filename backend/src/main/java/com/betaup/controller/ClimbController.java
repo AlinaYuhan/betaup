@@ -2,9 +2,11 @@ package com.betaup.controller;
 
 import com.betaup.dto.climb.ClimbLogRequest;
 import com.betaup.dto.climb.ClimbLogResponse;
+import com.betaup.dto.climb.GradeStatDto;
 import com.betaup.dto.common.ApiResponse;
 import com.betaup.dto.common.PageQuery;
 import com.betaup.dto.common.PageResponse;
+import java.util.List;
 import com.betaup.service.ClimbService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -59,5 +61,10 @@ public class ClimbController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteClimb(@PathVariable Long id) {
         return ResponseEntity.ok(climbService.deleteClimbLog(id));
+    }
+
+    @GetMapping("/grade-stats")
+    public ResponseEntity<ApiResponse<List<GradeStatDto>>> getGradeStats() {
+        return ResponseEntity.ok(climbService.getGradeStats());
     }
 }

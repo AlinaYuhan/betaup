@@ -131,6 +131,48 @@ class ApiClient {
     await _send("DELETE", "/climbs/$id");
   }
 
+  Future<List<GradeStat>> fetchGradeStats() async {
+    final data = await _send("GET", "/climbs/grade-stats");
+    return (data as List<dynamic>)
+        .map((item) => GradeStat.fromJson(JsonMap.from(item as Map)))
+        .toList();
+  }
+
+  // ── Session API ────────────────────────────────────────────────────────
+
+  Future<ClimbSession> startSession(String venue) async {
+    final data = await _send("POST", "/sessions", body: {"venue": venue});
+    return ClimbSession.fromJson(JsonMap.from(data as Map));
+  }
+
+  /// Returns null when no active session exists.
+  Future<ClimbSession?> fetchActiveSession() async {
+    final data = await _send("GET", "/sessions/active");
+    if (data == null) return null;
+    return ClimbSession.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<SessionSummary> endSession(int sessionId) async {
+    final data = await _send("POST", "/sessions/$sessionId/end");
+    return SessionSummary.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<List<SessionSummary>> fetchSessions({int page = 0, int size = 10}) async {
+    final data = await _send(
+      "GET",
+      "/sessions",
+      queryParameters: {"page": page, "size": size},
+    );
+    if (data == null) return [];
+    final result = PageResult<SessionSummary>.fromJson(
+      JsonMap.from(data as Map),
+      SessionSummary.fromJson,
+    );
+    return result.items;
+  }
+
+  // ── Badge / Feedback ───────────────────────────────────────────────────
+
   Future<List<BadgeProgress>> fetchBadgeProgress() async {
     final data = await _send("GET", "/badges/progress");
     return (data as List<dynamic>)

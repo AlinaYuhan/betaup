@@ -2,9 +2,11 @@ package com.betaup.service;
 
 import com.betaup.dto.climb.ClimbLogRequest;
 import com.betaup.dto.climb.ClimbLogResponse;
+import com.betaup.dto.climb.GradeStatDto;
 import com.betaup.dto.common.ApiResponse;
 import com.betaup.dto.common.PageQuery;
 import com.betaup.dto.common.PageResponse;
+import java.util.List;
 
 public interface ClimbService {
 
@@ -19,4 +21,6 @@ public interface ClimbService {
     ApiResponse<ClimbLogResponse> updateClimbLog(Long climbLogId, ClimbLogRequest request);
 
     ApiResponse<Void> deleteClimbLog(Long climbLogId);
+
+    ApiResponse<List<GradeStatDto>> getGradeStats();
 }

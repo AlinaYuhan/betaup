@@ -1,7 +1,6 @@
 package com.betaup.dto.climb;
 
-import com.betaup.entity.ClimbStatus;
-import jakarta.validation.constraints.NotBlank;
+import com.betaup.entity.ClimbResult;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
@@ -16,23 +15,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ClimbLogRequest {
 
-    @NotBlank
     @Size(max = 160)
     private String routeName;
 
-    @NotBlank
     @Size(max = 64)
     private String difficulty;
 
     @NotNull
     private LocalDate date;
 
-    @NotBlank
     @Size(max = 120)
     private String venue;
 
-    @NotNull
-    private ClimbStatus status;
+    private ClimbResult result;
+
+    private Integer attempts;
+
+    private Long sessionId;
 
     @Size(max = 1000)
     private String notes;

@@ -61,6 +61,25 @@ enum ClimbStatus {
   }
 }
 
+enum ClimbResult {
+  flash("FLASH", "⚡ Flash", "Flash"),
+  send("SEND", "✅ 完成", "Send"),
+  attempt("ATTEMPT", "💪 试了", "Attempt");
+
+  const ClimbResult(this.rawValue, this.label, this.shortLabel);
+
+  final String rawValue;
+  final String label;
+  final String shortLabel;
+
+  static ClimbResult fromRaw(String raw) {
+    return values.firstWhere(
+      (r) => r.rawValue == raw,
+      orElse: () => ClimbResult.send,
+    );
+  }
+}
+
 enum BadgeCriteriaType {
   totalLogs("TOTAL_LOGS", "Total logs"),
   completedClimbs("COMPLETED_CLIMBS", "Completed climbs"),
@@ -367,21 +386,26 @@ class ClimbLog {
     required this.date,
     required this.venue,
     required this.status,
+    required this.result,
+    required this.attempts,
     required this.notes,
     required this.createdAt,
   });
 
   final int id;
   final int userId;
-  final String routeName;
+  final String routeName; // may be empty string for unnamed routes
   final String difficulty;
   final DateTime? date;
   final String venue;
   final ClimbStatus status;
+  final ClimbResult result;
+  final int attempts;
   final String notes;
   final DateTime? createdAt;
 
   factory ClimbLog.fromJson(JsonMap json) {
+    final status = ClimbStatus.fromRaw(_asString(json["status"], "ATTEMPTED"));
     return ClimbLog(
       id: _asInt(json["id"]),
       userId: _asInt(json["userId"]),
@@ -389,11 +413,107 @@ class ClimbLog {
       difficulty: _asString(json["difficulty"]),
       date: _asDateTime(json["date"]),
       venue: _asString(json["venue"]),
-      status: ClimbStatus.fromRaw(_asString(json["status"], "ATTEMPTED")),
+      status: status,
+      result: json["result"] != null
+          ? ClimbResult.fromRaw(_asString(json["result"]))
+          : (status == ClimbStatus.completed ? ClimbResult.send : ClimbResult.attempt),
+      attempts: _asInt(json["attempts"], 1),
       notes: _asString(json["notes"]),
       createdAt: _asDateTime(json["createdAt"]),
     );
   }
+}
+
+class GradeStat {
+  const GradeStat({
+    required this.difficulty,
+    required this.total,
+    required this.sends,
+    required this.flashes,
+  });
+
+  final String difficulty;
+  final int total;
+  final int sends;
+  final int flashes;
+
+  factory GradeStat.fromJson(JsonMap json) => GradeStat(
+        difficulty: _asString(json["difficulty"]),
+        total: _asInt(json["total"]),
+        sends: _asInt(json["sends"]),
+        flashes: _asInt(json["flashes"]),
+      );
+}
+
+class ClimbSession {
+  const ClimbSession({
+    required this.id,
+    required this.userId,
+    required this.venue,
+    required this.startTime,
+    this.endTime,
+    required this.active,
+  });
+
+  final int id;
+  final int userId;
+  final String venue;
+  final DateTime startTime;
+  final DateTime? endTime;
+  final bool active;
+
+  factory ClimbSession.fromJson(JsonMap json) => ClimbSession(
+        id: _asInt(json["id"]),
+        userId: _asInt(json["userId"]),
+        venue: _asString(json["venue"]),
+        startTime: _asDateTime(json["startTime"]) ?? DateTime.now(),
+        endTime: _asDateTime(json["endTime"]),
+        active: json["active"] == true,
+      );
+}
+
+class SessionSummary {
+  const SessionSummary({
+    required this.sessionId,
+    required this.venue,
+    required this.startTime,
+    this.endTime,
+    required this.durationMinutes,
+    required this.totalLogs,
+    required this.flashes,
+    required this.sends,
+    required this.attempts,
+    this.hardestSend,
+    required this.gradeSummary,
+  });
+
+  final int sessionId;
+  final String venue;
+  final DateTime startTime;
+  final DateTime? endTime;
+  final int durationMinutes;
+  final int totalLogs;
+  final int flashes;
+  final int sends;
+  final int attempts;
+  final String? hardestSend;
+  final List<GradeStat> gradeSummary;
+
+  factory SessionSummary.fromJson(JsonMap json) => SessionSummary(
+        sessionId: _asInt(json["sessionId"]),
+        venue: _asString(json["venue"]),
+        startTime: _asDateTime(json["startTime"]) ?? DateTime.now(),
+        endTime: _asDateTime(json["endTime"]),
+        durationMinutes: _asInt(json["durationMinutes"]),
+        totalLogs: _asInt(json["totalLogs"]),
+        flashes: _asInt(json["flashes"]),
+        sends: _asInt(json["sends"]),
+        attempts: _asInt(json["attempts"]),
+        hardestSend: json["hardestSend"] as String?,
+        gradeSummary: (json["gradeSummary"] as List<dynamic>? ?? [])
+            .map((e) => GradeStat.fromJson(JsonMap.from(e as Map)))
+            .toList(),
+      );
 }
 
 class BadgeProgress {

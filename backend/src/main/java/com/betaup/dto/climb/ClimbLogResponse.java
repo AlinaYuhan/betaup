@@ -1,5 +1,6 @@
 package com.betaup.dto.climb;
 
+import com.betaup.entity.ClimbResult;
 import com.betaup.entity.ClimbStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,7 +21,10 @@ public class ClimbLogResponse {
     private String difficulty;
     private LocalDate date;
     private String venue;
+    private Long sessionId;
     private ClimbStatus status;
+    private ClimbResult result;
+    private int attempts;
     private String notes;
     private LocalDateTime createdAt;
 }

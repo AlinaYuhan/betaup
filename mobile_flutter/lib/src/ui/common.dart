@@ -640,6 +640,17 @@ Color statusColor(ClimbStatus status) {
   }
 }
 
+Color resultColor(ClimbResult result) {
+  switch (result) {
+    case ClimbResult.flash:
+      return const Color(0xFFFFD700); // gold
+    case ClimbResult.send:
+      return const Color(0xFF5ED9A6); // green
+    case ClimbResult.attempt:
+      return const Color(0xFFFFB26D); // orange
+  }
+}
+
 List<String> sortParts(String value, String fallback) {
   final parts = value.split(":");
   if (parts.length == 2 && parts.first.isNotEmpty && parts.last.isNotEmpty) {
