@@ -18,6 +18,7 @@ public class BadgeProgressDto {
     private String name;
     private String description;
     private BadgeCriteriaType criteriaType;
+    private String category;
     private Integer threshold;
     private Integer currentValue;
     private boolean earned;

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../data/models.dart';
 import '../session/app_session.dart';
 import 'climber_pages.dart';
+import 'common.dart';
 import 'session_page.dart';
 
 // ── Main tab shell ──────────────────────────────────────────────────────────
@@ -361,10 +362,10 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
         .where((s) =>
             s.startTime.year == now.year && s.startTime.month == now.month)
         .toList();
-    final totalMinutes =
-        monthSessions.fold(0, (sum, s) => sum + s.durationMinutes);
-    final totalHours = totalMinutes ~/ 60;
-    final totalMins = totalMinutes % 60;
+    final totalDuration = monthSessions.fold(Duration.zero, (sum, s) {
+      if (s.endTime != null) return sum + s.endTime!.difference(s.startTime);
+      return sum + Duration(minutes: s.durationMinutes);
+    });
 
     return RefreshIndicator(
       color: const Color(0xFFFF7A18),
@@ -375,7 +376,7 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
         padding: EdgeInsets.zero,
         children: [
           // ── Month stats ──────────────────────────────────────────────
-          _buildStatsStrip(monthSessions.length, totalHours, totalMins),
+          _buildStatsStrip(monthSessions.length, totalDuration),
 
           // ── GPS card ─────────────────────────────────────────────────
           _buildGpsCard(),
@@ -436,12 +437,8 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
     );
   }
 
-  Widget _buildStatsStrip(int count, int hours, int mins) {
-    final durationStr = count == 0
-        ? "—"
-        : hours > 0
-            ? "${hours}h ${mins}min"
-            : "${mins}min";
+  Widget _buildStatsStrip(int count, Duration total) {
+    final durationStr = count == 0 ? "—" : formatDuration(total);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
@@ -671,9 +668,10 @@ class _SessionCard extends StatelessWidget {
     final venue =
         summary.venue.isNotEmpty ? summary.venue : "未知场馆";
     final dateStr = DateFormat("M月d日 HH:mm").format(summary.startTime);
-    final h = summary.durationMinutes ~/ 60;
-    final m = summary.durationMinutes % 60;
-    final durationStr = h > 0 ? "${h}h ${m}min" : "${m}min";
+    final sessionDuration = summary.endTime != null
+        ? summary.endTime!.difference(summary.startTime)
+        : Duration(minutes: summary.durationMinutes);
+    final durationStr = formatDuration(sessionDuration);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),

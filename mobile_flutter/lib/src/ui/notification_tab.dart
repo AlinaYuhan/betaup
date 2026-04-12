@@ -12,13 +12,15 @@ class NotificationTab extends StatefulWidget {
   final VoidCallback? onRead;
 
   @override
-  State<NotificationTab> createState() => _NotificationTabState();
+  State<NotificationTab> createState() => NotificationTabState();
 }
 
-class _NotificationTabState extends State<NotificationTab> {
+class NotificationTabState extends State<NotificationTab> {
   List<AppNotification> _items = [];
   bool _loading = true;
   bool _loaded = false;
+
+  Future<void> reload() => _load();
 
   @override
   void didChangeDependencies() {
@@ -88,6 +90,8 @@ class _NotificationTabState extends State<NotificationTab> {
   void _onTap(AppNotification item) {
     if (item.type == "FOLLOW") {
       _openFollowerList();
+    } else if (item.type == "BADGE") {
+      // Badge notifications are informational — nothing to navigate to
     } else {
       // LIKE or COMMENT — referenceId is the postId
       _openPost(item.referenceId);
@@ -163,13 +167,21 @@ class _NotificationTile extends StatelessWidget {
       case "LIKE":
         icon = Icons.favorite;
         iconColor = Colors.red;
+      case "BADGE":
+        icon = Icons.military_tech;
+        iconColor = const Color(0xFFFFD700);
       default:
         icon = Icons.chat_bubble;
         iconColor = Colors.orange;
     }
 
+    final isBadge = item.type == "BADGE";
     return ListTile(
-      tileColor: item.isRead ? null : Colors.orange.withAlpha(15),
+      tileColor: isBadge
+          ? const Color(0xFFFFD700).withAlpha(18)
+          : item.isRead
+              ? null
+              : Colors.orange.withAlpha(15),
       leading: CircleAvatar(
         backgroundColor: iconColor.withAlpha(30),
         child: Icon(icon, color: iconColor, size: 20),
@@ -185,8 +197,10 @@ class _NotificationTile extends StatelessWidget {
               .textTheme
               .labelSmall
               ?.copyWith(color: Colors.grey)),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
-      onTap: onTap,
+      trailing: isBadge
+          ? null
+          : const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
+      onTap: isBadge ? null : onTap,
     );
   }
 }

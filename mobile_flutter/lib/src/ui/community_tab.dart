@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../data/api_client.dart';
 import '../data/models.dart';
 import '../session/app_session.dart';
+import 'common.dart';
 import 'user_profile_sheet.dart';
 
 class CommunityTab extends StatefulWidget {
@@ -394,7 +395,12 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
       debugPrint("[POST] calling createPost...");
       final post = await widget.client.createPost(content: content, type: _type);
       debugPrint("[POST] created successfully: id=${post.id}");
-      if (mounted) Navigator.of(context).pop(true);
+      if (!mounted) return;
+      if (post.newlyUnlockedBadges.isNotEmpty) {
+        await showBadgeUnlockDialog(context, post.newlyUnlockedBadges);
+        if (!mounted) return;
+      }
+      Navigator.of(context).pop(true);
     } catch (e) {
       debugPrint("[POST] createPost error: $e");
       if (mounted) {

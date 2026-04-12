@@ -55,6 +55,11 @@ public class Badge {
     @Column(nullable = false, length = 40)
     private BadgeCriteriaType criteriaType;
 
+    /** LEVEL | CHALLENGE | VENUE | SOCIAL — used for tab grouping in the UI. */
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private String category = "CHALLENGE";
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

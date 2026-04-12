@@ -1,6 +1,7 @@
 package com.betaup.repository;
 
 import com.betaup.entity.ClimbLog;
+import com.betaup.entity.ClimbResult;
 import com.betaup.entity.ClimbStatus;
 import com.betaup.repository.projection.UserCountProjection;
 import java.time.LocalDate;
@@ -42,6 +43,8 @@ public interface ClimbLogRepository extends JpaRepository<ClimbLog, Long> {
     long countByUserId(Long userId);
 
     long countByUserIdAndStatus(Long userId, ClimbStatus status);
+
+    long countByUserIdAndResult(Long userId, ClimbResult result);
 
     @EntityGraph(attributePaths = "user")
     @Query("""

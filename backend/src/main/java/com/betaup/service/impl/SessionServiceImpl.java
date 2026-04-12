@@ -1,5 +1,6 @@
 package com.betaup.service.impl;
 
+import com.betaup.dto.badge.BadgeProgressDto;
 import com.betaup.dto.climb.GradeStatDto;
 import com.betaup.dto.common.ApiResponse;
 import com.betaup.dto.common.PageResponse;
@@ -16,6 +17,7 @@ import com.betaup.exception.ResourceNotFoundException;
 import com.betaup.repository.ClimbLogRepository;
 import com.betaup.repository.ClimbSessionRepository;
 import com.betaup.security.service.CurrentUserService;
+import com.betaup.service.BadgeAutomationService;
 import com.betaup.service.SessionService;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -36,6 +38,7 @@ public class SessionServiceImpl implements SessionService {
     private final ClimbSessionRepository sessionRepository;
     private final ClimbLogRepository climbLogRepository;
     private final CurrentUserService currentUserService;
+    private final BadgeAutomationService badgeAutomationService;
 
     @Override
     @Transactional
@@ -73,7 +76,9 @@ public class SessionServiceImpl implements SessionService {
         session.setEndTime(LocalDateTime.now());
         sessionRepository.save(session);
 
+        List<BadgeProgressDto> newBadges = badgeAutomationService.evaluateUserBadges(user);
         SessionSummaryDto summary = buildSummary(session, user.getId());
+        summary.setNewlyUnlockedBadges(newBadges.isEmpty() ? null : newBadges);
         return ApiResponse.success("Session ended.", summary);
     }
 

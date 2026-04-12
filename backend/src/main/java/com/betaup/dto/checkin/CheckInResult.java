@@ -1,5 +1,6 @@
 package com.betaup.dto.checkin;
 
+import com.betaup.dto.badge.BadgeProgressDto;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -13,5 +14,5 @@ public class CheckInResult {
     private String gymName;
     private boolean gpsVerified;
     private LocalDateTime checkedAt;
-    private List<String> newBadgeKeys;  // badges unlocked by this check-in
+    private List<BadgeProgressDto> newlyUnlockedBadges;
 }

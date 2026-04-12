@@ -93,9 +93,10 @@ public class ClimbServiceImpl implements ClimbService {
         ClimbLog climbLog = climbLogRepository.save(
             Objects.requireNonNull(climbLogToCreate, "climb log must not be null")
         );
-        badgeAutomationService.evaluateUserBadges(user);
-
-        return ApiResponse.success("Climb log created.", toResponse(climbLog));
+        var newBadges = badgeAutomationService.evaluateUserBadges(user);
+        ClimbLogResponse response = toResponse(climbLog);
+        response.setNewlyUnlockedBadges(newBadges.isEmpty() ? null : newBadges);
+        return ApiResponse.success("Climb log created.", response);
     }
 
     @Override

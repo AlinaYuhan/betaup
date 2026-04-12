@@ -1,9 +1,11 @@
 package com.betaup.dto.climb;
 
+import com.betaup.dto.badge.BadgeProgressDto;
 import com.betaup.entity.ClimbResult;
 import com.betaup.entity.ClimbStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,4 +29,5 @@ public class ClimbLogResponse {
     private int attempts;
     private String notes;
     private LocalDateTime createdAt;
+    private List<BadgeProgressDto> newlyUnlockedBadges;
 }

@@ -98,9 +98,8 @@ class _ClimberShellState extends State<ClimberShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          setState(() => _currentIndex = index);
+          if (index == 2) _badgesKey.currentState?.reload();
         },
         destinations: const [
           NavigationDestination(
@@ -890,10 +889,15 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
       final api = SessionScope.of(context).api;
       if (_isEditing) {
         await api.updateClimb(widget.existingId!, payload);
+        if (!mounted) return;
       } else {
-        await api.createClimb(payload);
+        final log = await api.createClimb(payload);
+        if (!mounted) return;
+        if (log.newlyUnlockedBadges.isNotEmpty) {
+          await showBadgeUnlockDialog(context, log.newlyUnlockedBadges);
+          if (!mounted) return;
+        }
       }
-      if (!mounted) return;
       Navigator.of(context).pop(true);
     } on ApiException catch (error) {
       if (!mounted) return;
@@ -1085,6 +1089,8 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
   }
 }
 
+// ── Badge Progress Tab ────────────────────────────────────────────────────────
+
 class BadgeProgressTab extends StatefulWidget {
   const BadgeProgressTab({super.key});
 
@@ -1092,162 +1098,243 @@ class BadgeProgressTab extends StatefulWidget {
   State<BadgeProgressTab> createState() => BadgeProgressTabState();
 }
 
-class BadgeProgressTabState extends State<BadgeProgressTab> {
+class BadgeProgressTabState extends State<BadgeProgressTab>
+    with SingleTickerProviderStateMixin {
   List<BadgeProgress> _items = const [];
   bool _isLoading = true;
-  String _error = "";
+  bool _initialized = false;
+  late final TabController _tabCtrl;
+
+  static const _tabs = [
+    ("攀岩等级", "LEVEL"),
+    ("训练挑战", "CHALLENGE"),
+    ("探险打卡", "VENUE"),
+    ("社交", "SOCIAL"),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadProgress();
+    _tabCtrl = TabController(length: _tabs.length, vsync: this);
   }
 
-  Future<void> reload() => _loadProgress();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      _load();
+    }
+  }
 
-  Future<void> _loadProgress() async {
-    setState(() {
-      _isLoading = true;
-      _error = "";
-    });
+  @override
+  void dispose() {
+    _tabCtrl.dispose();
+    super.dispose();
+  }
 
+  Future<void> reload() => _load();
+
+  Future<void> _load() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
     try {
       final items = await SessionScope.of(context).api.fetchBadgeProgress();
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _items = items;
-      });
-    } on ApiException catch (error) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _error = error.message;
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() { _items = items; _isLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final earned = _items.where((item) => item.earned).toList();
-    final inProgress = _items.where((item) => !item.earned).toList();
+    return Column(
+      children: [
+        TabBar(
+          controller: _tabCtrl,
+          indicatorColor: const Color(0xFFFF7A18),
+          labelColor: const Color(0xFFFF7A18),
+          unselectedLabelColor: Colors.white38,
+          labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          tabs: _tabs.map((t) => Tab(text: t.$1)).toList(),
+        ),
+        Expanded(
+          child: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: Color(0xFFFF7A18)))
+              : TabBarView(
+                  controller: _tabCtrl,
+                  children: _tabs
+                      .map((t) => _BadgeCategoryGrid(
+                            items: _items
+                                .where((b) => b.category == t.$2)
+                                .toList(),
+                            onRefresh: _load,
+                          ))
+                      .toList(),
+                ),
+        ),
+      ],
+    );
+  }
+}
 
+// ── Badge Category Grid ───────────────────────────────────────────────────────
+
+class _BadgeCategoryGrid extends StatelessWidget {
+  const _BadgeCategoryGrid({required this.items, required this.onRefresh});
+  final List<BadgeProgress> items;
+  final Future<void> Function() onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(height: 80),
+            Center(
+              child: Text("暂无该类徽章",
+                  style: TextStyle(color: Colors.white38)),
+            ),
+          ],
+        ),
+      );
+    }
     return RefreshIndicator(
-      onRefresh: _loadProgress,
-      child: ListView(
+      onRefresh: onRefresh,
+      child: GridView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(bottom: 24),
-        children: [
-          if (_isLoading && _items.isEmpty) const LoaderCard(label: "Loading badges"),
-          if (_error.isNotEmpty && _items.isEmpty)
-            ErrorCard(message: _error, onRetry: _loadProgress),
-          if (!_isLoading && earned.isEmpty)
-            const EmptyCard(
-              title: "No earned badges yet",
-              message: "Keep logging climbs and receiving coach feedback to unlock milestones.",
-            ),
-          if (earned.isNotEmpty)
-            GlassCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SectionLabel("Earned badges"),
-                  const SizedBox(height: 14),
-                  ...earned.map((badge) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(badge.name, style: Theme.of(context).textTheme.titleMedium),
-                              ),
-                              StatusChip(label: badge.criteriaType.label, color: const Color(0xFF5ED9A6)),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Text(badge.description, style: Theme.of(context).textTheme.bodyLarge),
-                          const SizedBox(height: 10),
-                          Text(
-                            "Awarded ${formatReadableDateTime(badge.awardedAt)}",
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          GlassCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SectionLabel("In progress"),
-                const SizedBox(height: 14),
-                if (inProgress.isEmpty)
-                  const Text("Everything unlocked.")
-                else
-                  ...inProgress.map((badge) {
-                    final ratio = badge.threshold == 0
-                        ? 0.0
-                        : (badge.currentValue / badge.threshold).clamp(0.0, 1.0);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(badge.name, style: Theme.of(context).textTheme.titleMedium),
-                          const SizedBox(height: 4),
-                          Text(
-                            badge.description,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 10),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(999),
-                            child: LinearProgressIndicator(
-                              minHeight: 12,
-                              value: ratio,
-                              backgroundColor: Colors.white.withValues(alpha: 0.08),
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Color(0xFFFF7A18),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "${badge.criteriaType.label}: ${badge.currentValue}/${badge.threshold}",
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                if (_error.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  ErrorCard(message: _error, onRetry: _loadProgress),
-                ],
-              ],
+        padding: const EdgeInsets.all(20),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisSpacing: 20,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.72,
+        ),
+        itemCount: items.length,
+        itemBuilder: (_, i) => _BadgeTile(badge: items[i]),
+      ),
+    );
+  }
+}
+
+// ── Badge Tile ────────────────────────────────────────────────────────────────
+
+class _BadgeTile extends StatelessWidget {
+  const _BadgeTile({required this.badge});
+  final BadgeProgress badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = badge.threshold == 0
+        ? 1.0
+        : (badge.currentValue / badge.threshold).clamp(0.0, 1.0);
+    final color = badge.earned ? const Color(0xFFFF7A18) : Colors.white24;
+    final textColor = badge.earned ? Colors.white : Colors.white38;
+
+    return Column(
+      children: [
+        // Hex badge icon
+        _HexBadge(earned: badge.earned, label: _iconFor(badge.badgeKey)),
+        const SizedBox(height: 8),
+        Text(
+          badge.name,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+              color: textColor, fontSize: 11, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        if (!badge.earned) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 4,
+              backgroundColor: Colors.white12,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
-        ],
+          const SizedBox(height: 3),
+          Text(
+            "${badge.currentValue}/${badge.threshold}",
+            style: const TextStyle(color: Colors.white38, fontSize: 10),
+          ),
+        ] else
+          Text(
+            "已解锁 ✓",
+            style: const TextStyle(color: Color(0xFF5ED9A6), fontSize: 10),
+          ),
+      ],
+    );
+  }
+
+  String _iconFor(String key) {
+    if (key.contains("FLASH")) return "⚡";
+    if (key.contains("LEVEL") || key.contains("SEND")) return "🧗";
+    if (key.contains("CHECKIN") || key.contains("FIRST_CHECKIN")) return "📍";
+    if (key.contains("EXPLORER")) return "🗺";
+    if (key.contains("POST")) return "✍️";
+    if (key.contains("LIKED")) return "❤️";
+    if (key.contains("COMMENT")) return "💬";
+    if (key.contains("COACH")) return "🎓";
+    return "🏅";
+  }
+}
+
+// ── Hex Badge Shape ───────────────────────────────────────────────────────────
+
+class _HexBadge extends StatelessWidget {
+  const _HexBadge({required this.earned, required this.label});
+  final bool earned;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = earned
+        ? const LinearGradient(
+            colors: [Color(0xFFFF7A18), Color(0xFFFFD700)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : const LinearGradient(colors: [Color(0xFF2A3545), Color(0xFF1A2535)]);
+
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: earned
+          ? BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: bg,
+              boxShadow: [
+                BoxShadow(
+                    color: const Color(0xFFFF7A18).withValues(alpha: 0.4),
+                    blurRadius: 10,
+                    spreadRadius: 1),
+              ],
+            )
+          : BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: bg,
+              border: Border.all(color: Colors.white12, width: 1.5),
+            ),
+      child: Center(
+        child: earned
+            ? Text(label, style: const TextStyle(fontSize: 26))
+            : Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 22, color: Colors.white24)),
+                  const Icon(Icons.lock_rounded,
+                      size: 18, color: Colors.white24),
+                ],
+              ),
       ),
     );
   }

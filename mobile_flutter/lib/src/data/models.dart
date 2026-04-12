@@ -83,9 +83,13 @@ enum ClimbResult {
 enum BadgeCriteriaType {
   totalLogs("TOTAL_LOGS", "Total logs"),
   completedClimbs("COMPLETED_CLIMBS", "Completed climbs"),
+  flashClimbs("FLASH_CLIMBS", "Flash climbs"),
   feedbackReceived("FEEDBACK_RECEIVED", "Feedback received"),
   gymCheckins("GYM_CHECKINS", "Gym check-ins"),
-  uniqueGyms("UNIQUE_GYMS", "Unique gyms");
+  uniqueGyms("UNIQUE_GYMS", "Unique gyms"),
+  postsCreated("POSTS_CREATED", "Posts created"),
+  likesReceived("LIKES_RECEIVED", "Likes received"),
+  commentsMade("COMMENTS_MADE", "Comments made");
 
   const BadgeCriteriaType(this.rawValue, this.label);
 
@@ -390,6 +394,7 @@ class ClimbLog {
     required this.attempts,
     required this.notes,
     required this.createdAt,
+    this.newlyUnlockedBadges = const [],
   });
 
   final int id;
@@ -403,6 +408,7 @@ class ClimbLog {
   final int attempts;
   final String notes;
   final DateTime? createdAt;
+  final List<BadgeProgress> newlyUnlockedBadges;
 
   factory ClimbLog.fromJson(JsonMap json) {
     final status = ClimbStatus.fromRaw(_asString(json["status"], "ATTEMPTED"));
@@ -420,6 +426,9 @@ class ClimbLog {
       attempts: _asInt(json["attempts"], 1),
       notes: _asString(json["notes"]),
       createdAt: _asDateTime(json["createdAt"]),
+      newlyUnlockedBadges: (json["newlyUnlockedBadges"] as List<dynamic>? ?? [])
+          .map((e) => BadgeProgress.fromJson(JsonMap.from(e as Map)))
+          .toList(),
     );
   }
 }
@@ -485,6 +494,7 @@ class SessionSummary {
     required this.attempts,
     this.hardestSend,
     required this.gradeSummary,
+    this.newlyUnlockedBadges = const [],
   });
 
   final int sessionId;
@@ -498,6 +508,7 @@ class SessionSummary {
   final int attempts;
   final String? hardestSend;
   final List<GradeStat> gradeSummary;
+  final List<BadgeProgress> newlyUnlockedBadges;
 
   factory SessionSummary.fromJson(JsonMap json) => SessionSummary(
         sessionId: _asInt(json["sessionId"]),
@@ -513,6 +524,9 @@ class SessionSummary {
         gradeSummary: (json["gradeSummary"] as List<dynamic>? ?? [])
             .map((e) => GradeStat.fromJson(JsonMap.from(e as Map)))
             .toList(),
+        newlyUnlockedBadges: (json["newlyUnlockedBadges"] as List<dynamic>? ?? [])
+            .map((e) => BadgeProgress.fromJson(JsonMap.from(e as Map)))
+            .toList(),
       );
 }
 
@@ -523,6 +537,7 @@ class BadgeProgress {
     required this.name,
     required this.description,
     required this.criteriaType,
+    required this.category,
     required this.threshold,
     required this.currentValue,
     required this.earned,
@@ -534,6 +549,8 @@ class BadgeProgress {
   final String name;
   final String description;
   final BadgeCriteriaType criteriaType;
+  /// "LEVEL" | "CHALLENGE" | "VENUE" | "SOCIAL"
+  final String category;
   final int threshold;
   final int currentValue;
   final bool earned;
@@ -548,6 +565,7 @@ class BadgeProgress {
       criteriaType: BadgeCriteriaType.fromRaw(
         _asString(json["criteriaType"], "TOTAL_LOGS"),
       ),
+      category: _asString(json["category"], "CHALLENGE"),
       threshold: _asInt(json["threshold"]),
       currentValue: _asInt(json["currentValue"]),
       earned: json["earned"] == true,
@@ -782,7 +800,7 @@ class CheckInResult {
     required this.gymName,
     required this.gpsVerified,
     required this.checkedAt,
-    required this.newBadgeKeys,
+    this.newlyUnlockedBadges = const [],
   });
 
   final int? checkInId;
@@ -790,7 +808,7 @@ class CheckInResult {
   final String gymName;
   final bool gpsVerified;
   final DateTime? checkedAt;
-  final List<String> newBadgeKeys;
+  final List<BadgeProgress> newlyUnlockedBadges;
 
   factory CheckInResult.fromJson(JsonMap json) {
     return CheckInResult(
@@ -799,8 +817,8 @@ class CheckInResult {
       gymName: _asString(json["gymName"]),
       gpsVerified: json["gpsVerified"] == true,
       checkedAt: _asDateTime(json["checkedAt"]),
-      newBadgeKeys: (json["newBadgeKeys"] as List<dynamic>? ?? const [])
-          .map((k) => _asString(k))
+      newlyUnlockedBadges: (json["newlyUnlockedBadges"] as List<dynamic>? ?? [])
+          .map((e) => BadgeProgress.fromJson(JsonMap.from(e as Map)))
           .toList(),
     );
   }
@@ -854,6 +872,7 @@ class Post {
     required this.commentCount,
     required this.likedByMe,
     required this.createdAt,
+    this.newlyUnlockedBadges = const [],
   });
 
   final int id;
@@ -865,6 +884,7 @@ class Post {
   final int commentCount;
   final bool likedByMe;
   final DateTime? createdAt;
+  final List<BadgeProgress> newlyUnlockedBadges;
 
   factory Post.fromJson(JsonMap json) => Post(
         id: _asInt(json["id"]),
@@ -876,6 +896,9 @@ class Post {
         commentCount: _asInt(json["commentCount"]),
         likedByMe: json["likedByMe"] == true,
         createdAt: _asDateTime(json["createdAt"]),
+        newlyUnlockedBadges: (json["newlyUnlockedBadges"] as List<dynamic>? ?? [])
+            .map((e) => BadgeProgress.fromJson(e as JsonMap))
+            .toList(),
       );
 
   Post copyWith({int? likeCount, bool? likedByMe}) => Post(
@@ -888,6 +911,7 @@ class Post {
         commentCount: commentCount,
         likedByMe: likedByMe ?? this.likedByMe,
         createdAt: createdAt,
+        newlyUnlockedBadges: newlyUnlockedBadges,
       );
 }
 

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../data/models.dart';
 import '../session/app_session.dart';
 import 'climber_pages.dart';
+import 'common.dart';
 
 /// Full-screen training session page.
 /// Shown when user taps "开始训练".
@@ -66,6 +67,11 @@ class _SessionPageState extends State<SessionPage> {
       final api = SessionScope.of(context).api;
       final summary = await api.endSession(widget.session.id);
       if (!mounted) return;
+      // Show badge unlock dialog first (if any new badges)
+      if (summary.newlyUnlockedBadges.isNotEmpty) {
+        await showBadgeUnlockDialog(context, summary.newlyUnlockedBadges);
+        if (!mounted) return;
+      }
       // Show war report then pop
       await showModalBottomSheet(
         context: context,
@@ -76,7 +82,7 @@ class _SessionPageState extends State<SessionPage> {
         ),
         builder: (_) => _WarReportSheet(summary: summary),
       );
-      if (mounted) Navigator.of(context).pop(true); // pop with refresh signal
+      if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
         setState(() => _ending = false);

@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -651,10 +654,207 @@ Color resultColor(ClimbResult result) {
   }
 }
 
+/// Format a [Duration] for display.
+/// < 60s  → "Xs"   (e.g. "42秒")
+/// < 1h   → "X分Ys秒"
+/// ≥ 1h   → "Xh Y分"
+String formatDuration(Duration d) {
+  if (d.inSeconds <= 0) return "—";
+  final h = d.inHours;
+  final m = d.inMinutes.remainder(60);
+  final s = d.inSeconds.remainder(60);
+  if (h > 0) return "${h}h $m分";
+  if (d.inMinutes > 0) return "$m分$s秒";
+  return "${d.inSeconds}秒";
+}
+
 List<String> sortParts(String value, String fallback) {
   final parts = value.split(":");
   if (parts.length == 2 && parts.first.isNotEmpty && parts.last.isNotEmpty) {
     return parts;
   }
   return fallback.split(":");
+}
+
+// ── Badge unlock dialog ──────────────────────────────────────────────────────
+
+/// Show the badge-unlock celebration dialog.
+/// Safe to call when [badges] is empty — returns immediately.
+Future<void> showBadgeUnlockDialog(
+    BuildContext context, List<BadgeProgress> badges) {
+  if (badges.isEmpty) return Future.value();
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    builder: (_) => _BadgeUnlockDialog(badges: badges),
+  );
+}
+
+class _BadgeUnlockDialog extends StatefulWidget {
+  const _BadgeUnlockDialog({required this.badges});
+  final List<BadgeProgress> badges;
+
+  @override
+  State<_BadgeUnlockDialog> createState() => _BadgeUnlockDialogState();
+}
+
+class _BadgeUnlockDialogState extends State<_BadgeUnlockDialog> {
+  late final ConfettiController _confetti;
+
+  @override
+  void initState() {
+    super.initState();
+    _confetti = ConfettiController(duration: const Duration(seconds: 4));
+    _confetti.play();
+  }
+
+  @override
+  void dispose() {
+    _confetti.dispose();
+    super.dispose();
+  }
+
+  String _categoryEmoji(String category) => switch (category.toUpperCase()) {
+        "LEVEL" => "🧗",
+        "CHALLENGE" => "⚡",
+        "VENUE" => "📍",
+        "SOCIAL" => "💬",
+        _ => "🏅",
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        ConfettiWidget(
+          confettiController: _confetti,
+          blastDirection: pi / 2,
+          numberOfParticles: 30,
+          gravity: 0.35,
+          colors: const [
+            Color(0xFFFF7A18),
+            Color(0xFFFFD700),
+            Color(0xFF7BE0FF),
+            Color(0xFF5ED9A6),
+          ],
+        ),
+        AlertDialog(
+          backgroundColor: const Color(0xFF101A2C),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24)),
+          title: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("🎉", style: TextStyle(fontSize: 42)),
+              SizedBox(height: 8),
+              Text(
+                "解锁新徽章！",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFFFFD700),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: widget.badges
+                  .map((b) => _BadgeUnlockTile(
+                        badge: b,
+                        emoji: _categoryEmoji(b.category),
+                      ))
+                  .toList(),
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF7A18),
+                foregroundColor: Colors.white,
+                shape: const StadiumBorder(),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 36, vertical: 12),
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("太棒了！",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _BadgeUnlockTile extends StatelessWidget {
+  const _BadgeUnlockTile({required this.badge, required this.emoji});
+  final BadgeProgress badge;
+  final String emoji;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFD700).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: const Color(0xFFFFD700).withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const RadialGradient(
+                colors: [Color(0xFFFFD700), Color(0xFFFF7A18)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.40),
+                  blurRadius: 12,
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(emoji,
+                  style: const TextStyle(fontSize: 22)),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  badge.name,
+                  style: const TextStyle(
+                    color: Color(0xFFFFD700),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                if (badge.description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    badge.description,
+                    style: const TextStyle(
+                        color: Color(0xFFB0C4DE), fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

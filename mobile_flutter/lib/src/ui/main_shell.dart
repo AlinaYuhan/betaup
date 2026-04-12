@@ -7,6 +7,7 @@ import 'notification_tab.dart';
 import 'profile_tab.dart';
 import 'record_tab.dart';
 
+
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -17,6 +18,8 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   int _unreadCount = 0;
+  final _notifKey = GlobalKey<NotificationTabState>();
+  final _profileKey = GlobalKey<ProfileTabState>();
 
   @override
   void didChangeDependencies() {
@@ -65,8 +68,8 @@ class _MainShellState extends State<MainShell> {
       const ExploreTab(),
       const RecordTab(),
       const CommunityTab(),
-      NotificationTab(onRead: _refreshUnreadCount),
-      ProfileTab(user: user, onLogout: _logout),
+      NotificationTab(key: _notifKey, onRead: _refreshUnreadCount),
+      ProfileTab(key: _profileKey, user: user, onLogout: _logout),
     ];
 
     Widget notifIcon(IconData icon) {
@@ -86,8 +89,13 @@ class _MainShellState extends State<MainShell> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() => _currentIndex = index);
-          // Clear badge when entering notification tab
-          if (index == 3) setState(() => _unreadCount = 0);
+          if (index == 3) {
+            _unreadCount = 0;
+            _notifKey.currentState?.reload();
+          } else {
+            _refreshUnreadCount();
+            if (index == 4) _profileKey.currentState?.reloadLeaderboard();
+          }
         },
         destinations: [
           const NavigationDestination(

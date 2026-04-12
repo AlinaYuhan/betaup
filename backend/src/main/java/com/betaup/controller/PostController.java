@@ -12,6 +12,7 @@ import com.betaup.repository.NotificationRepository;
 import com.betaup.repository.PostLikeRepository;
 import com.betaup.repository.PostRepository;
 import com.betaup.security.service.CurrentUserService;
+import com.betaup.service.BadgeAutomationService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class PostController {
     private final PostLikeRepository postLikeRepository;
     private final NotificationRepository notificationRepository;
     private final CurrentUserService currentUserService;
+    private final BadgeAutomationService badgeAutomationService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostDto>>> getPosts(
@@ -65,7 +67,12 @@ public class PostController {
             .type(request.getType() != null ? request.getType() : PostType.GENERAL)
             .build();
         Post saved = postRepository.save(post);
-        return ResponseEntity.ok(ApiResponse.success("Post created.", toDto(saved, user.getId())));
+        PostDto dto = toDto(saved, user.getId());
+        try {
+            var newBadges = badgeAutomationService.evaluateUserBadges(user);
+            dto.setNewlyUnlockedBadges(newBadges.isEmpty() ? null : newBadges);
+        } catch (Exception ignored) { /* badge eval must not fail the main operation */ }
+        return ResponseEntity.ok(ApiResponse.success("Post created.", dto));
     }
 
     @DeleteMapping("/{id}")
@@ -114,6 +121,9 @@ public class PostController {
                     .content(user.getName() + " 赞了你的动态")
                     .build());
             }
+            // Evaluate badges for post author (LIKES_RECEIVED)
+            try { badgeAutomationService.evaluateUserBadges(post.getUser()); }
+            catch (Exception ignored) { /* badge eval must not fail the main operation */ }
         }
         return ResponseEntity.ok(ApiResponse.success("Liked.", null));
     }

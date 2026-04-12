@@ -11,6 +11,7 @@ import com.betaup.repository.CommentRepository;
 import com.betaup.repository.NotificationRepository;
 import com.betaup.repository.PostRepository;
 import com.betaup.security.service.CurrentUserService;
+import com.betaup.service.BadgeAutomationService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class CommentController {
     private final PostRepository postRepository;
     private final NotificationRepository notificationRepository;
     private final CurrentUserService currentUserService;
+    private final BadgeAutomationService badgeAutomationService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CommentDto>>> getComments(@PathVariable Long postId) {
@@ -62,6 +64,8 @@ public class CommentController {
                 .content(user.getName() + " 评论了你的动态")
                 .build());
         }
+        try { badgeAutomationService.evaluateUserBadges(user); }
+        catch (Exception ignored) { /* badge eval must not fail the main operation */ }
         return ResponseEntity.ok(ApiResponse.success("Comment added.", toDto(comment)));
     }
 

@@ -6,7 +6,8 @@ import java.util.List;
 
 public interface BadgeAutomationService {
 
-    void evaluateUserBadges(User user);
+    /** Evaluates badges and returns newly unlocked ones. */
+    List<BadgeProgressDto> evaluateUserBadges(User user);
 
     List<BadgeProgressDto> getProgressForUser(User user);
 

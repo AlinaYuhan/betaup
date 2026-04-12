@@ -159,20 +159,12 @@ class _ExploreTabState extends State<ExploreTab> {
     );
   }
 
-  void _onBadgeUnlocked(List<String> badgeKeys) {
-    if (badgeKeys.isEmpty) {
-      return;
-    }
-
+  void _onBadgeUnlocked(List<BadgeProgress> badges) {
+    if (badges.isEmpty) return;
     _confettiController.play();
-    if (!mounted) {
-      return;
+    if (mounted) {
+      showBadgeUnlockDialog(context, badges);
     }
-
-    showAppSnackBar(
-      ScaffoldMessenger.of(context),
-      "Unlocked ${badgeKeys.length} new badge(s).",
-    );
   }
 
   List<Marker> _buildGymMarkers() {
@@ -477,7 +469,7 @@ class GymDetailSheet extends StatefulWidget {
   });
 
   final Gym gym;
-  final void Function(List<String> badgeKeys) onBadgeUnlocked;
+  final void Function(List<BadgeProgress> badges) onBadgeUnlocked;
 
   @override
   State<GymDetailSheet> createState() => _GymDetailSheetState();
@@ -514,7 +506,7 @@ class _GymDetailSheetState extends State<GymDetailSheet> {
       }
 
       Navigator.of(context).pop();
-      widget.onBadgeUnlocked(result.newBadgeKeys);
+      widget.onBadgeUnlocked(result.newlyUnlockedBadges);
 
       showAppSnackBar(
         ScaffoldMessenger.of(context),

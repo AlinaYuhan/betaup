@@ -1,5 +1,6 @@
 package com.betaup.dto.session;
 
+import com.betaup.dto.badge.BadgeProgressDto;
 import com.betaup.dto.climb.GradeStatDto;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,4 +25,5 @@ public class SessionSummaryDto {
     private int attempts;
     private String hardestSend; // highest V-grade that was sent/flashed
     private List<GradeStatDto> gradeSummary;
+    private List<BadgeProgressDto> newlyUnlockedBadges;
 }

@@ -12,11 +12,15 @@ class ProfileTab extends StatefulWidget {
   final VoidCallback onLogout;
 
   @override
-  State<ProfileTab> createState() => _ProfileTabState();
+  State<ProfileTab> createState() => ProfileTabState();
 }
 
-class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateMixin {
+class ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  int _leaderboardReloadKey = 0;
+
+  /// Called from MainShell when the user switches to this tab.
+  void reloadLeaderboard() => setState(() => _leaderboardReloadKey++);
 
   @override
   void initState() {
@@ -61,9 +65,13 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: const [
-                _LeaderboardView(type: "badges"),
-                _LeaderboardView(type: "checkins"),
+              children: [
+                _LeaderboardView(
+                    key: ValueKey("badges_$_leaderboardReloadKey"),
+                    type: "badges"),
+                _LeaderboardView(
+                    key: ValueKey("checkins_$_leaderboardReloadKey"),
+                    type: "checkins"),
               ],
             ),
           ),
@@ -253,7 +261,7 @@ class _StatChip extends StatelessWidget {
 }
 
 class _LeaderboardView extends StatefulWidget {
-  const _LeaderboardView({required this.type});
+  const _LeaderboardView({super.key, required this.type});
   final String type;
 
   @override
