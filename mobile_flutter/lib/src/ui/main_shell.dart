@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../data/models.dart';
 import '../session/app_session.dart';
+import '../voice/voice_overlay.dart';
+import '../voice/voice_service.dart';
+
 import 'admin_tab.dart';
 import 'community_tab.dart';
 import 'explore_tab.dart';
@@ -22,6 +25,7 @@ class _MainShellState extends State<MainShell> {
   int _unreadCount = 0;
   final _notifKey = GlobalKey<NotificationTabState>();
   final _profileKey = GlobalKey<ProfileTabState>();
+  VoiceService? _voiceService;
 
   static const _notifIndex = 3;
   static const _profileIndex = 4;
@@ -30,6 +34,14 @@ class _MainShellState extends State<MainShell> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _refreshUnreadCount();
+    // Init VoiceService once we have access to the session.
+    _voiceService ??= VoiceService(SessionScope.of(context));
+  }
+
+  @override
+  void dispose() {
+    _voiceService?.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshUnreadCount() async {
@@ -87,7 +99,7 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
-    return Scaffold(
+    final scaffold = Scaffold(
       body: IndexedStack(
         index: _currentIndex,
         children: pages,
@@ -138,6 +150,16 @@ class _MainShellState extends State<MainShell> {
             ),
         ],
       ),
+    );
+
+    // Wrap in a Stack so the draggable panda floats above everything,
+    // including the bottom navigation bar.
+    return Stack(
+      children: [
+        scaffold,
+        if (_voiceService != null)
+          VoiceAssistantOverlay(service: _voiceService!),
+      ],
     );
   }
 }
