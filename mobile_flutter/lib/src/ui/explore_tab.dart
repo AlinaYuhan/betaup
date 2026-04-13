@@ -13,6 +13,11 @@ const _defaultZoom = 4.2;
 const _gymZoom = 12.5;
 const _userZoom = 13.5;
 const _gpsFenceMeters = 500.0;
+const _mapTileSubdomains = ["1", "2", "3", "4"];
+const _mapTileUrlTemplate =
+    "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}";
+const _mapTileFallbackUrlTemplate =
+    "https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}";
 
 class ExploreTab extends StatefulWidget {
   const ExploreTab({super.key});
@@ -224,8 +229,9 @@ class _ExploreTabState extends State<ExploreTab> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    urlTemplate: _mapTileUrlTemplate,
+                    fallbackUrl: _mapTileFallbackUrlTemplate,
+                    subdomains: _mapTileSubdomains,
                     userAgentPackageName: "com.betaup.mobile",
                   ),
                   MarkerLayer(markers: _buildGymMarkers()),
@@ -260,7 +266,7 @@ class _ExploreTabState extends State<ExploreTab> {
                     showFlutterMapAttribution: false,
                     attributions: [
                       TextSourceAttribution(
-                        "OpenStreetMap contributors",
+                        "AutoNavi",
                       ),
                     ],
                   ),
@@ -381,7 +387,8 @@ class _ExploreTabState extends State<ExploreTab> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.06),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.06),
                                       borderRadius: BorderRadius.circular(999),
                                       border: Border.all(
                                         color: Colors.white.withValues(
@@ -496,10 +503,10 @@ class _GymDetailSheetState extends State<GymDetailSheet> {
       }
 
       final result = await SessionScope.of(context).api.checkIn(
-        gymId: widget.gym.id,
-        userLat: lat,
-        userLng: lng,
-      );
+            gymId: widget.gym.id,
+            userLat: lat,
+            userLng: lng,
+          );
 
       if (!mounted) {
         return;

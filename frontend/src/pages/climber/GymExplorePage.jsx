@@ -11,6 +11,10 @@ const ALL_CITIES_VALUE = "__ALL_CITIES__";
 const DEFAULT_MAP_CENTER = [35.8617, 104.1954];
 const DEFAULT_MAP_ZOOM = 4;
 const GPS_VERIFICATION_RADIUS_METERS = 500;
+const CHINA_TILE_URL =
+  "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}";
+const CHINA_TILE_SUBDOMAINS = ["1", "2", "3", "4"];
+const CHINA_TILE_ATTRIBUTION = "&copy; AutoNavi";
 
 function splitGymTypes(types) {
   return (types ?? "")
@@ -107,9 +111,10 @@ function GymMap({ gyms, selectedGym, onSelectGymId, userLocation }) {
       preferCanvas: true,
     }).setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer(CHINA_TILE_URL, {
       maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      subdomains: CHINA_TILE_SUBDOMAINS,
+      attribution: CHINA_TILE_ATTRIBUTION,
     }).addTo(map);
 
     L.control.zoom({ position: "topright" }).addTo(map);
