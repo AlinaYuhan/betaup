@@ -47,7 +47,7 @@ public class ClimbServiceImpl implements ClimbService {
 
     @Override
     public ApiResponse<PageResponse<ClimbLogResponse>> getClimbLogs(PageQuery pageQuery) {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
         Pageable pageable = PageableFactory.create(
             pageQuery,
             6,
@@ -68,7 +68,7 @@ public class ClimbServiceImpl implements ClimbService {
 
     @Override
     public ApiResponse<ClimbLogResponse> getClimbLog(Long climbLogId) {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
         Long requiredClimbLogId = Objects.requireNonNull(climbLogId, "climbLogId must not be null");
         return ApiResponse.success("Climb log loaded.", toResponse(findOwnedClimbLog(user, requiredClimbLogId)));
     }
@@ -76,7 +76,7 @@ public class ClimbServiceImpl implements ClimbService {
     @Override
     @Transactional
     public ApiResponse<ClimbLogResponse> createClimbLog(ClimbLogRequest request) {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
         ClimbResult result = request.getResult() != null ? request.getResult() : ClimbResult.SEND;
         ClimbLog climbLogToCreate = ClimbLog.builder()
             .user(user)
@@ -102,7 +102,7 @@ public class ClimbServiceImpl implements ClimbService {
     @Override
     @Transactional
     public ApiResponse<ClimbLogResponse> updateClimbLog(Long climbLogId, ClimbLogRequest request) {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
         Long requiredClimbLogId = Objects.requireNonNull(climbLogId, "climbLogId must not be null");
         ClimbLog climbLog = findOwnedClimbLog(user, requiredClimbLogId);
         ClimbResult result = request.getResult() != null ? request.getResult() : ClimbResult.SEND;
@@ -123,7 +123,7 @@ public class ClimbServiceImpl implements ClimbService {
     @Override
     @Transactional
     public ApiResponse<Void> deleteClimbLog(Long climbLogId) {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
         Long requiredClimbLogId = Objects.requireNonNull(climbLogId, "climbLogId must not be null");
         ClimbLog climbLog = findOwnedClimbLog(user, requiredClimbLogId);
         if (feedbackRepository.countByClimbLogId(requiredClimbLogId) > 0) {
@@ -136,7 +136,7 @@ public class ClimbServiceImpl implements ClimbService {
 
     @Override
     public ApiResponse<List<GradeStatDto>> getGradeStats() {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
         List<ClimbLog> logs = climbLogRepository.findByUserIdOrderByDateDescCreatedAtDesc(user.getId());
 
         Map<String, List<ClimbLog>> byGrade = logs.stream()

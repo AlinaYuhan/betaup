@@ -43,7 +43,7 @@ public class SessionServiceImpl implements SessionService {
     @Override
     @Transactional
     public ApiResponse<SessionDto> startSession(SessionStartRequest request) {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
 
         // End any lingering active session first
         sessionRepository.findByUserIdAndEndTimeIsNull(user.getId())
@@ -60,7 +60,7 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public ApiResponse<SessionDto> getActiveSession() {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
         return sessionRepository.findByUserIdAndEndTimeIsNull(user.getId())
             .map(s -> ApiResponse.success("Active session found.", toDto(s)))
             .orElse(ApiResponse.success("No active session.", null));
@@ -69,7 +69,7 @@ public class SessionServiceImpl implements SessionService {
     @Override
     @Transactional
     public ApiResponse<SessionSummaryDto> endSession(Long sessionId) {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
         ClimbSession session = sessionRepository.findByIdAndUserId(sessionId, user.getId())
             .orElseThrow(() -> new ResourceNotFoundException("Session not found."));
 
@@ -84,7 +84,7 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public ApiResponse<PageResponse<SessionSummaryDto>> getUserSessions(int page, int size) {
-        User user = currentUserService.requireRole(UserRole.CLIMBER);
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
         var pageable = PageRequest.of(page, size);
         var sessionPage = sessionRepository
             .findByUserIdAndEndTimeIsNotNullOrderByStartTimeDesc(user.getId(), pageable);

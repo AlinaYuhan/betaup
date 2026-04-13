@@ -36,4 +36,19 @@ public class CurrentUserService {
         }
         return user;
     }
+
+    /**
+     * Accepts any of the given roles. Use this when multiple roles share the
+     * same capability (e.g. CLIMBER and COACH can both log climbs).
+     */
+    public User requireAnyRole(UserRole... roles) {
+        User user = getCurrentUser();
+        for (UserRole role : roles) {
+            if (user.getRole() == role) return user;
+        }
+        String allowed = java.util.Arrays.stream(roles)
+            .map(UserRole::name)
+            .collect(java.util.stream.Collectors.joining(", "));
+        throw new AccessDeniedException("This operation requires one of: " + allowed);
+    }
 }
