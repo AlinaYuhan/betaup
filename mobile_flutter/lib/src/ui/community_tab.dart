@@ -299,9 +299,17 @@ class _PostCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(post.authorName,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
+                        Row(
+                          children: [
+                            Text(post.authorName,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                            if (post.authorIsCoach) ...[
+                              const SizedBox(width: 6),
+                              const CoachChip(),
+                            ],
+                          ],
+                        ),
                         Text(timeStr,
                             style: Theme.of(context)
                                 .textTheme
@@ -671,10 +679,18 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                         fontSize: isReply ? 11 : 14),
                                   ),
                                 ),
-                                title: Text(c.authorName,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: isReply ? 12 : 13)),
+                                title: Row(
+                                  children: [
+                                    Text(c.authorName,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: isReply ? 12 : 13)),
+                                    if (c.authorIsCoach) ...[
+                                      const SizedBox(width: 5),
+                                      const CoachChip(),
+                                    ],
+                                  ],
+                                ),
                                 subtitle: Text(c.content),
                               ),
                             ),

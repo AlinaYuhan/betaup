@@ -604,6 +604,32 @@ class _GlowOrb extends StatelessWidget {
   }
 }
 
+/// A small inline badge shown next to certified coach names.
+class CoachChip extends StatelessWidget {
+  const CoachChip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.deepOrange.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.deepOrange.withValues(alpha: 0.45)),
+      ),
+      child: const Text(
+        "教练",
+        style: TextStyle(
+          color: Colors.deepOrange,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          height: 1.3,
+        ),
+      ),
+    );
+  }
+}
+
 void showAppSnackBar(ScaffoldMessengerState messenger, String message) {
   messenger.showSnackBar(
     SnackBar(

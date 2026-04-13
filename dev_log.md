@@ -426,3 +426,223 @@ geolocator.getCurrentPosition()
 - **GPS 失败不阻断流程**：定位权限拒绝或超时时，卡片显示"定位不可用"，用户仍可手动输入场馆名开始训练。
 - **本月统计从前端计算**：直接对 `fetchSessions` 返回列表按月份过滤，避免新增专用统计接口。
 - **Tab 1 改名「训练」**：原「攀爬日志」强调结果列表，新名强调行动入口，与大按钮设计意图一致。
+
+---
+
+## Phase 4 — 徽章系统升级（2026-04-12）
+
+### 功能目标
+- 徽章目录初始化（18 枚，四大类：等级/挑战/场馆/社交）
+- 自动化徽章判定引擎（`BadgeAutomationService`）
+- 解锁弹窗（confetti 彩带动画）
+- 通知 Tab 支持 BADGE 类型（金色样式）
+- 刷新数据时效：切换 Tab 时主动 reload 通知/徽章/排行榜
+
+### 新增/修改文件
+| 文件 | 说明 |
+|------|------|
+| `BadgeCatalogInitializer.java` | 应用启动时批量写入默认徽章（幂等） |
+| `BadgeAutomationServiceImpl.java` | `evaluateUserBadges` + `buildProgressByCriteria` |
+| `PostController.java` | `createPost` / `likePost` 后触发徽章判定 |
+| `CommentController.java` | `addComment` 后触发徽章判定 |
+| `PostDto.java` | 新增 `newlyUnlockedBadges` 字段，随 createPost 响应返回 |
+| `common.dart` | 新增 `showBadgeUnlockDialog` + `_BadgeUnlockDialog` + `formatDuration` |
+| `notification_tab.dart` | `NotificationTabState` 改为 public + `reload()` + BADGE 样式 |
+| `main_shell.dart` | GlobalKey 挂载 NotificationTab / ProfileTab，Tab 切换时 reload |
+| `profile_tab.dart` | `ProfileTabState` 改为 public + `reloadLeaderboard()` + `_leaderboardReloadKey` |
+| `climber_pages.dart` | `ClimbEditorPage._save()` 创建日志后弹徽章解锁窗 |
+| `session_page.dart` | `_endSession()` 结束训练后弹徽章解锁窗 |
+| `community_tab.dart` | `_submit()` 发帖后弹徽章解锁窗 |
+| `record_tab.dart` | `formatDuration` 接入，时长精确到秒 |
+
+### 遇到的问题与解决办法
+
+#### 19. H2 file-DB 不自动添加新列（category 找不到）
+**现象**：后端启动报 `Column "b1_0.category" not found`，迁移脚本未生效。  
+**原因**：H2 使用 file 模式时（`.mv.db` 文件），`ddl-auto: update` 对已有表不会可靠地新增列；旧数据文件的 schema 早于 `category` 字段被添加的时间点。  
+**解决**：删除 `.betaup-dev/betaup.mv.db` 和 `.trace.db`，重启后 Hibernate 重建所有表。  
+**经验**：H2 file-DB 的 `ddl-auto: update` 对已有非空表新增列不可靠；开发期间遇到 schema 不同步，直接删文件重建是最快的解决方式（生产环境需用 Liquibase/Flyway）。
+
+---
+
+#### 20. 端口 8080 冲突（后台进程未退出）
+**现象**：`mvn spring-boot:run` 报 `Web server failed to start. Port 8080 was already in use`。  
+**原因**：之前在后台启动的 Maven 进程仍在运行，用户再次手动启动产生冲突。  
+**解决**：`netstat -ano | findstr :8080` 找到占用进程的 PID（47916），`taskkill /PID 47916 /F` 杀掉后重新启动。
+
+---
+
+#### 21. 社交类徽章从未触发
+**现象**：在社区发帖或评论后，`FIRST_POST`、`COMMENT_10` 等徽章始终不解锁。  
+**原因**：`PostController` 和 `CommentController` 直接操作 Repository，没有调用 `BadgeAutomationService.evaluateUserBadges()`。  
+**解决**：两个 Controller 注入 `BadgeAutomationService`，在 `createPost`、`likePost`（评估帖子作者的 `LIKES_RECEIVED`）、`addComment` 后各加一次徽章判定调用。
+
+```java
+try { badgeAutomationService.evaluateUserBadges(user); }
+catch (Exception ignored) { /* badge eval must not fail the main operation */ }
+```
+
+---
+
+#### 22. 徽章判定抛异常导致 API 返回 500
+**现象**：帖子/评论已保存成功，但 API 返回 500。  
+**原因**：`evaluateUserBadges` 标注了 `@Transactional`；当帖子/评论的事务已提交后，徽章判定内部抛出异常，Spring 事务拦截器将异常向上传播，Controller 没有处理导致 500。  
+**解决**：在所有调用 `evaluateUserBadges` 的 Controller 方法里用 `try-catch(Exception ignored)` 包裹，确保徽章判定失败不影响主流程。
+
+---
+
+#### 23. IndexedStack 缓存导致数据过时
+**现象**：切换到通知 Tab 后，新徽章通知不出现，红点在登录后也不消失；排行榜徽章数需要手动下拉刷新。  
+**原因**：`IndexedStack` 会保持所有 Tab 的 Widget 状态；`_loaded`/`_initialized` 布尔守卫让数据只加载一次，切回 Tab 时不会重新请求。  
+**解决**：
+1. 通知 Tab、Profile Tab 的 State 类改为 **public**，暴露 `reload()` 和 `reloadLeaderboard()` 方法。
+2. `MainShell` 中用 `GlobalKey` 持有这两个 Tab 的 State 引用。
+3. `onDestinationSelected` 切换到通知 Tab 时调用 `_notifKey.currentState?.reload()`；切换到 Profile Tab 时调用 `_profileKey.currentState?.reloadLeaderboard()`。
+4. 排行榜用 `ValueKey("badges_$_leaderboardReloadKey")` 强制 Widget 在 key 变化时完全重建。
+
+```dart
+// main_shell.dart — Tab 切换时主动刷新
+case 3: // 通知
+  setState(() => _unreadCount = 0);
+  _notifKey.currentState?.reload();
+case 4: // 我的
+  _profileKey.currentState?.reloadLeaderboard();
+```
+
+---
+
+#### 24. GlobalKey 无法引用私有 State 类
+**现象**：`GlobalKey<_ProfileTabState>` 编译报错，`_ProfileTabState` 在 `profile_tab.dart` 之外不可见。  
+**解决**：将 `_ProfileTabState` → `ProfileTabState`（去掉下划线改为 public），`createState()` 同步更新，同样操作用于 `NotificationTabState`。  
+**经验**：需要从外部持有 GlobalKey 并调用 State 方法的类，State 类必须是 public 的。
+
+---
+
+#### 25. `_LeaderboardView` 缺少 `super.key`
+**现象**：改为 `const _LeaderboardView({required this.type})` 后，IDE 报 `The parameter 'key' is required`。  
+**解决**：改为 `const _LeaderboardView({super.key, required this.type})`，const 构造函数必须通过 `super.key` 传递 key 参数。
+
+---
+
+#### 26. `_buildStatsStrip` 签名修改后调用处未同步
+**现象**：修改了 `_buildStatsStrip(int count, Duration total)` 的签名（原为三参数），编译报参数数量不匹配。  
+**解决**：搜索所有调用处，一并更新为新签名。改公共方法签名时需检查所有调用点。
+
+---
+
+#### 27. 字符串模板不必要的大括号（Linter 警告）
+**现象**：`"${h}h ${m}分"` 报 linter 警告 `Unnecessary use of curly braces`。  
+**原因**：`$h` 后跟字母 `h` 不会产生歧义（`h` 不是变量名的合法延续字符时，`$h` 安全），Flutter linter 建议去掉多余大括号。  
+**规则**：只有当变量后紧跟字母/数字可能造成歧义时才需要 `${}`，否则用 `$variable` 即可。
+
+---
+
+#### 28. `BadgeCatalogInitializer` N+1 查询
+**现象**：18 枚徽章初始化时，每枚徽章执行一次 `findByBadgeKey`，启动时发 18 条 SQL。  
+**解决**：改为先 `findAll()` 拿到所有已存在的 key 集合，再 `filter` 出缺失的批量 save，从 N 条查询降到 1 条。
+
+---
+
+#### 29. 时长最小单位需精确到秒
+**现象**：`formatDuration` 初版最小单位是 10 秒，用户明确要求最小单位 1 秒。  
+**解决**：`Duration` 直接用 `d.inSeconds`，不做 10 秒舍入。分钟以下统一显示 `"${d.inSeconds}秒"`。
+
+---
+
+### 设计决策记录
+- **`evaluateUserBadges` 包在 try-catch 里**：徽章是锦上添花，绝不能因为徽章判定失败让主操作（发帖/评论/记录）失败。与其在 Service 层处理所有异常，不如在调用处统一兜底。
+- **State 类改 public vs 用 callback 传递**：callback 方案需要在 Widget 树中层层传递函数引用，GlobalKey 方案更直接；对于这类跨 Shell 的"刷新"操作，GlobalKey 是 Flutter 官方推荐方式。
+- **排行榜用 ValueKey 强制重建**：排行榜是 StatefulWidget，setState 不会重新触发其 `initState`；改变 Key 后 Flutter 框架会销毁旧实例、创建新实例，从而触发重新加载。
+
+---
+
+## Phase 5 & 6 — 统计图表 + 教练认证（2026-04-13）
+
+### 功能目标
+- Phase 5：「进步」tab 新增统计图表页（攀岩频率 BarChart、难度分布横条、结果分类）
+- Phase 6：教练认证申请/审核全流程、CoachChip 标识、Admin 后台 tab
+
+---
+
+### 遇到的问题与解决办法
+
+#### 30. Spring Boot YAML 重复 key 导致启动失败
+**现象**：启动时报 `SnakeYAML: found duplicate key spring`，应用无法启动。  
+**原因**：`application.yml` 中存在两个顶级 `spring:` 块（新增 `servlet.multipart` 配置时未合并到原有 `spring:` 下）。  
+**解决**：将 `servlet.multipart` 设置合并到唯一的 `spring:` 块中。  
+**经验**：YAML 不允许同级重复 key，任何新增的 `spring.*` 配置必须写在同一个 `spring:` 块内。
+
+---
+
+#### 31. Multipart 上传字段名不匹配
+**现象**：上传教练认证图片时后端报 `Required part 'image' is not present`。  
+**原因**：Flutter 的 `http.MultipartRequest` 发送时字段名用的是 `"certificate"`，但后端 `@RequestParam("image")` 期望 `"image"`。  
+**解决**：将 `request.files.add(... "certificate" ...)` 改为 `"image"`，与后端保持一致。  
+**经验**：multipart 字段名是纯字符串约定，前后端必须完全一致，不会有编译期报错。
+
+---
+
+#### 32. H2 ENUM 列约束导致新增枚举值失败
+**现象**：为 `UserRole` 新增 `ADMIN` 枚举值后，启动时报 `Value 'ADMIN' is not in the list of allowed values` 或约束违反异常。  
+**原因**：H2 存储 ENUM 列时会记录允许值列表，`ddl-auto: update` 只能新增列/表，**无法修改已有列的约束**（如扩展 ENUM 可选值）。  
+**解决**：删除本地 H2 数据库文件（`~/.betaup-dev/betaup.mv.db` 和 `.trace.db`），让 Hibernate 从零重建 schema。  
+**经验**：H2 开发库改 ENUM 枚举值 → 直接删库重建；生产环境需写 migration SQL 手动 ALTER 列。
+
+---
+
+#### 33. `getPendingApplications()` 触发 LazyInitializationException
+**现象**：Admin 拉取待审核列表时后端报 `LazyInitializationException: could not initialize proxy`。  
+**原因**：`CoachCertification.user` 是 LAZY 关联，`getPendingApplications()` 方法没有加 `@Transactional`，在方法返回后 JPA Session 已关闭，stream 映射到 `cert.getUser()` 时无法再懒加载。  
+**配置背景**：`application.yml` 设置了 `open-in-view: false`，Session 严格在 Service 层关闭。  
+**解决**：在 `getPendingApplications()` 和 `getStatus()` 上加 `@Transactional(readOnly = true)`，保证方法执行期间 Session 不关闭。
+
+---
+
+#### 34. Admin Tab 静默吞掉异常导致显示空列表
+**现象**：Admin 看到"暂无待审核申请"，实际上后端已有数据，问题是请求失败（403/500）被忽略了。  
+**原因**：原 catch 块写的是 `catch (_) {}`，任何错误都被丢弃，UI 直接展示空列表状态。  
+**解决**：改为将错误存入 `_error` 状态，在 UI 中显示红色错误信息 + 重试按钮，便于排查问题。  
+**经验**：`catch (_) {}` 在调试阶段极其危险，至少应 `if (mounted) setState(() => _error = e.toString())`。
+
+---
+
+#### 35. 认证图片 URL 缺少 host 无法加载
+**现象**：Admin 审核页中教练认证图片显示为破碎图标（broken image）。  
+**原因**：后端返回相对路径 `/uploads/certificates/xxx.png`，`Image.network()` 需要完整 URL，而 `ApiClient.baseUrl` 是 `http://host/api`，直接拼接会变成 `http://host/api/uploads/...`（错误路径）。  
+**解决**：在 `AdminTabState.didChangeDependencies()` 中，将 `baseUrl` 的 `/api` 后缀去掉得到 `serverRoot`（`http://host`），再与图片相对路径拼接为完整 URL。
+
+```dart
+final base = SessionScope.of(context).api.baseUrl;
+_serverRoot = base.endsWith('/api') ? base.substring(0, base.length - 4) : base;
+// 使用：serverRoot + review.certificateImageUrl
+```
+
+---
+
+#### 36. 认证通过后 Session 未刷新，教练标识不出现
+**现象**：Admin 通过认证后，用户热重启 App，个人页仍无"教练"标识，认证申请区块也还在显示。  
+**原因（一）**：`UserProfile.fromJson` 中读取键名为 `"isCoachCertified"`，但 Java 中 `boolean isXxx` 字段经 Lombok/Jackson 处理后序列化 JSON key 会**去掉 `is` 前缀**，实际 key 是 `"coachCertified"`。读到 `null`，`isCoachCertified` 恒为 `false`。  
+**解决（一）**：改为同时接受两个 key：
+
+```dart
+isCoachCertified: json["coachCertified"] == true || json["isCoachCertified"] == true,
+```
+
+**原因（二）**：`_CertificationSection._load()` 拿到 API 返回 `isCoachCertified: true` 后，未通知 Session 刷新，父级 `ProfileTab` 持有的 `user` 对象仍是旧数据，导致 AppBar 和 `_CertificationSection` 的判断仍基于旧值。  
+**解决（二）**：在 `_load()` 中检测到服务端认证状态与本地 Session 不一致时，主动调用 `session.refreshUser()`，触发 `notifyListeners()` 驱动全局重建。
+
+```dart
+if (s.isCoachCertified && !widget.user.isCoachCertified) {
+  await session.refreshUser();
+}
+```
+
+**经验**：Java `boolean isXxx` → JSON key 是 `"xxx"`（去 is）；Flutter 端要用 `"xxx"` 而非 `"isXxx"`。
+
+---
+
+### 设计决策记录
+- **Admin 账号通过 `AdminAccountInitializer` 种子化**：实现 `ApplicationRunner`，加 `@Order(1)` 确保最先执行，用 `existsByEmailIgnoreCase` 保证幂等，不会重复插入。
+- **CoachChip 抽成独立 Widget**：教练标识在社区帖子、评论、排行榜、个人资料页、他人主页多处复用，统一封装为 `CoachChip`，样式改动只需修改一处。
+- **StatsTab 统计图表**：频率图用 `fl_chart` `BarChart`（渐变填充）；难度分布用 `Stack + FractionallySizedBox` 实现横向进度条，不依赖额外图表库，更轻量。
+- **`_CertificationSection` 隐藏逻辑**：先检查 `widget.user.isCoachCertified`（本地即时判断），再检查 `_status?.isCoachCertified`（API 数据），两者任一为 true 即隐藏，避免用户看到"一闪而过"的申请入口。

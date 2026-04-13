@@ -13,6 +13,7 @@ public class PostDto {
     private Long id;
     private Long authorId;
     private String authorName;
+    private boolean authorIsCoach;
     private String content;
     private PostType type;
     private int likeCount;

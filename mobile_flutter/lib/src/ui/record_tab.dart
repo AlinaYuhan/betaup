@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +23,7 @@ class RecordTab extends StatefulWidget {
 class _RecordTabState extends State<RecordTab>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  final _dashboardKey = GlobalKey<ClimberDashboardTabState>();
+  final _statsKey = GlobalKey<StatsTabState>();
   final _badgesKey = GlobalKey<BadgeProgressTabState>();
 
   @override
@@ -38,7 +39,7 @@ class _RecordTabState extends State<RecordTab>
   }
 
   void _refreshAll() {
-    _dashboardKey.currentState?.reload();
+    _statsKey.currentState?.reload();
     _badgesKey.currentState?.reload();
   }
 
@@ -72,7 +73,7 @@ class _RecordTabState extends State<RecordTab>
         controller: _tabController,
         children: [
           _TrainingHomeTab(onRefreshAll: _refreshAll),
-          ClimberDashboardTab(key: _dashboardKey),
+          StatsTab(key: _statsKey),
           BadgeProgressTab(key: _badgesKey),
         ],
       ),
@@ -803,6 +804,453 @@ class _StatPill extends StatelessWidget {
                   fontWeight: FontWeight.bold)),
         ],
       ),
+    );
+  }
+}
+
+// ── Stats Tab (进步) ──────────────────────────────────────────────────────────
+
+class StatsTab extends StatefulWidget {
+  const StatsTab({super.key});
+
+  @override
+  State<StatsTab> createState() => StatsTabState();
+}
+
+class StatsTabState extends State<StatsTab> {
+  String _period = "WEEK";
+  ClimbStats? _stats;
+  bool _loading = true;
+  bool _initialized = false;
+  String? _error;
+
+  void reload() => _load();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final stats = await SessionScope.of(context).api.fetchStats(_period);
+      if (mounted) setState(() { _stats = stats; _loading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Period selector
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+          child: Row(
+            children: [
+              for (final entry in const [
+                ("WEEK", "近 8 周"),
+                ("MONTH", "近 6 月"),
+                ("ALL", "全部"),
+              ])
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ChoiceChip(
+                      label: Text(entry.$2,
+                          style: const TextStyle(fontSize: 12)),
+                      selected: _period == entry.$1,
+                      onSelected: (_) {
+                        setState(() => _period = entry.$1);
+                        _load();
+                      },
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (_loading)
+          const Expanded(
+              child: Center(
+                  child: CircularProgressIndicator(
+                      color: Color(0xFFFF7A18), strokeWidth: 2)))
+        else if (_error != null)
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                  const SizedBox(height: 12),
+                  Text(_error!, textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red, fontSize: 13)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(onPressed: _load, child: const Text("重试")),
+                ],
+              ),
+            ),
+          )
+        else if (_stats == null)
+          const Expanded(child: Center(child: Text("暂无统计数据")))
+        else
+          Expanded(
+            child: RefreshIndicator(
+              color: const Color(0xFFFF7A18),
+              backgroundColor: const Color(0xFF1A2535),
+              onRefresh: _load,
+              child: _StatsBody(stats: _stats!),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _StatsBody extends StatelessWidget {
+  const _StatsBody({required this.stats});
+  final ClimbStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = stats.summary;
+    return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+        children: [
+          // ── Summary pills ──────────────────────────────────────────────
+          Row(
+            children: [
+              _SummaryPill("攀爬次数", "${s.totalClimbs}"),
+              const SizedBox(width: 10),
+              _SummaryPill("Flash 率", "${s.flashRatePct}%"),
+              const SizedBox(width: 10),
+              _SummaryPill("最高等级", s.topGrade ?? "—"),
+              const SizedBox(width: 10),
+              _SummaryPill("训练场次", "${s.totalSessions}"),
+            ],
+          ),
+          const SizedBox(height: 22),
+
+          // ── Frequency bar chart ────────────────────────────────────────
+          const _SectionTitle("攀爬频率"),
+          const SizedBox(height: 12),
+          _FrequencyChart(buckets: stats.buckets),
+          const SizedBox(height: 24),
+
+          // ── Grade distribution ─────────────────────────────────────────
+          if (stats.gradeDistribution.isNotEmpty) ...[
+            const _SectionTitle("等级分布"),
+            const SizedBox(height: 12),
+            _GradeDistributionBars(grades: stats.gradeDistribution),
+            const SizedBox(height: 24),
+          ],
+
+          // ── Result breakdown ───────────────────────────────────────────
+          const _SectionTitle("结果概览"),
+          const SizedBox(height: 12),
+          _ResultBreakdown(summary: s),
+        ],
+      );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5),
+    );
+  }
+}
+
+class _SummaryPill extends StatelessWidget {
+  const _SummaryPill(this.label, this.value);
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(14),
+          border:
+              Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Column(
+          children: [
+            Text(value,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(label,
+                style: TextStyle(
+                    color: Colors.grey.shade500, fontSize: 11)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FrequencyChart extends StatelessWidget {
+  const _FrequencyChart({required this.buckets});
+  final List<StatsBucket> buckets;
+
+  @override
+  Widget build(BuildContext context) {
+    if (buckets.isEmpty) {
+      return const SizedBox(
+          height: 100,
+          child: Center(
+              child: Text("暂无数据",
+                  style: TextStyle(color: Colors.white38))));
+    }
+
+    final maxY = buckets
+            .map((b) => b.climbCount)
+            .fold(0, (a, b) => a > b ? a : b)
+            .toDouble()
+            .clamp(1.0, double.infinity);
+
+    final groups = buckets.asMap().entries.map((e) {
+      return BarChartGroupData(
+        x: e.key,
+        barRods: [
+          BarChartRodData(
+            toY: e.value.climbCount.toDouble(),
+            gradient: const LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [Color(0xFFFF7A18), Color(0xFF7BE0FF)],
+            ),
+            width: 14,
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(6)),
+          ),
+        ],
+      );
+    }).toList();
+
+    return SizedBox(
+      height: 180,
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: maxY * 1.25,
+          barGroups: groups,
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (_) => FlLine(
+              color: Colors.white.withValues(alpha: 0.07),
+              strokeWidth: 1,
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          titlesData: FlTitlesData(
+            topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false)),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 28,
+                getTitlesWidget: (value, _) => Text(
+                  "${value.toInt()}",
+                  style: const TextStyle(
+                      color: Colors.white38, fontSize: 10),
+                ),
+              ),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 26,
+                getTitlesWidget: (value, _) {
+                  final idx = value.toInt();
+                  if (idx < 0 || idx >= buckets.length) {
+                    return const SizedBox.shrink();
+                  }
+                  final label = buckets[idx].label;
+                  // Show abbreviated label: keep last 4 chars max
+                  final short = label.length > 5
+                      ? label.substring(label.length - 5)
+                      : label;
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(short,
+                        style: const TextStyle(
+                            color: Colors.white38, fontSize: 9)),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GradeDistributionBars extends StatelessWidget {
+  const _GradeDistributionBars({required this.grades});
+  final List<GradeStat> grades;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxCount =
+        grades.map((g) => g.total).fold(1, (a, b) => a > b ? a : b);
+
+    return Column(
+      children: grades.map((g) {
+        final fraction = g.total / maxCount;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 40,
+                child: Text(g.difficulty,
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 12)),
+              ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                    ),
+                    FractionallySizedBox(
+                      widthFactor: fraction.clamp(0.04, 1.0),
+                      child: Container(
+                        height: 14,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFFFF7A18),
+                              Color(0xFF7BE0FF)
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 24,
+                child: Text("${g.total}",
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                        color: Colors.white54, fontSize: 11)),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _ResultBreakdown extends StatelessWidget {
+  const _ResultBreakdown({required this.summary});
+  final StatsSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = summary.totalClimbs == 0 ? 1 : summary.totalClimbs;
+    return Column(
+      children: [
+        _ResultRow("⚡ Flash", summary.totalFlashes, total,
+            const Color(0xFFFFD700)),
+        const SizedBox(height: 10),
+        _ResultRow("✅ 完成 (Send)", summary.totalSends, total,
+            const Color(0xFF5ED9A6)),
+        const SizedBox(height: 10),
+        _ResultRow("💪 尝试 (Attempt)", summary.totalAttempts, total,
+            const Color(0xFFFFB26D)),
+      ],
+    );
+  }
+}
+
+class _ResultRow extends StatelessWidget {
+  const _ResultRow(this.label, this.count, this.total, this.color);
+  final String label;
+  final int count;
+  final int total;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final fraction = count / total;
+    return Row(
+      children: [
+        SizedBox(
+          width: 120,
+          child: Text(label,
+              style: const TextStyle(color: Colors.white70, fontSize: 13)),
+        ),
+        Expanded(
+          child: Stack(
+            children: [
+              Container(
+                height: 10,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.07),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              FractionallySizedBox(
+                widthFactor: fraction.clamp(0.0, 1.0),
+                child: Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 28,
+          child: Text("$count",
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold)),
+        ),
+      ],
     );
   }
 }

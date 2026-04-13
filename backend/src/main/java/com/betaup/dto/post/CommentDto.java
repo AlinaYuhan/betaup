@@ -11,6 +11,7 @@ public class CommentDto {
     private Long parentId;
     private Long authorId;
     private String authorName;
+    private boolean authorIsCoach;
     private String content;
     private LocalDateTime createdAt;
 }

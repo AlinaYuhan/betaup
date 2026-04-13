@@ -9,5 +9,6 @@ public class LeaderboardEntry {
     private int rank;
     private Long userId;
     private String name;
+    private boolean isCoach;
     private int score;       // badges count or checkins count depending on board type
 }

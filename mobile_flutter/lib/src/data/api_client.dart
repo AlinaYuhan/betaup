@@ -423,6 +423,78 @@ class ApiClient {
         .toList();
   }
 
+  // ── Stats ──────────────────────────────────────────────────────────────
+
+  Future<ClimbStats> fetchStats(String period) async {
+    final data = await _send(
+      "GET",
+      "/stats/me",
+      queryParameters: {"period": period},
+    );
+    return ClimbStats.fromJson(JsonMap.from(data as Map));
+  }
+
+  // ── Coach Certification ────────────────────────────────────────────────
+
+  Future<CoachStatus> fetchCoachStatus() async {
+    final data = await _send("GET", "/certification/status");
+    return CoachStatus.fromJson(JsonMap.from(data as Map));
+  }
+
+  Future<void> applyForCoach({
+    required File imageFile,
+    required String resumeText,
+  }) async {
+    final token = readToken();
+    final uri = _buildUri("/certification/apply", {});
+
+    final request = http.MultipartRequest("POST", uri);
+    if (token != null && token.isNotEmpty) {
+      request.headers["Authorization"] = "Bearer $token";
+    }
+    request.fields["resumeText"] = resumeText;
+    request.files.add(await http.MultipartFile.fromPath("image", imageFile.path));
+
+    http.StreamedResponse streamed;
+    try {
+      streamed = await _httpClient.send(request).timeout(const Duration(seconds: 30));
+    } on TimeoutException {
+      throw const ApiException("Request timed out. Check the backend connection.");
+    } on SocketException {
+      throw const ApiException("Cannot reach the BetaUp backend.");
+    }
+
+    final response = await http.Response.fromStream(streamed);
+    final responseJson = _parseJsonBody(response.body);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final message = _messageFromResponse(responseJson) ??
+          response.reasonPhrase ??
+          "Request failed.";
+      throw ApiException(message, statusCode: response.statusCode);
+    }
+    if (responseJson is Map<String, dynamic> && responseJson["success"] == false) {
+      throw ApiException(
+        _asResponseMessage(responseJson) ?? "Request failed.",
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<List<CertificationReview>> fetchPendingCertifications() async {
+    final data = await _send("GET", "/certification/admin/pending");
+    return (data as List<dynamic>)
+        .map((item) => CertificationReview.fromJson(JsonMap.from(item as Map)))
+        .toList();
+  }
+
+  Future<void> approveCertification(int id) async {
+    await _send("POST", "/certification/admin/$id/approve");
+  }
+
+  Future<void> rejectCertification(int id, String reason) async {
+    await _send("POST", "/certification/admin/$id/reject", body: {"rejectReason": reason});
+  }
+
   Future<dynamic> _send(
     String method,
     String path, {

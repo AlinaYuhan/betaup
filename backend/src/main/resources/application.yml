@@ -15,6 +15,10 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
 
 springdoc:
   swagger-ui:
@@ -26,3 +30,5 @@ app:
   jwt:
     secret: ${BETAUP_JWT_SECRET:betaUpRoundOneSecretKeyChangeMe1234567890}
     expiration-ms: ${BETAUP_JWT_EXPIRATION_MS:86400000}
+  upload:
+    dir: ${BETAUP_UPLOAD_DIR:${user.home}/.betaup-uploads}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/api_client.dart';
 import '../data/models.dart';
+import 'common.dart';
 
 /// Shows another user's public profile with follow / unfollow.
 /// Build [client] from a valid context BEFORE calling showModalBottomSheet,
@@ -85,12 +86,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> {
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                         if (_profile!.isCoachCertified) ...[
                           const SizedBox(width: 8),
-                          const Chip(
-                            label: Text("认证教练", style: TextStyle(fontSize: 11, color: Colors.white)),
-                            backgroundColor: Colors.deepOrange,
-                            padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
-                          ),
+                          const CoachChip(),
                         ],
                       ],
                     ),

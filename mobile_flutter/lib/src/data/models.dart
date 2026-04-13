@@ -29,7 +29,8 @@ DateTime? _asDateTime(dynamic value) {
 
 enum UserRole {
   climber("CLIMBER", "Climber"),
-  coach("COACH", "Coach");
+  coach("COACH", "Coach"),
+  admin("ADMIN", "Admin");
 
   const UserRole(this.rawValue, this.label);
 
@@ -164,7 +165,9 @@ class UserProfile {
       followerCount: _asInt(json["followerCount"]),
       followingCount: _asInt(json["followingCount"]),
       totalClimbLogs: _asInt(json["totalClimbLogs"]),
-      isCoachCertified: json["isCoachCertified"] == true,
+      // Backend serialises boolean isXxx fields without the "is" prefix.
+      // Accept both keys so cached SharedPrefs data also works.
+      isCoachCertified: json["coachCertified"] == true || json["isCoachCertified"] == true,
     );
   }
 
@@ -179,7 +182,7 @@ class UserProfile {
       "followerCount": followerCount,
       "followingCount": followingCount,
       "totalClimbLogs": totalClimbLogs,
-      "isCoachCertified": isCoachCertified,
+      "coachCertified": isCoachCertified,
     };
   }
 }
@@ -829,12 +832,14 @@ class LeaderboardEntry {
     required this.rank,
     required this.userId,
     required this.name,
+    required this.isCoach,
     required this.score,
   });
 
   final int rank;
   final int userId;
   final String name;
+  final bool isCoach;
   final int score;
 
   factory LeaderboardEntry.fromJson(JsonMap json) {
@@ -842,6 +847,7 @@ class LeaderboardEntry {
       rank: _asInt(json["rank"]),
       userId: _asInt(json["userId"]),
       name: _asString(json["name"]),
+      isCoach: json["isCoach"] == true,
       score: _asInt(json["score"]),
     );
   }
@@ -866,6 +872,7 @@ class Post {
     required this.id,
     required this.authorId,
     required this.authorName,
+    this.authorIsCoach = false,
     required this.content,
     required this.type,
     required this.likeCount,
@@ -878,6 +885,7 @@ class Post {
   final int id;
   final int authorId;
   final String authorName;
+  final bool authorIsCoach;
   final String content;
   final PostType type;
   final int likeCount;
@@ -890,6 +898,7 @@ class Post {
         id: _asInt(json["id"]),
         authorId: _asInt(json["authorId"]),
         authorName: _asString(json["authorName"]),
+        authorIsCoach: json["authorIsCoach"] == true,
         content: _asString(json["content"]),
         type: PostType.fromRaw(_asString(json["type"], "GENERAL")),
         likeCount: _asInt(json["likeCount"]),
@@ -905,6 +914,7 @@ class Post {
         id: id,
         authorId: authorId,
         authorName: authorName,
+        authorIsCoach: authorIsCoach,
         content: content,
         type: type,
         likeCount: likeCount ?? this.likeCount,
@@ -921,6 +931,7 @@ class Comment {
     this.parentId,
     required this.authorId,
     required this.authorName,
+    this.authorIsCoach = false,
     required this.content,
     required this.createdAt,
   });
@@ -929,6 +940,7 @@ class Comment {
   final int? parentId;
   final int authorId;
   final String authorName;
+  final bool authorIsCoach;
   final String content;
   final DateTime? createdAt;
 
@@ -937,6 +949,7 @@ class Comment {
         parentId: json["parentId"] != null ? _asInt(json["parentId"]) : null,
         authorId: _asInt(json["authorId"]),
         authorName: _asString(json["authorName"]),
+        authorIsCoach: json["authorIsCoach"] == true,
         content: _asString(json["content"]),
         createdAt: _asDateTime(json["createdAt"]),
       );
@@ -1031,5 +1044,168 @@ class PublicUserProfile {
         followingCount: followingCount,
         totalClimbLogs: totalClimbLogs,
         followedByMe: followedByMe ?? this.followedByMe,
+      );
+}
+
+// ── Stats models ────────────────────────────────────────────────────────────
+
+class StatsBucket {
+  const StatsBucket({
+    required this.label,
+    required this.climbCount,
+    required this.flashCount,
+    required this.sendCount,
+    required this.attemptCount,
+  });
+
+  final String label;
+  final int climbCount;
+  final int flashCount;
+  final int sendCount;
+  final int attemptCount;
+
+  factory StatsBucket.fromJson(JsonMap json) => StatsBucket(
+        label: _asString(json["label"]),
+        climbCount: _asInt(json["climbCount"]),
+        flashCount: _asInt(json["flashCount"]),
+        sendCount: _asInt(json["sendCount"]),
+        attemptCount: _asInt(json["attemptCount"]),
+      );
+}
+
+class StatsSummary {
+  const StatsSummary({
+    required this.totalClimbs,
+    required this.totalFlashes,
+    required this.totalSends,
+    required this.totalAttempts,
+    required this.flashRatePct,
+    required this.totalSessions,
+    this.topGrade,
+  });
+
+  final int totalClimbs;
+  final int totalFlashes;
+  final int totalSends;
+  final int totalAttempts;
+  final int flashRatePct;
+  final int totalSessions;
+  final String? topGrade;
+
+  factory StatsSummary.fromJson(JsonMap json) => StatsSummary(
+        totalClimbs: _asInt(json["totalClimbs"]),
+        totalFlashes: _asInt(json["totalFlashes"]),
+        totalSends: _asInt(json["totalSends"]),
+        totalAttempts: _asInt(json["totalAttempts"]),
+        flashRatePct: _asInt(json["flashRatePct"]),
+        totalSessions: _asInt(json["totalSessions"]),
+        topGrade: json["topGrade"] as String?,
+      );
+}
+
+class ClimbStats {
+  const ClimbStats({
+    required this.period,
+    required this.buckets,
+    required this.gradeDistribution,
+    required this.summary,
+  });
+
+  final String period;
+  final List<StatsBucket> buckets;
+  final List<GradeStat> gradeDistribution;
+  final StatsSummary summary;
+
+  factory ClimbStats.fromJson(JsonMap json) => ClimbStats(
+        period: _asString(json["period"]),
+        buckets: (json["buckets"] as List<dynamic>? ?? [])
+            .map((e) => StatsBucket.fromJson(JsonMap.from(e as Map)))
+            .toList(),
+        gradeDistribution: (json["gradeDistribution"] as List<dynamic>? ?? [])
+            .map((e) => GradeStat.fromJson(JsonMap.from(e as Map)))
+            .toList(),
+        summary: StatsSummary.fromJson(JsonMap.from(json["summary"] as Map)),
+      );
+}
+
+// ── Coach certification models ───────────────────────────────────────────────
+
+enum CertificationStatus {
+  pending("PENDING"),
+  approved("APPROVED"),
+  rejected("REJECTED");
+
+  const CertificationStatus(this.rawValue);
+  final String rawValue;
+
+  static CertificationStatus? fromRaw(String? raw) {
+    if (raw == null) return null;
+    return values.firstWhere(
+      (s) => s.rawValue == raw,
+      orElse: () => CertificationStatus.pending,
+    );
+  }
+}
+
+class CoachStatus {
+  const CoachStatus({
+    required this.isCoachCertified,
+    this.certificationStatus,
+    this.rejectReason,
+    this.appliedAt,
+    this.reviewedAt,
+  });
+
+  final bool isCoachCertified;
+  final CertificationStatus? certificationStatus;
+  final String? rejectReason;
+  final DateTime? appliedAt;
+  final DateTime? reviewedAt;
+
+  factory CoachStatus.fromJson(JsonMap json) => CoachStatus(
+        isCoachCertified: json["coachCertified"] == true || json["isCoachCertified"] == true,
+        certificationStatus:
+            CertificationStatus.fromRaw(json["certificationStatus"] as String?),
+        rejectReason: json["rejectReason"] as String?,
+        appliedAt: _asDateTime(json["appliedAt"]),
+        reviewedAt: _asDateTime(json["reviewedAt"]),
+      );
+}
+
+class CertificationReview {
+  const CertificationReview({
+    required this.certificationId,
+    required this.userId,
+    required this.userName,
+    required this.userEmail,
+    required this.status,
+    required this.certificateImageUrl,
+    this.resumeText,
+    this.rejectReason,
+    required this.appliedAt,
+  });
+
+  final int certificationId;
+  final int userId;
+  final String userName;
+  final String userEmail;
+  final CertificationStatus status;
+  final String certificateImageUrl;
+  final String? resumeText;
+  final String? rejectReason;
+  final DateTime? appliedAt;
+
+  factory CertificationReview.fromJson(JsonMap json) => CertificationReview(
+        certificationId: _asInt(json["certificationId"]),
+        userId: _asInt(json["userId"]),
+        userName: _asString(json["userName"]),
+        userEmail: _asString(json["userEmail"]),
+        status: CertificationStatus.fromRaw(
+                _asString(json["status"])) ??
+            CertificationStatus.pending,
+        certificateImageUrl: _asString(json["certificateImageUrl"]),
+        resumeText: json["resumeText"] as String?,
+        rejectReason: json["rejectReason"] as String?,
+        appliedAt: _asDateTime(json["appliedAt"]),
       );
 }

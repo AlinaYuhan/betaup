@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../data/api_client.dart';
 import '../data/models.dart';
 import '../session/app_session.dart';
+import 'coach_apply_sheet.dart';
+import 'common.dart';
 import 'follow_list_sheet.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -41,7 +43,16 @@ class ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateMi
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("我的"),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("我的"),
+            if (user.isCoachCertified) ...[
+              const SizedBox(width: 8),
+              const CoachChip(),
+            ],
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -54,6 +65,9 @@ class ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateMi
         children: [
           // Profile header
           _ProfileHeader(user: user, isCoach: isCoach),
+          // Certification status (only for non-admin, non-coach users or those pending)
+          if (user.role != UserRole.admin)
+            _CertificationSection(user: user),
           // Tabs: 徽章榜 / 打卡榜
           TabBar(
             controller: _tabController,
@@ -199,12 +213,7 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                     ),
                     if (widget.isCoach) ...[
                       const SizedBox(width: 8),
-                      const Chip(
-                        label: Text("认证教练", style: TextStyle(fontSize: 11, color: Colors.white)),
-                        backgroundColor: Colors.deepOrange,
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      ),
+                      const CoachChip(),
                     ],
                     const SizedBox(width: 4),
                     IconButton(
@@ -329,12 +338,20 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
 
           return ListTile(
             leading: Text(rankEmoji, style: const TextStyle(fontSize: 20)),
-            title: Text(
-              entry.name,
-              style: TextStyle(
-                fontWeight: isMe ? FontWeight.bold : FontWeight.normal,
-                color: isMe ? Colors.orange : null,
-              ),
+            title: Row(
+              children: [
+                Text(
+                  entry.name,
+                  style: TextStyle(
+                    fontWeight: isMe ? FontWeight.bold : FontWeight.normal,
+                    color: isMe ? Colors.orange : null,
+                  ),
+                ),
+                if (entry.isCoach) ...[
+                  const SizedBox(width: 6),
+                  const CoachChip(),
+                ],
+              ],
             ),
             trailing: Chip(
               label: Text(
@@ -445,6 +462,161 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Certification status section ─────────────────────────────────────────────
+
+class _CertificationSection extends StatefulWidget {
+  const _CertificationSection({required this.user});
+  final UserProfile user;
+
+  @override
+  State<_CertificationSection> createState() => _CertificationSectionState();
+}
+
+class _CertificationSectionState extends State<_CertificationSection> {
+  CoachStatus? _status;
+  bool _loaded = false;
+  bool _loadError = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    setState(() => _loadError = false);
+    try {
+      final session = SessionScope.of(context);
+      final s = await session.api.fetchCoachStatus();
+      if (!mounted) return;
+      setState(() => _status = s);
+      // If server confirms certified but local session is stale, refresh session.
+      if (s.isCoachCertified && !widget.user.isCoachCertified) {
+        await session.refreshUser();
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadError = true);
+    }
+  }
+
+  Future<void> _openApplySheet() async {
+    final client = SessionScope.of(context).api;
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => CoachApplySheet(client: client),
+    );
+    if (result == true) _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.user.isCoachCertified || _status == null || _status!.isCoachCertified) return const SizedBox.shrink();
+
+    if (_loadError) {
+      return Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.20)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 16),
+            const SizedBox(width: 8),
+            const Expanded(child: Text("加载认证状态失败", style: TextStyle(fontSize: 13, color: Colors.red))),
+            TextButton(onPressed: _load, child: const Text("重试")),
+          ],
+        ),
+      );
+    }
+
+    final cs = _status!.certificationStatus;
+    Widget content;
+
+    if (cs == CertificationStatus.pending) {
+      content = const Row(
+        children: [
+          Icon(Icons.hourglass_top_rounded, size: 16, color: Colors.amber),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text("教练认证申请审核中，请耐心等待",
+                style: TextStyle(fontSize: 13)),
+          ),
+        ],
+      );
+    } else if (cs == CertificationStatus.rejected) {
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.cancel_outlined, size: 16, color: Colors.red),
+              SizedBox(width: 8),
+              Text("教练认证申请被拒绝",
+                  style: TextStyle(fontSize: 13, color: Colors.red)),
+            ],
+          ),
+          if (_status!.rejectReason?.isNotEmpty == true) ...[
+            const SizedBox(height: 4),
+            Text("原因：${_status!.rejectReason}",
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+          ],
+          const SizedBox(height: 10),
+          TextButton.icon(
+            onPressed: _openApplySheet,
+            icon: const Icon(Icons.refresh_rounded, size: 16),
+            label: const Text("重新申请"),
+            style: TextButton.styleFrom(
+                foregroundColor: Colors.orange,
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 32)),
+          ),
+        ],
+      );
+    } else {
+      content = Row(
+        children: [
+          const Expanded(
+            child: Text("成为认证教练，在社区中展示「教练」标识",
+                style: TextStyle(fontSize: 13)),
+          ),
+          const SizedBox(width: 12),
+          TextButton(
+            onPressed: _openApplySheet,
+            style: TextButton.styleFrom(
+                foregroundColor: Colors.orange,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
+            child: const Text("申请认证",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.20)),
+      ),
+      child: content,
     );
   }
 }

@@ -92,6 +92,7 @@ public class PostController {
             .id(post.getId())
             .authorId(post.getUser().getId())
             .authorName(post.getUser().getName())
+            .authorIsCoach(post.getUser().isCoachCertified())
             .content(post.getContent())
             .type(post.getType())
             .likeCount(post.getLikeCount())

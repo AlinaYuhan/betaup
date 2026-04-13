@@ -46,6 +46,7 @@ public class LeaderboardController {
             entries.add(LeaderboardEntry.builder()
                 .userId(user.getId())
                 .name(user.getName())
+                .isCoach(user.isCoachCertified())
                 .score(score)
                 .rank(0) // filled below
                 .build());

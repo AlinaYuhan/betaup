@@ -94,6 +94,7 @@ public class CommentController {
             .parentId(comment.getParentId())
             .authorId(comment.getUser().getId())
             .authorName(comment.getUser().getName())
+            .authorIsCoach(comment.getUser().isCoachCertified())
             .content(comment.getContent())
             .createdAt(comment.getCreatedAt())
             .build();

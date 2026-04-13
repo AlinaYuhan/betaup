@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../data/models.dart';
 import '../session/app_session.dart';
+import 'admin_tab.dart';
 import 'community_tab.dart';
 import 'explore_tab.dart';
 import 'notification_tab.dart';
@@ -20,6 +22,9 @@ class _MainShellState extends State<MainShell> {
   int _unreadCount = 0;
   final _notifKey = GlobalKey<NotificationTabState>();
   final _profileKey = GlobalKey<ProfileTabState>();
+
+  static const _notifIndex = 3;
+  static const _profileIndex = 4;
 
   @override
   void didChangeDependencies() {
@@ -63,6 +68,7 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final user = SessionScope.of(context).user!;
+    final isAdmin = user.role == UserRole.admin;
 
     final pages = [
       const ExploreTab(),
@@ -70,6 +76,7 @@ class _MainShellState extends State<MainShell> {
       const CommunityTab(),
       NotificationTab(key: _notifKey, onRead: _refreshUnreadCount),
       ProfileTab(key: _profileKey, user: user, onLogout: _logout),
+      if (isAdmin) const AdminTab(),
     ];
 
     Widget notifIcon(IconData icon) {
@@ -89,12 +96,12 @@ class _MainShellState extends State<MainShell> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() => _currentIndex = index);
-          if (index == 3) {
+          if (index == _notifIndex) {
             _unreadCount = 0;
             _notifKey.currentState?.reload();
           } else {
             _refreshUnreadCount();
-            if (index == 4) _profileKey.currentState?.reloadLeaderboard();
+            if (index == _profileIndex) _profileKey.currentState?.reloadLeaderboard();
           }
         },
         destinations: [
@@ -123,6 +130,12 @@ class _MainShellState extends State<MainShell> {
             selectedIcon: Icon(Icons.person),
             label: "我的",
           ),
+          if (isAdmin)
+            const NavigationDestination(
+              icon: Icon(Icons.admin_panel_settings_outlined),
+              selectedIcon: Icon(Icons.admin_panel_settings),
+              label: "管理",
+            ),
         ],
       ),
     );

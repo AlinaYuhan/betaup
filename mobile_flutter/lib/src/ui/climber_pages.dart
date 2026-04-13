@@ -1265,9 +1265,9 @@ class _BadgeTile extends StatelessWidget {
             style: const TextStyle(color: Colors.white38, fontSize: 10),
           ),
         ] else
-          Text(
+          const Text(
             "已解锁 ✓",
-            style: const TextStyle(color: Color(0xFF5ED9A6), fontSize: 10),
+            style: TextStyle(color: Color(0xFF5ED9A6), fontSize: 10),
           ),
       ],
     );
