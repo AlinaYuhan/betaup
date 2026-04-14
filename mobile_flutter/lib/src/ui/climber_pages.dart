@@ -626,7 +626,7 @@ class ClimbLogsTabState extends State<ClimbLogsTab> {
                 Text("Climb log library", style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  initialValue: _sort,
+                  value: _sort,
                   items: _sortOptions
                       .map(
                         (option) => DropdownMenuItem<String>(
@@ -1423,7 +1423,7 @@ class _MyFeedbackTabState extends State<MyFeedbackTab> {
                 const SectionLabel("Feedback filters"),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<int?>(
-                  initialValue: _ratingFilter,
+                  value: _ratingFilter,
                   items: [
                     const DropdownMenuItem<int?>(
                       value: null,
@@ -1447,7 +1447,7 @@ class _MyFeedbackTabState extends State<MyFeedbackTab> {
                 ),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
-                  initialValue: _sort,
+                  value: _sort,
                   items: _sortOptions
                       .map(
                         (option) => DropdownMenuItem<String>(
