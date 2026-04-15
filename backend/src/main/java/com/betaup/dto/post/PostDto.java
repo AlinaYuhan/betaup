@@ -1,6 +1,7 @@
 package com.betaup.dto.post;
 
 import com.betaup.dto.badge.BadgeProgressDto;
+import com.betaup.entity.PostMediaKind;
 import com.betaup.entity.PostType;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +17,10 @@ public class PostDto {
     private boolean authorIsCoach;
     private String content;
     private PostType type;
+    @Deprecated // Use mediaUrls instead
+    private String mediaUrl;
+    private List<String> mediaUrls;
+    private PostMediaKind mediaKind;
     private int likeCount;
     private int commentCount;
     private boolean likedByMe;

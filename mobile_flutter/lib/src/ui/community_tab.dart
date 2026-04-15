@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../data/api_client.dart';
 import '../data/models.dart';
 import '../session/app_session.dart';
 import 'common.dart';
+import 'post_media.dart';
+import 'post_media_grid.dart';
 import 'user_profile_sheet.dart';
 
 class CommunityTab extends StatefulWidget {
@@ -144,8 +147,8 @@ class _FeedListState extends State<_FeedList> {
           setState(() {
             final i = _posts.indexWhere((p) => p.id == post.id);
             if (i >= 0) {
-              _posts[i] =
-                  post.copyWith(likeCount: post.likeCount - 1, likedByMe: false);
+              _posts[i] = post.copyWith(
+                  likeCount: post.likeCount - 1, likedByMe: false);
             }
           });
         }
@@ -330,8 +333,24 @@ class _PostCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Text(post.content,
-                style: Theme.of(context).textTheme.bodyMedium),
+            if (post.content.isNotEmpty)
+              Text(post.content, style: Theme.of(context).textTheme.bodyMedium),
+            if (post.allMediaUrls.isNotEmpty && post.mediaKind != null) ...[
+              SizedBox(height: post.content.isNotEmpty ? 12 : 0),
+              if (post.allMediaUrls.length == 1 && post.mediaKind == PostMediaKind.video)
+                PostMediaView(
+                  apiBaseUrl: SessionScope.of(context).api.baseUrl,
+                  mediaUrl: post.allMediaUrls[0],
+                  mediaKind: post.mediaKind!,
+                  maxHeight: 280,
+                )
+              else
+                PostMediaGridView(
+                  apiBaseUrl: SessionScope.of(context).api.baseUrl,
+                  mediaUrls: post.allMediaUrls,
+                  maxHeight: 280,
+                ),
+            ],
             const SizedBox(height: 10),
             Row(
               children: [
@@ -378,7 +397,11 @@ class _CreatePostSheet extends StatefulWidget {
 
 class _CreatePostSheetState extends State<_CreatePostSheet> {
   final _controller = TextEditingController();
+  final _picker = ImagePicker();
   PostType _type = PostType.general;
+  List<XFile> _selectedImages = [];
+  List<Uint8List> _selectedImagePreviews = [];
+  XFile? _selectedVideo;
   bool _submitting = false;
   String? _errorMsg;
 
@@ -388,11 +411,72 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
     super.dispose();
   }
 
+  Future<void> _pickImages() async {
+    if (_selectedVideo != null) {
+      setState(() => _errorMsg = "视频帖子不能添加图片");
+      return;
+    }
+
+    final picked = await _picker.pickMultiImage(imageQuality: 90);
+    if (picked.isEmpty) return;
+
+    final totalCount = _selectedImages.length + picked.length;
+    if (totalCount > 6) {
+      if (!mounted) return;
+      setState(() => _errorMsg = "最多只能选择6张图片");
+      return;
+    }
+
+    final newPreviews = <Uint8List>[];
+    for (final file in picked) {
+      final bytes = await file.readAsBytes();
+      newPreviews.add(bytes);
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _selectedImages.addAll(picked);
+      _selectedImagePreviews.addAll(newPreviews);
+      _errorMsg = null;
+    });
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+      _selectedImagePreviews.removeAt(index);
+    });
+  }
+
+  Future<void> _pickVideo() async {
+    if (_selectedImages.isNotEmpty) {
+      setState(() => _errorMsg = "图片帖子不能添加视频");
+      return;
+    }
+
+    final picked = await _picker.pickVideo(
+      source: ImageSource.gallery,
+      maxDuration: const Duration(seconds: 90),
+    );
+    if (picked == null || !mounted) return;
+
+    setState(() {
+      _selectedVideo = picked;
+      _errorMsg = null;
+    });
+  }
+
+  void _clearMedia() {
+    setState(() {
+      _selectedImages.clear();
+      _selectedImagePreviews.clear();
+      _selectedVideo = null;
+    });
+  }
+
   Future<void> _submit() async {
     final content = _controller.text.trim();
-    debugPrint("[POST] _submit called, content='$content'");
-    if (content.isEmpty) {
-      debugPrint("[POST] content is empty, returning");
+    if (content.isEmpty && _selectedImages.isEmpty && _selectedVideo == null) {
       return;
     }
     setState(() {
@@ -400,8 +484,11 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
       _errorMsg = null;
     });
     try {
-      debugPrint("[POST] calling createPost...");
-      final post = await widget.client.createPost(content: content, type: _type);
+      final post = await widget.client.createPost(
+        content: content,
+        type: _type,
+        mediaFiles: _selectedImages.isNotEmpty ? _selectedImages : (_selectedVideo != null ? [_selectedVideo!] : null),
+      );
       debugPrint("[POST] created successfully: id=${post.id}");
       if (!mounted) return;
       if (post.newlyUnlockedBadges.isNotEmpty) {
@@ -412,7 +499,10 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
     } catch (e) {
       debugPrint("[POST] createPost error: $e");
       if (mounted) {
-        setState(() { _errorMsg = e.toString(); _submitting = false; });
+        setState(() {
+          _errorMsg = e.toString();
+          _submitting = false;
+        });
       }
     }
   }
@@ -459,11 +549,122 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
               ChoiceChip(
                 label: const Text("找搭子"),
                 selected: _type == PostType.findPartner,
-                onSelected: (_) =>
-                    setState(() => _type = PostType.findPartner),
+                onSelected: (_) => setState(() => _type = PostType.findPartner),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _submitting ? null : _pickImages,
+                  icon: const Icon(Icons.image_outlined),
+                  label: Text("图片 (${_selectedImages.length}/6)"),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _submitting ? null : _pickVideo,
+                  icon: const Icon(Icons.videocam_outlined),
+                  label: const Text("视频"),
+                ),
+              ),
+            ],
+          ),
+          if (_selectedImages.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: _selectedImages.length,
+              itemBuilder: (context, index) {
+                return Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.memory(
+                        _selectedImagePreviews[index],
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () => _removeImage(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+          if (_selectedVideo != null) ...[
+            const SizedBox(height: 12),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(24),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.videocam_rounded,
+                            size: 40, color: Colors.orange),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            _selectedVideo!.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton.filledTonal(
+                    onPressed: _submitting ? null : _clearMedia,
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (_errorMsg != null) ...[
             const SizedBox(height: 8),
             Text(
@@ -532,7 +733,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     try {
       final comments = await widget.client.fetchComments(widget.post.id);
       if (mounted) {
-        setState(() { _comments = comments; _loaded = true; });
+        setState(() {
+          _comments = comments;
+          _loaded = true;
+        });
       }
     } catch (_) {
       if (mounted) setState(() => _loaded = true);
@@ -597,10 +801,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             ),
             if (isOwn)
               ListTile(
-                leading:
-                    const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text("删除",
-                    style: TextStyle(color: Colors.red)),
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text("删除", style: TextStyle(color: Colors.red)),
                 onTap: () => Navigator.pop(context, "删除"),
               ),
           ],
@@ -662,14 +864,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                             // Long press → action menu
                             onLongPress: () => _showCommentMenu(c),
                             child: Padding(
-                              padding: EdgeInsets.only(
-                                  left: isReply ? 48.0 : 0.0),
+                              padding:
+                                  EdgeInsets.only(left: isReply ? 48.0 : 0.0),
                               child: ListTile(
                                 leading: CircleAvatar(
                                   radius: isReply ? 14 : 20,
-                                  backgroundColor: isReply
-                                      ? Colors.grey
-                                      : Colors.orange,
+                                  backgroundColor:
+                                      isReply ? Colors.grey : Colors.orange,
                                   child: Text(
                                     c.authorName.isNotEmpty
                                         ? c.authorName[0].toUpperCase()
@@ -701,8 +902,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           const Divider(height: 1),
           if (_replyTarget != null)
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               color: Colors.orange.withAlpha(20),
               child: Row(
                 children: [
@@ -713,8 +913,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                   ),
                   GestureDetector(
                     onTap: () => setState(() => _replyTarget = null),
-                    child: const Icon(Icons.close,
-                        size: 16, color: Colors.grey),
+                    child:
+                        const Icon(Icons.close, size: 16, color: Colors.grey),
                   ),
                 ],
               ),

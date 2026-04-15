@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 import 'models.dart';
 
@@ -157,7 +158,8 @@ class ApiClient {
     return SessionSummary.fromJson(JsonMap.from(data as Map));
   }
 
-  Future<List<SessionSummary>> fetchSessions({int page = 0, int size = 10}) async {
+  Future<List<SessionSummary>> fetchSessions(
+      {int page = 0, int size = 10}) async {
     final data = await _send(
       "GET",
       "/sessions",
@@ -312,7 +314,8 @@ class ApiClient {
     return CheckInResult.fromJson(JsonMap.from(data as Map));
   }
 
-  Future<List<Post>> fetchPosts({String? type, int page = 0, int size = 20}) async {
+  Future<List<Post>> fetchPosts(
+      {String? type, int page = 0, int size = 20}) async {
     final data = await _send("GET", "/posts",
         queryParameters: {"type": type, "page": page, "size": size});
     return (data as List<dynamic>)
@@ -320,9 +323,27 @@ class ApiClient {
         .toList();
   }
 
-  Future<Post> createPost({required String content, required PostType type}) async {
-    final data = await _send("POST", "/posts",
-        body: {"content": content, "type": type.rawValue});
+  Future<Post> createPost({
+    required String content,
+    required PostType type,
+    List<XFile>? mediaFiles,
+  }) async {
+    final files = <http.MultipartFile>[];
+    if (mediaFiles != null && mediaFiles.isNotEmpty) {
+      for (final file in mediaFiles) {
+        files.add(await _buildMultipartFile("media", file));
+      }
+    }
+
+    final data = await _sendMultipart(
+      "POST",
+      "/posts",
+      fields: {
+        "content": content,
+        "type": type.rawValue,
+      },
+      files: files,
+    );
     return Post.fromJson(JsonMap.from(data as Map));
   }
 
@@ -345,7 +366,8 @@ class ApiClient {
         .toList();
   }
 
-  Future<Comment> addComment(int postId, String content, {int? parentId}) async {
+  Future<Comment> addComment(int postId, String content,
+      {int? parentId}) async {
     final data = await _send("POST", "/posts/$postId/comments",
         body: {"content": content, if (parentId != null) "parentId": parentId});
     return Comment.fromJson(JsonMap.from(data as Map));
@@ -355,7 +377,8 @@ class ApiClient {
     await _send("DELETE", "/posts/$postId/comments/$commentId");
   }
 
-  Future<UserProfile> updateProfile({String? name, String? city, String? bio}) async {
+  Future<UserProfile> updateProfile(
+      {String? name, String? city, String? bio}) async {
     final data = await _send("PUT", "/auth/profile", body: {
       if (name != null) "name": name,
       if (city != null) "city": city,
@@ -412,7 +435,8 @@ class ApiClient {
         .toList();
   }
 
-  Future<List<LeaderboardEntry>> fetchLeaderboard({String type = "badges"}) async {
+  Future<List<LeaderboardEntry>> fetchLeaderboard(
+      {String type = "badges"}) async {
     final data = await _send(
       "GET",
       "/leaderboard",
@@ -442,42 +466,15 @@ class ApiClient {
   }
 
   Future<void> applyForCoach({
-    required File imageFile,
+    required XFile imageFile,
     required String resumeText,
   }) async {
-    final token = readToken();
-    final uri = _buildUri("/certification/apply", {});
-
-    final request = http.MultipartRequest("POST", uri);
-    if (token != null && token.isNotEmpty) {
-      request.headers["Authorization"] = "Bearer $token";
-    }
-    request.fields["resumeText"] = resumeText;
-    request.files.add(await http.MultipartFile.fromPath("image", imageFile.path));
-
-    http.StreamedResponse streamed;
-    try {
-      streamed = await _httpClient.send(request).timeout(const Duration(seconds: 30));
-    } on TimeoutException {
-      throw const ApiException("Request timed out. Check the backend connection.");
-    } on SocketException {
-      throw const ApiException("Cannot reach the BetaUp backend.");
-    }
-
-    final response = await http.Response.fromStream(streamed);
-    final responseJson = _parseJsonBody(response.body);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      final message = _messageFromResponse(responseJson) ??
-          response.reasonPhrase ??
-          "Request failed.";
-      throw ApiException(message, statusCode: response.statusCode);
-    }
-    if (responseJson is Map<String, dynamic> && responseJson["success"] == false) {
-      throw ApiException(
-        _asResponseMessage(responseJson) ?? "Request failed.",
-        statusCode: response.statusCode,
-      );
-    }
+    await _sendMultipart(
+      "POST",
+      "/certification/apply",
+      fields: {"resumeText": resumeText},
+      files: [await _buildMultipartFile("image", imageFile)],
+    );
   }
 
   Future<List<CertificationReview>> fetchPendingCertifications() async {
@@ -492,7 +489,8 @@ class ApiClient {
   }
 
   Future<void> rejectCertification(int id, String reason) async {
-    await _send("POST", "/certification/admin/$id/reject", body: {"rejectReason": reason});
+    await _send("POST", "/certification/admin/$id/reject",
+        body: {"rejectReason": reason});
   }
 
   Future<dynamic> _send(
@@ -539,7 +537,8 @@ class ApiClient {
           throw const ApiException("Unsupported HTTP method.");
       }
     } on TimeoutException {
-      throw const ApiException("Request timed out. Check the backend connection.");
+      throw const ApiException(
+          "Request timed out. Check the backend connection.");
     } on SocketException {
       throw const ApiException("Cannot reach the BetaUp backend.");
     } on http.ClientException catch (error) {
@@ -566,6 +565,69 @@ class ApiClient {
     }
 
     return responseJson;
+  }
+
+  Future<dynamic> _sendMultipart(
+    String method,
+    String path, {
+    Map<String, String> fields = const {},
+    List<http.MultipartFile> files = const [],
+  }) async {
+    final request = http.MultipartRequest(method, _buildUri(path, const {}));
+    final token = readToken();
+
+    if (token != null && token.isNotEmpty) {
+      request.headers["Authorization"] = "Bearer $token";
+    }
+
+    request.fields.addAll(fields);
+    request.files.addAll(files);
+
+    http.StreamedResponse streamed;
+    try {
+      streamed =
+          await _httpClient.send(request).timeout(const Duration(seconds: 30));
+    } on TimeoutException {
+      throw const ApiException(
+          "Request timed out. Check the backend connection.");
+    } on SocketException {
+      throw const ApiException("Cannot reach the BetaUp backend.");
+    } on http.ClientException catch (error) {
+      throw ApiException(error.message);
+    }
+
+    final response = await http.Response.fromStream(streamed);
+    final responseJson = _parseJsonBody(response.body);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final message = _messageFromResponse(responseJson) ??
+          response.reasonPhrase ??
+          "Request failed.";
+      throw ApiException(message, statusCode: response.statusCode);
+    }
+
+    if (responseJson is Map<String, dynamic>) {
+      if (responseJson["success"] == false) {
+        throw ApiException(
+          _asResponseMessage(responseJson) ?? "Request failed.",
+          statusCode: response.statusCode,
+        );
+      }
+      return responseJson["data"];
+    }
+
+    return responseJson;
+  }
+
+  Future<http.MultipartFile> _buildMultipartFile(
+    String fieldName,
+    XFile file,
+  ) async {
+    return http.MultipartFile.fromBytes(
+      fieldName,
+      await file.readAsBytes(),
+      filename: file.name,
+    );
   }
 
   Uri _buildUri(String path, Map<String, Object?> queryParameters) {

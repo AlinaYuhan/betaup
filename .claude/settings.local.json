@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"/c/Users/16973/Desktop/大三下/CPT208/项目/betaup-main\" status --short)",
+      "Bash(flutter analyze:*)",
+      "Bash(./mvnw -q -DskipTests compile)"
+    ]
+  }
+}

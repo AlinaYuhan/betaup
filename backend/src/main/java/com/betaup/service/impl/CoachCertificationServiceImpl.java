@@ -146,15 +146,25 @@ public class CoachCertificationServiceImpl implements CoachCertificationService 
     }
 
     private void validateImageType(MultipartFile file) {
-        String ct = file.getContentType();
-        if (ct == null || !java.util.List.of("image/jpeg", "image/png", "image/webp").contains(ct)) {
-            throw new IllegalArgumentException("Only JPEG, PNG, or WebP images are accepted.");
+        String contentType = file.getContentType();
+        if (contentType != null && java.util.List.of("image/jpeg", "image/jpg", "image/png", "image/webp").contains(contentType.toLowerCase())) {
+            return;
         }
+
+        String filename = file.getOriginalFilename();
+        if (filename != null) {
+            String lower = filename.toLowerCase();
+            if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".webp")) {
+                return;
+            }
+        }
+
+        throw new IllegalArgumentException("Only JPEG, PNG, or WebP images are accepted.");
     }
 
     private String getExtension(String filename) {
         if (filename == null || !filename.contains(".")) return ".jpg";
-        return filename.substring(filename.lastIndexOf('.'));
+        return filename.substring(filename.lastIndexOf('.')).toLowerCase();
     }
 
     private CertificationReviewDto toReviewDto(CoachCertification cert) {

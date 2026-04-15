@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,7 +17,8 @@ class CoachApplySheet extends StatefulWidget {
 
 class _CoachApplySheetState extends State<CoachApplySheet> {
   final _resumeCtrl = TextEditingController();
-  File? _imageFile;
+  XFile? _selectedImage;
+  Uint8List? _selectedImagePreviewBytes;
   bool _submitting = false;
   String? _errorMsg;
 
@@ -33,20 +34,27 @@ class _CoachApplySheetState extends State<CoachApplySheet> {
       source: ImageSource.gallery,
       imageQuality: 80,
     );
-    if (picked != null && mounted) {
-      setState(() => _imageFile = File(picked.path));
-    }
+    if (picked == null) return;
+
+    final previewBytes = await picked.readAsBytes();
+    if (!mounted) return;
+
+    setState(() {
+      _selectedImage = picked;
+      _selectedImagePreviewBytes = previewBytes;
+      _errorMsg = null;
+    });
   }
 
   Future<void> _submit() async {
-    if (_imageFile == null) {
+    if (_selectedImage == null) {
       setState(() => _errorMsg = "请先选择证书图片");
       return;
     }
     setState(() { _submitting = true; _errorMsg = null; });
     try {
       await widget.client.applyForCoach(
-        imageFile: _imageFile!,
+        imageFile: _selectedImage!,
         resumeText: _resumeCtrl.text.trim(),
       );
       if (mounted) Navigator.of(context).pop(true);
@@ -102,16 +110,30 @@ class _CoachApplySheetState extends State<CoachApplySheet> {
                 color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _imageFile != null
+                  color: _selectedImage != null
                       ? Colors.orange.withValues(alpha: 0.6)
                       : Colors.white.withValues(alpha: 0.15),
                   width: 1.5,
                 ),
               ),
-              child: _imageFile != null
+              child: _selectedImage != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(11),
-                      child: Image.file(_imageFile!, fit: BoxFit.cover),
+                      child: _selectedImagePreviewBytes != null
+                          ? Image.memory(
+                              _selectedImagePreviewBytes!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            )
+                          : Container(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              alignment: Alignment.center,
+                              child: Text(
+                                _selectedImage!.name,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                     )
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,

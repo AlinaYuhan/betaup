@@ -16,5 +16,6 @@
         "ANDROID_SDK_ROOT": "F:\\Android\\Sdk",
         "JAVA_HOME": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.10.7-hotspot",
         "PATH": "F:\\Android\\Sdk\\platform-tools;F:\\Android\\Sdk\\cmdline-tools\\latest\\bin;C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.10.7-hotspot\\bin;${env:PATH}"
-    }
+    },
+    "cmake.ignoreCMakeListsMissing": true
 }

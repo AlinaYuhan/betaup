@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import '../data/api_client.dart';
 import '../data/models.dart';
+import 'post_media.dart';
+import 'post_media_grid.dart';
 
 /// Full post view with comments — used when navigating from a notification.
 /// Build [client] from a valid context BEFORE calling showModalBottomSheet.
@@ -49,7 +51,11 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
       final post = await widget.client.fetchPost(widget.postId);
       final comments = await widget.client.fetchComments(widget.postId);
       if (mounted) {
-        setState(() { _post = post; _comments = comments; _loadingPost = false; });
+        setState(() {
+          _post = post;
+          _comments = comments;
+          _loadingPost = false;
+        });
       }
     } catch (_) {
       if (mounted) {
@@ -176,8 +182,7 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
                   .colorScheme
                   .surfaceContainerHighest
                   .withAlpha(60),
-              border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade300)),
+              border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,8 +197,7 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
                             ? post.authorName[0].toUpperCase()
                             : "?",
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold),
+                            color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -201,8 +205,8 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(post.authorName,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold)),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
                         Text(timeStr,
                             style: Theme.of(context)
                                 .textTheme
@@ -213,7 +217,23 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Text(post.content),
+                if (post.content.isNotEmpty) Text(post.content),
+                if (post.allMediaUrls.isNotEmpty && post.mediaKind != null) ...[
+                  SizedBox(height: post.content.isNotEmpty ? 12 : 0),
+                  if (post.allMediaUrls.length == 1 && post.mediaKind == PostMediaKind.video)
+                    PostMediaView(
+                      apiBaseUrl: widget.client.baseUrl,
+                      mediaUrl: post.allMediaUrls[0],
+                      mediaKind: post.mediaKind!,
+                      maxHeight: 320,
+                    )
+                  else
+                    PostMediaGridView(
+                      apiBaseUrl: widget.client.baseUrl,
+                      mediaUrls: post.allMediaUrls,
+                      maxHeight: 320,
+                    ),
+                ],
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -257,8 +277,7 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
                         onTap: () => _setReply(c),
                         onLongPress: () => _showCommentMenu(c),
                         child: Padding(
-                          padding:
-                              EdgeInsets.only(left: isReply ? 48.0 : 0.0),
+                          padding: EdgeInsets.only(left: isReply ? 48.0 : 0.0),
                           child: ListTile(
                             leading: CircleAvatar(
                               radius: isReply ? 14 : 20,
@@ -288,8 +307,7 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
           // Reply banner
           if (_replyTarget != null)
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               color: Colors.orange.withAlpha(20),
               child: Row(
                 children: [
@@ -300,8 +318,8 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
                   ),
                   GestureDetector(
                     onTap: () => setState(() => _replyTarget = null),
-                    child: const Icon(Icons.close,
-                        size: 16, color: Colors.grey),
+                    child:
+                        const Icon(Icons.close, size: 16, color: Colors.grey),
                   ),
                 ],
               ),
@@ -336,8 +354,7 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child:
-                              CircularProgressIndicator(strokeWidth: 2))
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.send_rounded, color: Colors.orange),
                   onPressed: _submitting ? null : _submitComment,
                 ),

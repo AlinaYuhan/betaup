@@ -9,13 +9,18 @@ import static org.mockito.Mockito.when;
 import com.betaup.dto.badge.BadgeProgressDto;
 import com.betaup.entity.Badge;
 import com.betaup.entity.BadgeCriteriaType;
+import com.betaup.entity.ClimbResult;
 import com.betaup.entity.ClimbStatus;
 import com.betaup.entity.User;
 import com.betaup.entity.UserBadge;
 import com.betaup.repository.BadgeRepository;
 import com.betaup.repository.CheckInRepository;
 import com.betaup.repository.ClimbLogRepository;
+import com.betaup.repository.CommentRepository;
 import com.betaup.repository.FeedbackRepository;
+import com.betaup.repository.NotificationRepository;
+import com.betaup.repository.PostLikeRepository;
+import com.betaup.repository.PostRepository;
 import com.betaup.repository.UserBadgeRepository;
 import com.betaup.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -47,6 +52,18 @@ class BadgeAutomationServiceImplTest {
     @Mock
     private CheckInRepository checkInRepository;
 
+    @Mock
+    private PostRepository postRepository;
+
+    @Mock
+    private PostLikeRepository postLikeRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
+
+    @Mock
+    private NotificationRepository notificationRepository;
+
     @InjectMocks
     private BadgeAutomationServiceImpl badgeAutomationService;
 
@@ -69,9 +86,14 @@ class BadgeAutomationServiceImplTest {
             .thenReturn(List.of(totalLogsFive, totalLogsTen, feedbackOne, checkInFive));
         when(climbLogRepository.countByUserId(7L)).thenReturn(8L);
         when(climbLogRepository.countByUserIdAndStatus(7L, ClimbStatus.COMPLETED)).thenReturn(3L);
+        when(climbLogRepository.countByUserIdAndResult(7L, ClimbResult.SEND)).thenReturn(0L);
+        when(climbLogRepository.countByUserIdAndResult(7L, ClimbResult.FLASH)).thenReturn(0L);
         when(feedbackRepository.countByClimberId(7L)).thenReturn(1L);
         when(checkInRepository.countByUserId(7L)).thenReturn(4L);
         when(checkInRepository.countDistinctGymsByUserId(7L)).thenReturn(2L);
+        when(postRepository.countByUserId(7L)).thenReturn(0L);
+        when(postLikeRepository.countByPostUserId(7L)).thenReturn(0L);
+        when(commentRepository.countByUserId(7L)).thenReturn(0L);
 
         List<BadgeProgressDto> progress = badgeAutomationService.getProgressForUser(climber);
 
@@ -96,9 +118,14 @@ class BadgeAutomationServiceImplTest {
         when(userBadgeRepository.findByUserId(7L)).thenReturn(List.of());
         when(climbLogRepository.countByUserId(7L)).thenReturn(8L);
         when(climbLogRepository.countByUserIdAndStatus(7L, ClimbStatus.COMPLETED)).thenReturn(3L);
+        when(climbLogRepository.countByUserIdAndResult(7L, ClimbResult.SEND)).thenReturn(0L);
+        when(climbLogRepository.countByUserIdAndResult(7L, ClimbResult.FLASH)).thenReturn(0L);
         when(feedbackRepository.countByClimberId(7L)).thenReturn(1L);
         when(checkInRepository.countByUserId(7L)).thenReturn(4L);
         when(checkInRepository.countDistinctGymsByUserId(7L)).thenReturn(2L);
+        when(postRepository.countByUserId(7L)).thenReturn(0L);
+        when(postLikeRepository.countByPostUserId(7L)).thenReturn(0L);
+        when(commentRepository.countByUserId(7L)).thenReturn(0L);
 
         badgeAutomationService.evaluateUserBadges(climber);
 

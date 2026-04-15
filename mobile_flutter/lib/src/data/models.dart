@@ -167,7 +167,8 @@ class UserProfile {
       totalClimbLogs: _asInt(json["totalClimbLogs"]),
       // Backend serialises boolean isXxx fields without the "is" prefix.
       // Accept both keys so cached SharedPrefs data also works.
-      isCoachCertified: json["coachCertified"] == true || json["isCoachCertified"] == true,
+      isCoachCertified:
+          json["coachCertified"] == true || json["isCoachCertified"] == true,
     );
   }
 
@@ -260,7 +261,8 @@ class DashboardSummary {
           .map((item) => DashboardMetric.fromJson(JsonMap.from(item as Map)))
           .toList(),
       breakdown: (json["breakdown"] as List<dynamic>? ?? const [])
-          .map((item) => DashboardBreakdownItem.fromJson(JsonMap.from(item as Map)))
+          .map((item) =>
+              DashboardBreakdownItem.fromJson(JsonMap.from(item as Map)))
           .toList(),
       charts: (json["charts"] as List<dynamic>? ?? const [])
           .map((item) => DashboardChart.fromJson(JsonMap.from(item as Map)))
@@ -338,7 +340,8 @@ class DashboardChart {
       subtitle: _asString(json["subtitle"]),
       format: _asString(json["format"]),
       points: (json["points"] as List<dynamic>? ?? const [])
-          .map((item) => DashboardChartPoint.fromJson(JsonMap.from(item as Map)))
+          .map(
+              (item) => DashboardChartPoint.fromJson(JsonMap.from(item as Map)))
           .toList(),
     );
   }
@@ -425,7 +428,9 @@ class ClimbLog {
       status: status,
       result: json["result"] != null
           ? ClimbResult.fromRaw(_asString(json["result"]))
-          : (status == ClimbStatus.completed ? ClimbResult.send : ClimbResult.attempt),
+          : (status == ClimbStatus.completed
+              ? ClimbResult.send
+              : ClimbResult.attempt),
       attempts: _asInt(json["attempts"], 1),
       notes: _asString(json["notes"]),
       createdAt: _asDateTime(json["createdAt"]),
@@ -527,9 +532,10 @@ class SessionSummary {
         gradeSummary: (json["gradeSummary"] as List<dynamic>? ?? [])
             .map((e) => GradeStat.fromJson(JsonMap.from(e as Map)))
             .toList(),
-        newlyUnlockedBadges: (json["newlyUnlockedBadges"] as List<dynamic>? ?? [])
-            .map((e) => BadgeProgress.fromJson(JsonMap.from(e as Map)))
-            .toList(),
+        newlyUnlockedBadges:
+            (json["newlyUnlockedBadges"] as List<dynamic>? ?? [])
+                .map((e) => BadgeProgress.fromJson(JsonMap.from(e as Map)))
+                .toList(),
       );
 }
 
@@ -552,6 +558,7 @@ class BadgeProgress {
   final String name;
   final String description;
   final BadgeCriteriaType criteriaType;
+
   /// "LEVEL" | "CHALLENGE" | "VENUE" | "SOCIAL"
   final String category;
   final int threshold;
@@ -867,6 +874,22 @@ enum PostType {
       );
 }
 
+enum PostMediaKind {
+  image("IMAGE"),
+  video("VIDEO");
+
+  const PostMediaKind(this.rawValue);
+  final String rawValue;
+
+  static PostMediaKind? fromRaw(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    return values.firstWhere(
+      (kind) => kind.rawValue == raw,
+      orElse: () => PostMediaKind.image,
+    );
+  }
+}
+
 class Post {
   const Post({
     required this.id,
@@ -875,6 +898,9 @@ class Post {
     this.authorIsCoach = false,
     required this.content,
     required this.type,
+    this.mediaUrl,
+    this.mediaUrls,
+    this.mediaKind,
     required this.likeCount,
     required this.commentCount,
     required this.likedByMe,
@@ -888,11 +914,26 @@ class Post {
   final bool authorIsCoach;
   final String content;
   final PostType type;
+  @Deprecated('Use mediaUrls instead')
+  final String? mediaUrl;
+  final List<String>? mediaUrls;
+  final PostMediaKind? mediaKind;
   final int likeCount;
   final int commentCount;
   final bool likedByMe;
   final DateTime? createdAt;
   final List<BadgeProgress> newlyUnlockedBadges;
+
+  /// Helper to get all media URLs (backward compatible)
+  List<String> get allMediaUrls {
+    if (mediaUrls != null && mediaUrls!.isNotEmpty) {
+      return mediaUrls!;
+    }
+    if (mediaUrl != null) {
+      return [mediaUrl!];
+    }
+    return [];
+  }
 
   factory Post.fromJson(JsonMap json) => Post(
         id: _asInt(json["id"]),
@@ -901,13 +942,19 @@ class Post {
         authorIsCoach: json["authorIsCoach"] == true,
         content: _asString(json["content"]),
         type: PostType.fromRaw(_asString(json["type"], "GENERAL")),
+        mediaUrl: json["mediaUrl"] as String?,
+        mediaUrls: (json["mediaUrls"] as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toList(),
+        mediaKind: PostMediaKind.fromRaw(json["mediaKind"] as String?),
         likeCount: _asInt(json["likeCount"]),
         commentCount: _asInt(json["commentCount"]),
         likedByMe: json["likedByMe"] == true,
         createdAt: _asDateTime(json["createdAt"]),
-        newlyUnlockedBadges: (json["newlyUnlockedBadges"] as List<dynamic>? ?? [])
-            .map((e) => BadgeProgress.fromJson(e as JsonMap))
-            .toList(),
+        newlyUnlockedBadges:
+            (json["newlyUnlockedBadges"] as List<dynamic>? ?? [])
+                .map((e) => BadgeProgress.fromJson(e as JsonMap))
+                .toList(),
       );
 
   Post copyWith({int? likeCount, bool? likedByMe}) => Post(
@@ -917,6 +964,9 @@ class Post {
         authorIsCoach: authorIsCoach,
         content: content,
         type: type,
+        mediaUrl: mediaUrl,
+        mediaUrls: mediaUrls,
+        mediaKind: mediaKind,
         likeCount: likeCount ?? this.likeCount,
         commentCount: commentCount,
         likedByMe: likedByMe ?? this.likedByMe,
@@ -1040,7 +1090,9 @@ class PublicUserProfile {
         id: id,
         name: name,
         isCoachCertified: isCoachCertified,
-        followerCount: followedByMe == true ? followerCount + 1 : (followedByMe == false ? followerCount - 1 : followerCount),
+        followerCount: followedByMe == true
+            ? followerCount + 1
+            : (followedByMe == false ? followerCount - 1 : followerCount),
         followingCount: followingCount,
         totalClimbLogs: totalClimbLogs,
         followedByMe: followedByMe ?? this.followedByMe,
@@ -1163,7 +1215,8 @@ class CoachStatus {
   final DateTime? reviewedAt;
 
   factory CoachStatus.fromJson(JsonMap json) => CoachStatus(
-        isCoachCertified: json["coachCertified"] == true || json["isCoachCertified"] == true,
+        isCoachCertified:
+            json["coachCertified"] == true || json["isCoachCertified"] == true,
         certificationStatus:
             CertificationStatus.fromRaw(json["certificationStatus"] as String?),
         rejectReason: json["rejectReason"] as String?,
@@ -1200,8 +1253,7 @@ class CertificationReview {
         userId: _asInt(json["userId"]),
         userName: _asString(json["userName"]),
         userEmail: _asString(json["userEmail"]),
-        status: CertificationStatus.fromRaw(
-                _asString(json["status"])) ??
+        status: CertificationStatus.fromRaw(_asString(json["status"])) ??
             CertificationStatus.pending,
         certificateImageUrl: _asString(json["certificateImageUrl"]),
         resumeText: json["resumeText"] as String?,
