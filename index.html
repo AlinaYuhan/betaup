@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BetaUp — CPT208 Group C2-6</title>
+<title>BetaUp — CPT208 Process Portfolio · Group C2-6</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
+  /* ── Root ──────────────────────────────────────────────────────────── */
   :root {
     --rock: #1a1a1a;
     --chalk: #f5f0e8;
@@ -26,14 +27,51 @@
     overflow-x: hidden;
   }
 
+  /* ── Sticky Navigation ─────────────────────────────────────────────── */
+  #topnav {
+    position: sticky; top: 0; z-index: 200;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.9rem 4rem;
+    background: rgba(26,26,26,0.95);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid #242424;
+    transition: border-color 0.3s;
+  }
+  #topnav.scrolled { border-bottom-color: rgba(232,80,10,0.4); }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem; letter-spacing: 0.15em;
+    color: var(--summit);
+  }
+  .nav-links { display: flex; gap: 1.8rem; }
+  .nav-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.15em;
+    color: var(--granite); text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    padding-bottom: 3px;
+    border-bottom: 1px solid transparent;
+  }
+  .nav-links a:hover { color: var(--chalk); }
+  .nav-links a.active { color: var(--chalk); border-bottom-color: var(--summit); }
+  .nav-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; color: var(--granite);
+    letter-spacing: 0.1em;
+    border: 1px solid #2a2a2a;
+    padding: 0.35rem 0.7rem; border-radius: 2px;
+  }
+
+  /* ── Hero ──────────────────────────────────────────────────────────── */
   .hero {
     min-height: 100vh;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: 1fr auto;
     position: relative;
     overflow: hidden;
   }
-
   .hero-bg {
     position: absolute; inset: 0; z-index: 0;
     background:
@@ -41,508 +79,453 @@
       radial-gradient(ellipse 60% 80% at 20% 80%, #1a2530 0%, transparent 60%),
       linear-gradient(160deg, #0d0d0d 0%, #1a1a1a 50%, #0a1a0a 100%);
   }
-
   .hero-texture {
     position: absolute; inset: 0; z-index: 1; opacity: 0.04;
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
-
   .mountain-svg {
     position: absolute; bottom: 0; left: 0; right: 0; z-index: 1;
     opacity: 0.15;
   }
-
-  nav {
-    position: relative; z-index: 10;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 2rem 4rem;
-  }
-
-  .nav-logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    letter-spacing: 0.15em;
-    color: var(--summit);
-  }
-
-  .nav-tag {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--granite);
-    letter-spacing: 0.1em;
-    border: 1px solid #333;
-    padding: 0.4rem 0.8rem;
-    border-radius: 2px;
-  }
-
   .hero-center {
     position: relative; z-index: 10;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    text-align: center; padding: 2rem 4rem;
+    text-align: center; padding: 4rem 4rem 2rem;
   }
-
   .hero-eyebrow {
     font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.3em;
-    color: var(--summit);
-    text-transform: uppercase;
+    font-size: 0.65rem; letter-spacing: 0.3em;
+    color: var(--summit); text-transform: uppercase;
     margin-bottom: 1.5rem;
     opacity: 0; animation: fadeUp 0.8s ease 0.2s forwards;
   }
-
   .hero-title {
     font-family: 'Bebas Neue', sans-serif;
     font-size: clamp(5rem, 14vw, 11rem);
-    letter-spacing: 0.03em;
-    line-height: 0.9;
-    color: var(--chalk);
-    margin-bottom: 0.2em;
+    letter-spacing: 0.03em; line-height: 0.9;
+    color: var(--chalk); margin-bottom: 0.2em;
     opacity: 0; animation: fadeUp 0.8s ease 0.4s forwards;
   }
-
   .hero-title span { color: var(--summit); }
-
   .hero-subtitle {
     font-size: clamp(1rem, 2.5vw, 1.4rem);
-    font-weight: 300;
-    color: var(--sky);
-    letter-spacing: 0.05em;
-    margin-bottom: 3rem;
+    font-weight: 300; color: var(--sky);
+    letter-spacing: 0.05em; margin-bottom: 2rem;
     opacity: 0; animation: fadeUp 0.8s ease 0.6s forwards;
   }
-
   .hero-tagline {
     font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--granite);
+    font-size: 0.72rem; color: var(--granite);
     letter-spacing: 0.2em;
     opacity: 0; animation: fadeUp 0.8s ease 0.8s forwards;
   }
-
   .hero-bottom {
     position: relative; z-index: 10;
     display: flex; justify-content: center;
     padding-bottom: 3rem;
   }
-
   .scroll-hint {
     font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--granite);
+    font-size: 0.6rem; color: var(--granite);
     letter-spacing: 0.2em;
     display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
     animation: bounce 2s ease-in-out infinite;
   }
-
   .scroll-hint::after {
-    content: '';
-    width: 1px; height: 40px;
+    content: ''; width: 1px; height: 40px;
     background: linear-gradient(to bottom, var(--granite), transparent);
   }
 
+  /* ── Section Basics ─────────────────────────────────────────────────── */
   section { padding: 6rem 4rem; }
-
   .section-label {
     font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.35em;
-    color: var(--summit);
-    text-transform: uppercase;
+    font-size: 0.6rem; letter-spacing: 0.35em;
+    color: var(--summit); text-transform: uppercase;
     margin-bottom: 1rem;
     display: flex; align-items: center; gap: 1rem;
   }
-
   .section-label::before {
-    content: '';
-    width: 30px; height: 1px;
-    background: var(--summit);
+    content: ''; width: 30px; height: 1px; background: var(--summit);
   }
-
   .section-title {
     font-family: 'Bebas Neue', sans-serif;
     font-size: clamp(2.5rem, 6vw, 4.5rem);
-    line-height: 1;
-    margin-bottom: 1.5rem;
+    line-height: 1; margin-bottom: 1rem;
+  }
+  .section-intro {
+    font-size: 1rem; color: #999; line-height: 1.8;
+    max-width: 720px; margin-bottom: 3rem;
+  }
+  .content-section { max-width: 1200px; margin: 0 auto; }
+  .divider {
+    border: none; height: 1px;
+    background: linear-gradient(to right, transparent, #2a2a2a, transparent);
+    margin: 0 4rem;
+  }
+  .subsection-label {
+    font-family: 'Space Mono', monospace; font-size: 0.62rem;
+    letter-spacing: 0.22em; color: var(--accent); text-transform: uppercase;
+    margin: 4rem 0 1.5rem; padding-top: 2.5rem;
+    border-top: 1px solid #242424;
   }
 
+  /* ── About Section ──────────────────────────────────────────────────── */
   .about {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6rem;
-    align-items: start;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6rem; align-items: start;
     max-width: 1200px; margin: 0 auto;
   }
-
-  .about-text p {
-    font-size: 1.05rem;
-    line-height: 1.8;
-    color: #bbb;
-    margin-bottom: 1.5rem;
-  }
-
+  .about-text p { font-size: 1.05rem; line-height: 1.8; color: #bbb; margin-bottom: 1.5rem; }
   .about-text p strong { color: var(--chalk); font-weight: 500; }
-
-  .about-meta {
-    display: flex; flex-direction: column; gap: 1.5rem;
-    margin-top: 2rem;
-  }
-
+  .about-meta { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
   .meta-item {
     display: flex; flex-direction: column;
-    border-left: 2px solid var(--summit);
-    padding-left: 1rem;
+    border-left: 2px solid var(--summit); padding-left: 1rem;
   }
-
-  .meta-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    color: var(--granite);
-    text-transform: uppercase;
-  }
-
-  .meta-value {
-    font-size: 0.95rem;
-    color: var(--chalk);
-    margin-top: 0.25rem;
-  }
-
+  .meta-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--granite); text-transform: uppercase; }
+  .meta-value { font-size: 0.95rem; color: var(--chalk); margin-top: 0.25rem; }
   .pill-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
-
-  .pill {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    padding: 0.35rem 0.8rem;
-    border-radius: 2px;
-    text-transform: uppercase;
-  }
-
+  .pill { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; padding: 0.35rem 0.8rem; border-radius: 2px; text-transform: uppercase; }
   .pill-green { background: rgba(74,124,89,0.2); color: var(--moss); border: 1px solid rgba(74,124,89,0.4); }
   .pill-orange { background: rgba(232,80,10,0.15); color: var(--summit); border: 1px solid rgba(232,80,10,0.4); }
   .pill-blue { background: rgba(200,223,232,0.1); color: var(--sky); border: 1px solid rgba(200,223,232,0.3); }
-
+  .pill-gold { background: rgba(240,165,0,0.1); color: var(--accent); border: 1px solid rgba(240,165,0,0.3); }
   .about-right { display: flex; flex-direction: column; gap: 1.5rem; }
-
   .feature-card {
-    background: #222;
-    border: 1px solid #2e2e2e;
-    border-radius: 4px;
-    padding: 1.5rem;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.3s ease, transform 0.3s ease;
+    background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px;
+    padding: 1.5rem; position: relative; overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
   }
-
   .feature-card:hover { border-color: var(--summit); transform: translateX(4px); }
-
   .feature-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: var(--summit);
-    transform: scaleY(0);
-    transition: transform 0.3s ease;
-    transform-origin: bottom;
+    content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+    background: var(--summit); transform: scaleY(0); transition: transform 0.3s; transform-origin: bottom;
   }
-
   .feature-card:hover::before { transform: scaleY(1); }
-
   .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
-
-  .feature-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.05em;
-    color: var(--chalk);
-    margin-bottom: 0.5rem;
-  }
-
+  .feature-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; color: var(--chalk); margin-bottom: 0.5rem; }
   .feature-desc { font-size: 0.85rem; color: var(--granite); line-height: 1.7; }
 
-  .divider {
-    border: none;
-    height: 1px;
-    background: linear-gradient(to right, transparent, #333, transparent);
-    margin: 0 4rem;
-  }
-
-  .team-section { max-width: 1200px; margin: 0 auto; }
-
-  .team-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-    margin-top: 3rem;
-  }
-
-  .member-card {
-    background: #1e1e1e;
-    border: 1px solid #2a2a2a;
-    border-radius: 4px;
-    padding: 2rem 1.5rem;
-    display: flex; flex-direction: column; align-items: center;
-    text-align: center;
-    transition: transform 0.3s ease, border-color 0.3s ease;
-    position: relative; overflow: hidden;
-  }
-
-  .member-card:hover { transform: translateY(-6px); border-color: var(--summit); }
-
-  .member-card::after {
-    content: '';
-    position: absolute; bottom: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--summit), var(--accent));
-    transform: scaleX(0);
-    transition: transform 0.4s ease;
-  }
-
-  .member-card:hover::after { transform: scaleX(1); }
-
-  .member-avatar {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--rock) 0%, #333 100%);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    color: var(--summit);
-    border: 2px solid #333;
-    margin-bottom: 1.2rem;
-    transition: border-color 0.3s;
-  }
-
-  .member-card:hover .member-avatar { border-color: var(--summit); }
-
-  .member-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.2rem;
-    letter-spacing: 0.08em;
-    color: var(--chalk);
-    margin-bottom: 0.2rem;
-  }
-
-  .member-name-cn { font-size: 0.8rem; color: var(--granite); margin-bottom: 0.3rem; }
-
-  .member-id {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--granite);
-    letter-spacing: 0.1em;
-    margin-bottom: 0.8rem;
-  }
-
-  .member-role {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
-    color: var(--summit);
-    text-transform: uppercase;
-    background: rgba(232,80,10,0.1);
-    padding: 0.3rem 0.7rem;
-    border-radius: 2px;
-    border: 1px solid rgba(232,80,10,0.3);
-    margin-bottom: 0.8rem;
-  }
-
-  .member-github {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--sky);
-    text-decoration: none;
-    letter-spacing: 0.05em;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.2s;
-  }
-
-  .member-github:hover { border-bottom-color: var(--sky); }
-
+  /* ── Process Timeline ───────────────────────────────────────────────── */
   .process-section { max-width: 1200px; margin: 0 auto; }
-
-  .timeline {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0;
-    margin-top: 3rem;
-    position: relative;
-  }
-
+  .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 3rem; position: relative; }
   .timeline::before {
-    content: '';
-    position: absolute;
-    top: 28px; left: 10%; right: 10%;
-    height: 1px;
+    content: ''; position: absolute; top: 28px; left: 10%; right: 10%; height: 1px;
     background: linear-gradient(90deg, transparent, #333, var(--summit), #333, transparent);
   }
-
-  .timeline-step {
-    display: flex; flex-direction: column; align-items: center;
-    text-align: center; padding: 0 1rem;
-  }
-
+  .timeline-step { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 1rem; }
   .step-dot {
-    width: 56px; height: 56px;
-    border-radius: 50%;
-    background: var(--rock);
-    border: 2px solid #333;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--rock); border: 2px solid #333;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    color: var(--summit);
-    margin-bottom: 1.5rem;
-    position: relative; z-index: 1;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--summit);
+    margin-bottom: 1.5rem; position: relative; z-index: 1;
     transition: border-color 0.3s, background 0.3s;
   }
-
   .step-dot.active { border-color: var(--summit); background: rgba(232,80,10,0.1); }
-
-  .step-week {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    color: var(--summit);
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-
+  .step-week { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--summit); text-transform: uppercase; margin-bottom: 0.5rem; }
   .step-title { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; color: var(--chalk); margin-bottom: 0.5rem; }
   .step-desc { font-size: 0.78rem; color: var(--granite); line-height: 1.6; }
 
-  .research-section { max-width: 1200px; margin: 0 auto; }
-
-  .research-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-top: 3rem;
+  /* ── Team Section ───────────────────────────────────────────────────── */
+  .team-section { max-width: 1200px; margin: 0 auto; }
+  .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-top: 3rem; }
+  .member-card {
+    background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px;
+    padding: 2rem 1.5rem; display: flex; flex-direction: column; align-items: center;
+    text-align: center; transition: transform 0.3s, border-color 0.3s;
+    position: relative; overflow: hidden;
   }
+  .member-card:hover { transform: translateY(-6px); border-color: var(--summit); }
+  .member-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--summit), var(--accent));
+    transform: scaleX(0); transition: transform 0.4s;
+  }
+  .member-card:hover::after { transform: scaleX(1); }
+  .member-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--rock) 0%, #333 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--summit);
+    border: 2px solid #333; margin-bottom: 1.2rem; transition: border-color 0.3s;
+  }
+  .member-card:hover .member-avatar { border-color: var(--summit); }
+  .member-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.08em; color: var(--chalk); margin-bottom: 0.2rem; }
+  .member-name-cn { font-size: 0.8rem; color: var(--granite); margin-bottom: 0.3rem; }
+  .member-id { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--granite); letter-spacing: 0.1em; margin-bottom: 0.8rem; }
+  .member-role { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; color: var(--summit); text-transform: uppercase; background: rgba(232,80,10,0.1); padding: 0.3rem 0.7rem; border-radius: 2px; border: 1px solid rgba(232,80,10,0.3); margin-bottom: 0.8rem; }
+  .member-github { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sky); text-decoration: none; letter-spacing: 0.05em; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+  .member-github:hover { border-bottom-color: var(--sky); }
 
-  .research-card {
-    background: #1e1e1e;
-    border: 1px solid #2a2a2a;
-    border-radius: 4px;
-    padding: 2rem;
+  /* ── Literature Review Tables ──────────────────────────────────────── */
+  .review-table-wrapper { margin-top: 1.5rem; overflow-x: auto; border-radius: 4px; border: 1px solid #242424; }
+  .table-caption { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; color: var(--granite); text-transform: uppercase; margin-bottom: 0; padding: 0.8rem 1.25rem; background: #161616; border-bottom: 1px solid #242424; }
+  .review-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .review-table th { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: var(--granite); text-transform: uppercase; padding: 0.9rem 1.25rem; background: #1a1a1a; border-bottom: 1px solid #242424; text-align: left; }
+  .review-table th:first-child { width: 24%; }
+  .review-table td { padding: 1.25rem; border-bottom: 1px solid #1e1e1e; vertical-align: top; line-height: 1.7; color: #aaa; }
+  .review-table td:first-child { color: var(--chalk); }
+  .review-table tr:last-child td { border-bottom: none; }
+  .review-table tr:hover td { background: rgba(255,255,255,0.018); }
+  .review-table td ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
+  .review-table td ul li { margin-bottom: 0.3rem; }
+  .cite-venue { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--summit); display: block; margin-top: 0.35rem; }
+  .cite-doi { font-family: 'Space Mono', monospace; font-size: 0.52rem; color: #484848; display: block; margin-top: 0.1rem; }
+  .strength-list li::before { content: '✓ '; color: var(--moss); font-size: 0.7rem; }
+  .gap-list li::before { content: '— '; color: var(--summit); font-size: 0.7rem; }
+
+  /* ── Persona Cards ──────────────────────────────────────────────────── */
+  .persona-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; }
+  .persona-card {
+    background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px;
+    padding: 2rem; display: flex; gap: 1.5rem; align-items: flex-start;
     transition: border-color 0.3s;
   }
-
-  .research-card:hover { border-color: #444; }
-
-  .research-card h3 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.05em;
-    color: var(--accent);
-    margin-bottom: 1rem;
+  .persona-card:hover { border-color: var(--summit); }
+  .persona-avatar {
+    width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%;
+    background: linear-gradient(135deg, #2a3a2a, #1a2530);
+    border: 2px solid #333; display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--summit);
   }
+  .persona-content { flex: 1; }
+  .persona-tag { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: var(--summit); text-transform: uppercase; background: rgba(232,80,10,0.1); border: 1px solid rgba(232,80,10,0.3); padding: 0.2rem 0.6rem; border-radius: 2px; display: inline-block; margin-bottom: 0.6rem; }
+  .persona-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--chalk); letter-spacing: 0.05em; }
+  .persona-meta { font-size: 0.78rem; color: var(--granite); margin: 0.5rem 0; line-height: 1.7; }
+  .persona-meta strong { color: #aaa; font-weight: 400; }
+  .persona-quote { font-style: italic; color: var(--sky); font-size: 0.85rem; margin-top: 1rem; border-left: 2px solid rgba(200,223,232,0.4); padding-left: 0.8rem; line-height: 1.6; }
 
+  /* ── User Journey Map ───────────────────────────────────────────────── */
+  .journey-map { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-top: 1.5rem; position: relative; }
+  .journey-map::before { content: ''; position: absolute; top: 32px; left: 5%; right: 5%; height: 1px; background: linear-gradient(90deg, transparent, #2a2a2a, var(--moss), #2a2a2a, transparent); }
+  .journey-step { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 0.75rem; }
+  .journey-dot { width: 64px; height: 64px; border-radius: 50%; background: var(--rock); border: 2px solid #2a2a2a; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1.2rem; position: relative; z-index: 1; transition: border-color 0.3s; }
+  .journey-dot.pain { border-color: rgba(232,80,10,0.5); }
+  .journey-dot:hover { border-color: var(--moss); }
+  .journey-phase { font-family: 'Space Mono', monospace; font-size: 0.57rem; letter-spacing: 0.12em; color: var(--moss); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .journey-title { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.85rem; color: var(--chalk); margin-bottom: 0.4rem; }
+  .journey-desc { font-size: 0.78rem; color: var(--granite); line-height: 1.6; margin-bottom: 0.5rem; }
+  .journey-pain { font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--summit); line-height: 1.5; }
+  .journey-fix { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--moss); margin-top: 0.4rem; line-height: 1.5; }
+
+  /* ── Must-Have Feature Cards ────────────────────────────────────────── */
+  .must-have-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1.5rem; }
+  .must-have-card { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px; padding: 2rem; position: relative; overflow: hidden; transition: border-color 0.3s, transform 0.3s; }
+  .must-have-card:hover { border-color: var(--summit); transform: translateY(-4px); }
+  .must-have-number { font-family: 'Bebas Neue', sans-serif; font-size: 6rem; color: rgba(232,80,10,0.06); position: absolute; top: -1rem; right: 0.5rem; line-height: 1; pointer-events: none; }
+  .must-have-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .must-have-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem; letter-spacing: 0.04em; color: var(--chalk); margin-bottom: 0.75rem; }
+  .must-have-desc { font-size: 0.83rem; color: var(--granite); line-height: 1.75; }
+  .must-have-mechanism { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--moss); margin-top: 1.2rem; letter-spacing: 0.05em; padding-top: 1rem; border-top: 1px solid #252525; }
+
+  /* ── Interview / Placeholder Boxes ─────────────────────────────────── */
+  .interview-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 1.5rem; }
+  .photo-slot { aspect-ratio: 4/3; border: 2px dashed #272727; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; transition: border-color 0.3s; }
+  .photo-slot:hover { border-color: #3a3a3a; }
+  .photo-slot .ph-num { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: #3a3a3a; letter-spacing: 0.1em; }
+  .photo-slot .ph-icon { font-size: 1.8rem; opacity: 0.3; }
+  .photo-slot .ph-caption { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: #3a3a3a; letter-spacing: 0.05em; }
+  .placeholder-note { background: #161616; border: 1px solid #242424; border-radius: 4px; padding: 1.25rem 1.5rem; margin-top: 1rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; color: #484848; line-height: 1.7; letter-spacing: 0.05em; }
+  .placeholder-note strong { color: #5a5a5a; }
+
+  /* ── Ideation Sketches ──────────────────────────────────────────────── */
+  .sketch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1.5rem; }
+  .sketch-slot { aspect-ratio: 3/4; border: 2px dashed #272727; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; padding: 1rem; transition: border-color 0.3s; }
+  .sketch-slot:hover { border-color: #3a3a3a; }
+  .sketch-num { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: #2a2a2a; }
+  .sketch-label { font-family: 'Space Mono', monospace; font-size: 0.57rem; color: #3a3a3a; letter-spacing: 0.05em; text-align: center; }
+
+  /* ── Alternatives Tables ────────────────────────────────────────────── */
+  .alt-section { margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+  .alt-block { background: #1a1a1a; border: 1px solid #242424; border-radius: 4px; overflow: hidden; }
+  .alt-block-title { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; padding: 0.8rem 1.25rem; background: #161616; border-bottom: 1px solid #242424; }
+  .alt-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .alt-table td { padding: 0.85rem 1.25rem; border-bottom: 1px solid #1e1e1e; vertical-align: top; color: #888; line-height: 1.6; }
+  .alt-table td:first-child { color: var(--chalk); font-weight: 500; font-size: 0.85rem; }
+  .alt-table tr:last-child td { border-bottom: none; }
+  .alt-table .selected td { background: rgba(74,124,89,0.06); }
+  .alt-table .selected td:first-child { color: var(--moss); }
+  .alt-table .rejected td:first-child { color: #555; text-decoration: line-through; text-decoration-color: #3a3a3a; }
+  .badge-row { margin-top: 0.35rem; }
+  .badge { display: inline-block; font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.08em; padding: 0.15rem 0.45rem; border-radius: 2px; }
+  .badge-green { background: rgba(74,124,89,0.15); color: var(--moss); border: 1px solid rgba(74,124,89,0.3); }
+  .badge-gray { background: rgba(107,107,107,0.1); color: #555; border: 1px solid #2a2a2a; }
+  .figma-link-box { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px; padding: 2rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 1.5rem; transition: border-color 0.3s; }
+  .figma-link-box:hover { border-color: var(--summit); }
+  .figma-icon { font-size: 2.5rem; flex-shrink: 0; }
+  .figma-link-text h4 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--chalk); margin-bottom: 0.3rem; }
+  .figma-link-text p { font-size: 0.82rem; color: var(--granite); line-height: 1.6; margin-bottom: 0.6rem; }
+  .figma-link-text a { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--summit); text-decoration: none; border-bottom: 1px solid rgba(232,80,10,0.3); padding-bottom: 1px; transition: border-color 0.2s; }
+  .figma-link-text a:hover { border-bottom-color: var(--summit); }
+
+  /* ── System / Architecture ──────────────────────────────────────────── */
+  .arch-diagram { background: #111; border: 1px solid #242424; border-radius: 4px; padding: 2.5rem; margin-top: 1.5rem; overflow-x: auto; }
+  .arch-diagram pre { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: #aaa; line-height: 1.9; white-space: pre; }
+  .arch-highlight { color: var(--summit); }
+  .arch-label { color: var(--moss); }
+  .tech-stack-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
+
+  /* ── Contribution Table ─────────────────────────────────────────────── */
+  .contrib-wrapper { margin-top: 1.5rem; border: 1px solid #242424; border-radius: 4px; overflow: hidden; }
+  .contrib-table { width: 100%; border-collapse: collapse; }
+  .contrib-table th { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.15em; color: var(--granite); text-transform: uppercase; padding: 0.9rem 1.25rem; background: #161616; border-bottom: 1px solid #242424; text-align: left; }
+  .contrib-table td { padding: 1.5rem 1.25rem; border-bottom: 1px solid #1e1e1e; vertical-align: top; font-size: 0.83rem; color: #aaa; line-height: 1.75; }
+  .contrib-table td:first-child { color: var(--chalk); white-space: nowrap; }
+  .contrib-table td:first-child strong { display: block; font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.04em; color: var(--chalk); font-weight: 400; }
+  .contrib-table td:first-child span { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--granite); display: block; margin-top: 0.2rem; }
+  .contrib-table tr:last-child td { border-bottom: none; }
+  .contrib-table .lead-row td { background: rgba(232,80,10,0.03); }
+  .contrib-table .lead-row td:first-child strong { color: var(--summit); }
+  .contrib-role { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--moss); text-transform: uppercase; letter-spacing: 0.1em; background: rgba(74,124,89,0.1); border: 1px solid rgba(74,124,89,0.3); padding: 0.2rem 0.55rem; border-radius: 2px; display: inline-block; margin-top: 0.4rem; }
+  .contrib-ul { margin: 0.75rem 0 0; padding-left: 1.1rem; }
+  .contrib-ul li { margin-bottom: 0.3rem; }
+  .live-url-box { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px; padding: 1.75rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 1.5rem; }
+  .live-url-icon { font-size: 2rem; flex-shrink: 0; }
+  .live-url-text h4 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--chalk); margin-bottom: 0.3rem; }
+  .live-url-text p { font-size: 0.82rem; color: var(--granite); line-height: 1.6; }
+  .live-url-badge { display: inline-block; font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.08em; padding: 0.2rem 0.6rem; border-radius: 2px; margin-top: 0.5rem; background: rgba(232,80,10,0.08); color: var(--granite); border: 1px solid #2a2a2a; }
+
+  /* ── SUS / Evaluation ───────────────────────────────────────────────── */
+  .sus-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1.5rem; }
+  .sus-card { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px; padding: 2rem; text-align: center; transition: border-color 0.3s; }
+  .sus-card:hover { border-color: #3a3a3a; }
+  .sus-score { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--summit); line-height: 1; }
+  .sus-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--granite); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.5rem; display: block; }
+  .sus-participant { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: #484848; margin-top: 0.3rem; }
+  .sus-placeholder { font-size: 2.5rem; opacity: 0.2; }
+  .findings-box { background: #1a1a1a; border: 1px solid #242424; border-radius: 4px; padding: 2rem; margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .findings-col h4 { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #242424; }
+  .findings-col.issues h4 { color: var(--summit); }
+  .findings-col.positives h4 { color: var(--moss); }
+  .findings-col ul { padding-left: 0; list-style: none; }
+  .findings-col ul li { font-size: 0.82rem; color: #aaa; line-height: 1.7; padding: 0.4rem 0; border-bottom: 1px solid #1e1e1e; }
+  .findings-col ul li:last-child { border-bottom: none; }
+  .findings-col.issues ul li::before { content: '△ '; color: var(--summit); font-size: 0.7rem; }
+  .findings-col.positives ul li::before { content: '✓ '; color: var(--moss); font-size: 0.7rem; }
+  .ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; }
+  .ba-pair { background: #1a1a1a; border: 1px solid #242424; border-radius: 4px; overflow: hidden; }
+  .ba-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; padding: 0.75rem 1.25rem; background: #161616; border-bottom: 1px solid #242424; }
+  .ba-screens { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .ba-slot { aspect-ratio: 9/16; border-right: 1px solid #242424; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; }
+  .ba-slot:last-child { border-right: none; }
+  .ba-slot .ba-marker { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.1em; padding: 0.2rem 0.6rem; border-radius: 2px; }
+  .before-marker { background: rgba(107,107,107,0.15); color: var(--granite); border: 1px solid #2a2a2a; }
+  .after-marker { background: rgba(74,124,89,0.12); color: var(--moss); border: 1px solid rgba(74,124,89,0.3); }
+  .ba-slot .ph-icon { font-size: 2rem; opacity: 0.2; }
+  .ba-slot .ph-text { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: #3a3a3a; letter-spacing: 0.05em; }
+
+  /* ── AI Reflection ──────────────────────────────────────────────────── */
+  .reflection-content { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem; }
+  .ai-tool-block { background: #1a1a1a; border: 1px solid #242424; border-radius: 4px; padding: 2rem; }
+  .ai-tool-header { display: flex; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .ai-tool-badge { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; padding: 0.3rem 0.7rem; border-radius: 2px; white-space: nowrap; flex-shrink: 0; background: rgba(240,165,0,0.1); color: var(--accent); border: 1px solid rgba(240,165,0,0.3); }
+  .ai-tool-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--chalk); letter-spacing: 0.04em; }
+  .ai-tool-url { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--granite); display: block; margin-top: 0.15rem; }
+  .ai-tool-body { font-size: 0.84rem; color: #aaa; line-height: 1.8; }
+  .ai-tool-body strong { color: var(--chalk); font-weight: 500; }
+  .ai-tool-body .verify { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--moss); background: rgba(74,124,89,0.08); border: 1px solid rgba(74,124,89,0.2); border-radius: 4px; padding: 0.75rem 1rem; margin-top: 1rem; line-height: 1.7; }
+  .ethics-block { background: #161616; border: 1px solid #242424; border-radius: 4px; padding: 2rem; }
+  .ethics-block h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--accent); margin-bottom: 1.25rem; letter-spacing: 0.04em; }
+  .ethics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+  .ethics-item h4 { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em; color: var(--chalk); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .ethics-item p { font-size: 0.82rem; color: #888; line-height: 1.7; }
+  .ref-list { margin-top: 1.5rem; background: #161616; border: 1px solid #242424; border-radius: 4px; padding: 2rem; }
+  .ref-list h3 { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; color: var(--granite); text-transform: uppercase; margin-bottom: 1.25rem; }
+  .ref-list ol { padding-left: 1.5rem; }
+  .ref-list li { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: #666; line-height: 1.8; margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+  .ref-list li strong { color: #888; font-weight: 700; }
+
+  /* ── Links Section ──────────────────────────────────────────────────── */
+  .links-section { max-width: 1200px; margin: 0 auto; }
+  .links-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+  .link-card { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px; padding: 2rem; display: flex; flex-direction: column; gap: 0.75rem; text-decoration: none; transition: border-color 0.3s, transform 0.3s; cursor: pointer; }
+  .link-card:hover { border-color: var(--summit); transform: translateY(-4px); }
+  .link-icon { font-size: 1.8rem; }
+  .link-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; color: var(--chalk); }
+  .link-desc { font-size: 0.8rem; color: var(--granite); line-height: 1.6; }
+  .link-url { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--summit); margin-top: auto; }
+
+  /* ── Research Card ──────────────────────────────────────────────────── */
+  .research-section { max-width: 1200px; margin: 0 auto; }
+  .research-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem; }
+  .research-card { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px; padding: 2rem; transition: border-color 0.3s; }
+  .research-card:hover { border-color: #444; }
+  .research-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 1rem; }
   .research-card p { font-size: 0.85rem; color: var(--granite); line-height: 1.7; }
 
-  .links-section { max-width: 1200px; margin: 0 auto; }
+  /* ── Footer ─────────────────────────────────────────────────────────── */
+  footer { padding: 3rem 4rem; border-top: 1px solid #222; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 2rem; }
+  .footer-left { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.1em; color: var(--summit); }
+  .footer-right { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--granite); letter-spacing: 0.1em; text-align: right; line-height: 1.9; }
 
-  .links-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-top: 3rem;
-  }
-
-  .link-card {
-    background: #1e1e1e;
-    border: 1px solid #2a2a2a;
-    border-radius: 4px;
-    padding: 2rem;
-    display: flex; flex-direction: column; gap: 0.75rem;
-    text-decoration: none;
-    transition: border-color 0.3s, transform 0.3s;
-    cursor: pointer;
-  }
-
-  .link-card:hover { border-color: var(--summit); transform: translateY(-4px); }
-
-  .link-icon { font-size: 1.8rem; }
-
-  .link-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.05em;
-    color: var(--chalk);
-  }
-
-  .link-desc { font-size: 0.8rem; color: var(--granite); line-height: 1.6; }
-
-  .link-url {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--summit);
-    margin-top: auto;
-  }
-
-  footer {
-    padding: 3rem 4rem;
-    border-top: 1px solid #222;
-    display: flex; justify-content: space-between; align-items: center;
-    flex-wrap: wrap; gap: 1rem;
-  }
-
-  .footer-left {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.5rem;
-    letter-spacing: 0.1em;
-    color: var(--summit);
-  }
-
-  .footer-right {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--granite);
-    letter-spacing: 0.1em;
-    text-align: right;
-    line-height: 1.8;
-  }
-
+  /* ── Animations ─────────────────────────────────────────────────────── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(24px); }
     to { opacity: 1; transform: translateY(0); }
   }
-
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-8px); }
   }
-
-  .reveal {
-    opacity: 0; transform: translateY(30px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
-  }
-
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
 
+  /* ── Responsive ─────────────────────────────────────────────────────── */
   @media (max-width: 900px) {
-    nav { padding: 1.5rem 2rem; }
+    #topnav { padding: 0.9rem 1.5rem; }
+    .nav-links { display: none; }
     section { padding: 4rem 2rem; }
     .divider { margin: 0 2rem; }
     .about { grid-template-columns: 1fr; gap: 3rem; }
     .team-grid { grid-template-columns: 1fr 1fr; }
     .timeline { grid-template-columns: 1fr 1fr; }
-    .research-grid { grid-template-columns: 1fr; }
+    .persona-grid { grid-template-columns: 1fr; }
+    .journey-map { grid-template-columns: 1fr 1fr; }
+    .journey-map::before { display: none; }
+    .must-have-grid { grid-template-columns: 1fr; }
+    .interview-grid { grid-template-columns: repeat(3, 1fr); }
+    .sketch-grid { grid-template-columns: repeat(2, 1fr); }
+    .alt-section { grid-template-columns: 1fr; }
+    .sus-grid { grid-template-columns: 1fr; }
+    .findings-box { grid-template-columns: 1fr; }
+    .ba-grid { grid-template-columns: 1fr; }
+    .ethics-grid { grid-template-columns: 1fr; }
     .links-grid { grid-template-columns: 1fr; }
     footer { padding: 2rem; flex-direction: column; align-items: flex-start; }
     .footer-right { text-align: left; }
   }
-
   @media (max-width: 500px) {
     .hero-center { padding: 2rem; }
     .team-grid { grid-template-columns: 1fr; }
     .timeline { grid-template-columns: 1fr; }
     .timeline::before { display: none; }
+    .interview-grid { grid-template-columns: 1fr 1fr; }
+    .persona-card { flex-direction: column; }
   }
 </style>
 </head>
 <body>
 
+<!-- ═══ STICKY NAV ══════════════════════════════════════════════════════ -->
+<nav id="topnav">
+  <div class="nav-logo">BETAUP</div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#motivation">Research</a>
+    <a href="#requirements">Requirements</a>
+    <a href="#ideation">Ideation</a>
+    <a href="#system">System</a>
+    <a href="#evaluation">Evaluation</a>
+    <a href="#reflection">Reflection</a>
+    <a href="#team">Team</a>
+  </div>
+  <div class="nav-tag">CPT208 · C2-6</div>
+</nav>
+
+<!-- ═══ HERO ════════════════════════════════════════════════════════════ -->
 <header class="hero">
   <div class="hero-bg"></div>
   <div class="hero-texture"></div>
@@ -552,16 +535,11 @@
     <path d="M0 300 L200 180 L400 240 L600 140 L800 220 L1000 130 L1200 200 L1440 150 L1440 300 Z" fill="#2a3a2a"/>
   </svg>
 
-  <nav>
-    <div class="nav-logo">BETAUP</div>
-    <div class="nav-tag">CPT208 · GROUP C2-6 · 2025–2026 S2</div>
-  </nav>
-
   <div class="hero-center">
-    <div class="hero-eyebrow">Human-Centric Computing · Active Lifestyles</div>
+    <div class="hero-eyebrow">Human-Centric Computing · Active Lifestyles · Process Portfolio</div>
     <h1 class="hero-title">BETA<br><span>UP</span></h1>
-    <p class="hero-subtitle">Gamified systems for climbers & coaches</p>
-    <p class="hero-tagline">XJTLU · CPT208 · SEMESTER 2 · 2025–2026</p>
+    <p class="hero-subtitle">Gamified systems for climbers &amp; coaches</p>
+    <p class="hero-tagline">XJTLU · CPT208 · GROUP C2-6 · SEMESTER 2 · 2025–2026</p>
   </div>
 
   <div class="hero-bottom">
@@ -569,19 +547,20 @@
   </div>
 </header>
 
-<section>
+<!-- ═══ ABOUT ═══════════════════════════════════════════════════════════ -->
+<section id="about">
   <div class="about reveal">
     <div class="about-text">
       <div class="section-label">About the Project</div>
       <h2 class="section-title">What is<br>BetaUp?</h2>
       <p>
-        <strong>BetaUp</strong> is a human-centric web application designed to enhance the experience of <strong>climbers and coaches</strong> through gamification, real-time feedback, and social connectivity.
+        <strong>BetaUp</strong> is a human-centric application designed to enhance the experience of <strong>climbers and coaches</strong> through gamification, real-time feedback, and social connectivity.
       </p>
       <p>
-        Rooted in the <strong>Active Lifestyles</strong> theme of CPT208, our project explores how playful design principles can motivate climbers — from beginners to advanced — and help coaches deliver more engaging, data-driven guidance.
+        Rooted in the <strong>Active Lifestyles</strong> theme of CPT208, our project explores how playful design principles can motivate climbers from beginner to advanced level, and help coaches deliver more engaging, data-driven guidance.
       </p>
       <p>
-        We apply a user-centered design process: conducting field research, building personas, prototyping iteratively, and evaluating with real users at climbing venues.
+        We apply a user-centred design process: conducting field research, building personas, prototyping iteratively, and evaluating with real users at climbing venues.
       </p>
       <div class="about-meta">
         <div class="meta-item">
@@ -590,11 +569,11 @@
         </div>
         <div class="meta-item">
           <span class="meta-label">Target Platform</span>
-          <span class="meta-value">Mobile + PC · Web Application</span>
+          <span class="meta-value">Mobile + Web · Flutter &amp; Spring Boot</span>
         </div>
         <div class="meta-item">
-          <span class="meta-label">Good-to-Have Technologies</span>
-          <span class="meta-value">XR · Wearable · Location-based</span>
+          <span class="meta-label">Good-to-Have Features Delivered</span>
+          <span class="meta-value">Location-based gym discovery · AI Voice Assistant</span>
         </div>
       </div>
       <div class="pill-row">
@@ -603,30 +582,30 @@
         <span class="pill pill-orange">Gamification</span>
         <span class="pill pill-orange">Prototyping</span>
         <span class="pill pill-blue">Usability Testing</span>
-        <span class="pill pill-blue">Web App</span>
+        <span class="pill pill-gold">AI Voice Assistant</span>
       </div>
     </div>
 
     <div class="about-right">
       <div class="feature-card">
-        <div class="feature-icon">🧗</div>
-        <div class="feature-title">Playful Route Tracking</div>
-        <div class="feature-desc">Climbers log ascents, earn badges, and unlock achievements — turning every wall into an engaging challenge rather than a routine workout.</div>
+        <div class="feature-icon">🏅</div>
+        <div class="feature-title">Achievement &amp; Badge System</div>
+        <div class="feature-desc">Climbers automatically unlock badges on milestones — first send, streaks, grade PRs. Each unlock triggers a celebratory animation, turning every session into a satisfying achievement.</div>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <div class="feature-title">Coach Dashboard</div>
-        <div class="feature-desc">Coaches monitor athlete progress, set personalized challenges, and provide structured feedback through an intuitive real-time interface.</div>
+        <div class="feature-icon">🐼</div>
+        <div class="feature-title">AI Voice Assistant</div>
+        <div class="feature-desc">A draggable panda avatar activates a full-duplex voice interface. Speak hands-free mid-climb: "Log a V5 flash" or "Start my session" — DeepSeek NLP understands and acts.</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🤝</div>
-        <div class="feature-title">Social & Community Layer</div>
-        <div class="feature-desc">Leaderboards, group challenges, and peer encouragement foster a motivating community among climbers of all skill levels.</div>
+        <div class="feature-title">Social &amp; Community Layer</div>
+        <div class="feature-desc">Live leaderboards, community posts, comments, and a follow graph create a motivating social ecosystem. Compete weekly, celebrate sends, and discover training partners nearby.</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📍</div>
-        <div class="feature-title">Location-Aware Features</div>
-        <div class="feature-desc">Discover nearby climbing gyms and outdoor crags, check-in at venues, and join location-based events for a fully onsite experience.</div>
+        <div class="feature-title">Location-Aware Gym Discovery</div>
+        <div class="feature-desc">Discover climbing venues nearby, check in, and link session data to a real location. C2 track's location-based Good-to-Have fully realised.</div>
       </div>
     </div>
   </div>
@@ -634,7 +613,836 @@
 
 <hr class="divider">
 
-<section>
+<!-- ═══ PROCESS TIMELINE ════════════════════════════════════════════════ -->
+<section id="process">
+  <div class="process-section reveal">
+    <div class="section-label">Design Process</div>
+    <h2 class="section-title">Project Milestones</h2>
+
+    <div class="timeline">
+      <div class="timeline-step">
+        <div class="step-dot active">W1</div>
+        <div class="step-week">Week 1–3</div>
+        <div class="step-title">Foundation</div>
+        <div class="step-desc">Group formation, topic selection, initial brainstorming, competitive analysis, and portfolio site setup.</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-dot active">W4</div>
+        <div class="step-week">Week 4–6</div>
+        <div class="step-title">Research &amp; Design</div>
+        <div class="step-desc">User research, personas, journey maps, academic literature review, Crazy Eights ideation, and low-fi Figma prototypes.</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-dot active">W8</div>
+        <div class="step-week">Week 8</div>
+        <div class="step-title">Poster &amp; Alpha</div>
+        <div class="step-desc">Poster presentation completed. Functional Spring Boot + Flutter system with 8+ features including AI voice assistant.</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-dot">W10</div>
+        <div class="step-week">Week 10</div>
+        <div class="step-title">Final Submission</div>
+        <div class="step-desc">Live deployed app, 2-min demo video, complete portfolio with usability testing and iterative feedback logs.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══ MOTIVATION & RESEARCH ═══════════════════════════════════════════ -->
+<section id="motivation">
+  <div class="content-section reveal">
+    <div class="section-label">01 — Motivation &amp; Research</div>
+    <h2 class="section-title">Why BetaUp?</h2>
+    <p class="section-intro">Understanding the problem space, the literature, existing tools, and the people we are designing for.</p>
+
+    <!-- Motivation Statement -->
+    <div class="subsection-label">The Why — Motivation Statement</div>
+    <div style="background:#1a1a1a;border:1px solid #242424;border-radius:4px;padding:2.5rem;max-width:860px;">
+      <p style="font-size:0.95rem;color:#bbb;line-height:1.9;margin-bottom:1.2rem;">
+        Rock climbing has evolved from a niche pursuit into one of the fastest-growing fitness activities worldwide, gaining its Olympic debut at Tokyo 2020 and attracting over 35 million participants globally. Yet the digital ecosystem for climbers remains surprisingly fragmented: route databases such as <strong style="color:var(--chalk)">27crags</strong> catalogue walls but offer no community dynamics; training apps like <strong style="color:var(--chalk)">Crimpd</strong> optimise strength workouts but ignore the social dimension; general fitness platforms like <strong style="color:var(--chalk)">Strava</strong> were never designed for climbing's unique grading systems and venue culture.
+      </p>
+      <p style="font-size:0.95rem;color:#bbb;line-height:1.9;margin-bottom:1.2rem;">
+        Several of our team members are regular gym climbers at XJTLU's campus wall. We found ourselves juggling three different apps, a spreadsheet, and WhatsApp group chats to manage what should be one coherent experience — log a send, celebrate with friends, receive coach feedback, and discover new routes nearby. <strong style="color:var(--chalk)">BetaUp was built from that frustration.</strong>
+      </p>
+      <p style="font-size:0.95rem;color:#bbb;line-height:1.9;">
+        By placing gamification, coach communication, and social connectivity at its core, BetaUp makes training sessions genuinely enjoyable and progress immediately visible. The project aligns with CPT208's Active Lifestyles theme by applying human-centric design principles to reduce friction for climbers of all levels — turning every session into a small, satisfying achievement, whether it is a first V2 send or closing a V8 project that has been open for months.
+      </p>
+    </div>
+
+    <!-- Literature Review — Academic Papers -->
+    <div class="subsection-label">Literature Review — Academic Papers</div>
+    <div class="review-table-wrapper">
+      <div class="table-caption">4 Academic Papers · 3 Strengths + 3 Gaps per source</div>
+      <table class="review-table">
+        <thead>
+          <tr>
+            <th>Paper</th>
+            <th>3 Strengths</th>
+            <th>3 Gaps</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <strong>Hamari, Koivisto &amp; Sarsa (2014)</strong><br>
+              Does Gamification Work? A Literature Review of Empirical Studies on Gamification
+              <span class="cite-venue">HICSS 2014</span>
+              <span class="cite-doi">DOI: 10.1109/HICSS.2014.377</span>
+            </td>
+            <td>
+              <ul class="strength-list">
+                <li>Strong empirical meta-analysis across 24 peer-reviewed studies</li>
+                <li>Identifies badges, leaderboards, and points as primary engagement drivers</li>
+                <li>Broad applicability across health, education, and commerce domains</li>
+              </ul>
+            </td>
+            <td>
+              <ul class="gap-list">
+                <li>No climbing-specific or extreme-sport context data</li>
+                <li>Most studies span &lt; 3 months — no longitudinal evidence</li>
+                <li>Does not address negative effects of over-gamification (burnout, extrinsic pressure)</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Deterding, Dixon, Khaled &amp; Nacke (2011)</strong><br>
+              From Game Design Elements to Gamefulness: Defining "Gamification"
+              <span class="cite-venue">MindTrek 2011</span>
+              <span class="cite-doi">DOI: 10.1145/2181037.2181040</span>
+            </td>
+            <td>
+              <ul class="strength-list">
+                <li>Defines foundational vocabulary still cited in 12,000+ papers (PBL framework)</li>
+                <li>Clearly distinguishes gamification from serious games and playful design</li>
+                <li>Rigorous taxonomy applicable across any interactive system</li>
+              </ul>
+            </td>
+            <td>
+              <ul class="gap-list">
+                <li>No empirical user study — purely conceptual framework</li>
+                <li>Provides no HCI evaluation or measurement guidelines</li>
+                <li>Predates mobile-first and wearable design eras</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Consolvo, McDonald &amp; Landay (2009)</strong><br>
+              Theory-driven Design Strategies for Technologies that Support Behaviour Change
+              <span class="cite-venue">CHI 2009</span>
+              <span class="cite-doi">DOI: 10.1145/1518701.1518766</span>
+            </td>
+            <td>
+              <ul class="strength-list">
+                <li>8 actionable design strategies derived from a real-world user study (20 participants)</li>
+                <li>Covers abstract and ambient feedback patterns relevant to health app design</li>
+                <li>Strong HCI methodological framing grounded in social learning theory</li>
+              </ul>
+            </td>
+            <td>
+              <ul class="gap-list">
+                <li>Mobile-first design considerations entirely absent — pre-smartphone era</li>
+                <li>Does not address competitive gamification or social comparison</li>
+                <li>Focuses on individual behaviour change, ignoring coach-athlete dynamics</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Rooksby, Rost, Morrison &amp; Chalmers (2014)</strong><br>
+              Personal Tracking as Lived Informatics
+              <span class="cite-venue">CHI 2014</span>
+              <span class="cite-doi">DOI: 10.1145/2556288.2557039</span>
+            </td>
+            <td>
+              <ul class="strength-list">
+                <li>Rich qualitative diary study with 22 participants revealing real tracking habits</li>
+                <li>Identifies 5 distinct personal tracking styles (directive, aesthetic, documentary…)</li>
+                <li>Reveals common failure modes of data-driven apps that feel like chores</li>
+              </ul>
+            </td>
+            <td>
+              <ul class="gap-list">
+                <li>Active sports context absent — most data from steps, sleep, and calories</li>
+                <li>No design recommendations specific to skill-based sports like climbing</li>
+                <li>Coach or trainer perspective completely missing from analysis</li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Literature Review — Commercial Products -->
+    <div class="subsection-label">Competitive Analysis — Commercial Products</div>
+    <div class="review-table-wrapper">
+      <div class="table-caption">4 Commercial Benchmarks · 3 Strengths + 3 Gaps per product</div>
+      <table class="review-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>3 Strengths</th>
+            <th>3 Gaps</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <strong>27crags</strong><br>
+              Route database &amp; climbing log
+              <span class="cite-venue">27crags.com</span>
+            </td>
+            <td>
+              <ul class="strength-list">
+                <li>Largest global route database (700k+ routes, 140+ countries)</li>
+                <li>Clean offline map and route quality ratings from the community</li>
+                <li>Trusted and used by competition climbing circuits worldwide</li>
+              </ul>
+            </td>
+            <td>
+              <ul class="gap-list">
+                <li>No gamification, badge system, or progress celebration</li>
+                <li>No coach-athlete relationship or feedback workflow</li>
+                <li>Social feed is minimal and text-only — no community feel</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Crimpd</strong><br>
+              Strength &amp; fingerboard training
+              <span class="cite-venue">crimpd.com</span>
+            </td>
+            <td>
+              <ul class="strength-list">
+                <li>Professional fingerboard and hangboard training plans from certified coaches</li>
+                <li>Structured progressive overload programming with clear visual guides</li>
+                <li>Clean, distraction-free onboarding for serious training</li>
+              </ul>
+            </td>
+            <td>
+              <ul class="gap-list">
+                <li>No route logging or session tracking for gym climbing</li>
+                <li>No community, social feed, or leaderboard features</li>
+                <li>Only useful to climbers who own hang-board equipment</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Strava</strong><br>
+              General sports &amp; running social network
+              <span class="cite-venue">strava.com</span>
+            </td>
+            <td>
+              <ul class="strength-list">
+                <li>Industry-leading achievement and badge system with 60+ activity types</li>
+                <li>Seamless GPS segment leaderboards and kudos social graph (100M+ users)</li>
+                <li>Clean activity feed with photos, comments, and group challenges</li>
+              </ul>
+            </td>
+            <td>
+              <ul class="gap-list">
+                <li>No climbing-specific grading (V-scale, French grades, YDS)</li>
+                <li>GPS segments meaningless for indoor bouldering sessions</li>
+                <li>No coach certification workflow or athlete management</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>TopLogger</strong><br>
+              Competition climbing management
+              <span class="cite-venue">toplogger.nu</span>
+            </td>
+            <td>
+              <ul class="strength-list">
+                <li>Live competition scoring and real-time leaderboard used by IFSC events</li>
+                <li>Powerful venue operator tools for route setting and comp management</li>
+                <li>Multi-discipline support (lead, boulder, speed) with judge workflows</li>
+              </ul>
+            </td>
+            <td>
+              <ul class="gap-list">
+                <li>Far too complex for everyday recreational training use cases</li>
+                <li>No personal training narrative, progress history, or achievement system</li>
+                <li>No AI features, voice interaction, or social community layer</li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Personas -->
+    <div class="subsection-label">Stakeholder Personas</div>
+    <div class="persona-grid">
+      <div class="persona-card">
+        <div class="persona-avatar">A</div>
+        <div class="persona-content">
+          <span class="persona-tag">Primary User</span>
+          <div class="persona-name">Alex Chen</div>
+          <div class="persona-meta">
+            <strong>Age:</strong> 24 &nbsp;·&nbsp; <strong>Occupation:</strong> Software Engineer &nbsp;·&nbsp; <strong>Level:</strong> V4–V5 boulderer<br>
+            <strong>Background:</strong> Began bouldering 18 months ago, climbs 3× per week at a city gym, competitive by nature and tracks everything in a notes app.<br>
+            <strong>Goals:</strong> See measurable progress over time; compare performance with friends; identify and improve weak holds.<br>
+            <strong>Frustrations:</strong> Forgets to log after a tiring session; no easy way to share a send with friends; coach feedback is verbal and forgotten by next week.<br>
+            <strong>Current tools:</strong> 27crags (route lookup), iPhone Notes (log), WhatsApp (sharing sends).
+          </div>
+          <div class="persona-quote">"I know I'm getting better but I can't actually prove it to myself."</div>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-avatar">L</div>
+        <div class="persona-content">
+          <span class="persona-tag">Secondary User</span>
+          <div class="persona-name">Coach Li Wei</div>
+          <div class="persona-meta">
+            <strong>Age:</strong> 34 &nbsp;·&nbsp; <strong>Occupation:</strong> Part-time certified climbing coach &nbsp;·&nbsp; <strong>Cert:</strong> IFSC Level 1<br>
+            <strong>Background:</strong> Manages 12 intermediate students at a university gym, coaches two afternoons per week alongside a full-time job.<br>
+            <strong>Goals:</strong> Monitor student progress without chasing them for updates; assign drill sets remotely; certify milestones to motivate students.<br>
+            <strong>Frustrations:</strong> Students forget verbal cues between sessions; no unified dashboard for all athletes; manually sending session notes via WeChat is tedious and unprofessional.<br>
+            <strong>Current tools:</strong> WeChat group, Excel spreadsheet, 27crags occasionally.
+          </div>
+          <div class="persona-quote">"I need to see their data before the session — not ask them to recall it from memory."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══ USER REQUIREMENTS ════════════════════════════════════════════════ -->
+<section id="requirements">
+  <div class="content-section reveal">
+    <div class="section-label">02 — User Requirements</div>
+    <h2 class="section-title">What Users Need</h2>
+    <p class="section-intro">A visual user journey, three must-have playful features, and evidence from field research with real climbers.</p>
+
+    <!-- Journey Map -->
+    <div class="subsection-label">User Journey Map</div>
+    <div class="journey-map">
+      <div class="journey-step">
+        <div class="journey-dot">🏃</div>
+        <div class="journey-phase">Pre-Session</div>
+        <div class="journey-title">Preparing</div>
+        <div class="journey-desc">Check training plan, pack gear, travel to gym.</div>
+        <div class="journey-pain">Pain: Unsure what to work on today</div>
+        <div class="journey-fix">Fix: AI suggests a session plan based on recent logs</div>
+      </div>
+      <div class="journey-step">
+        <div class="journey-dot pain">🏟️</div>
+        <div class="journey-phase">Arrival</div>
+        <div class="journey-title">Check-In</div>
+        <div class="journey-desc">Warm up, check which routes are set, find climbing partner.</div>
+        <div class="journey-pain">Pain: No digital check-in, no warm-up guidance</div>
+        <div class="journey-fix">Fix: Start Session → venue auto-logged via location</div>
+      </div>
+      <div class="journey-step">
+        <div class="journey-dot pain">🧗</div>
+        <div class="journey-phase">Climbing</div>
+        <div class="journey-title">Active Session</div>
+        <div class="journey-desc">Attempt routes, track sends and attempts, take breaks.</div>
+        <div class="journey-pain">Pain: Hands full — can't log without stopping</div>
+        <div class="journey-fix">Fix: Voice assistant logs hands-free in real time</div>
+      </div>
+      <div class="journey-step">
+        <div class="journey-dot">📊</div>
+        <div class="journey-phase">Post-Session</div>
+        <div class="journey-title">Reviewing</div>
+        <div class="journey-desc">End session, view summary, share best send to community.</div>
+        <div class="journey-pain">Pain: Data entry is a chore after climbing</div>
+        <div class="journey-fix">Fix: Auto session summary + badge unlock celebration</div>
+      </div>
+      <div class="journey-step">
+        <div class="journey-dot">🏆</div>
+        <div class="journey-phase">Reflection</div>
+        <div class="journey-title">Progress Check</div>
+        <div class="journey-desc">Review weekly stats, compare with friends, set next goal.</div>
+        <div class="journey-pain">Pain: Stats buried in spreadsheets</div>
+        <div class="journey-fix">Fix: Visual progress chart + leaderboard position</div>
+      </div>
+    </div>
+
+    <!-- Must-Have Features -->
+    <div class="subsection-label">Three Must-Have Playful Features</div>
+    <div class="must-have-grid">
+      <div class="must-have-card">
+        <div class="must-have-number">01</div>
+        <div class="must-have-icon">🏅</div>
+        <div class="must-have-title">Achievement &amp; Badge System</div>
+        <div class="must-have-desc">
+          Climbers automatically unlock achievement badges upon reaching milestones: first send, 10 sessions completed, first V5, 7-day streak, and 15 others. Each unlock triggers an animated celebration with a push notification. Badges are displayed publicly on the user's profile, creating an aspirational showcase visible to the community.
+        </div>
+        <div class="must-have-mechanism">Playfulness: immediate positive reinforcement · social display · collection drive</div>
+      </div>
+      <div class="must-have-card">
+        <div class="must-have-number">02</div>
+        <div class="must-have-icon">📊</div>
+        <div class="must-have-title">Community Session Leaderboard</div>
+        <div class="must-have-desc">
+          Every training session contributes to a live community leaderboard ranked by sends, highest grade, or XP earned. Users see global and follower-only rankings in real time, with position changes animated. A weekly "Top Climber" badge is awarded to the session leader, renewing competitive motivation each week.
+        </div>
+        <div class="must-have-mechanism">Playfulness: competitive ranking · social comparison · weekly reward cycle</div>
+      </div>
+      <div class="must-have-card">
+        <div class="must-have-number">03</div>
+        <div class="must-have-icon">🐼</div>
+        <div class="must-have-title">AI Voice Assistant (Panda)</div>
+        <div class="must-have-desc">
+          A draggable panda avatar activates a full-duplex voice interface powered by DeepSeek NLP and Web Speech API. Climbers speak naturally mid-session: "Log a V5 flash on the blue slab" or "Start my session at Campus Wall." The panda replies in Chinese, confirms the action, and saves data without touching the screen.
+        </div>
+        <div class="must-have-mechanism">Playfulness: delightful character design · hands-free friction removal · conversational loop</div>
+      </div>
+    </div>
+
+    <!-- User Interview Evidence -->
+    <div class="subsection-label">User Interview Evidence</div>
+    <div class="interview-grid">
+      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 01</div><div class="ph-caption">Climber Interview</div></div>
+      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 02</div><div class="ph-caption">Climber Interview</div></div>
+      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 03</div><div class="ph-caption">Coach Observation</div></div>
+      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 04</div><div class="ph-caption">Team Discussion</div></div>
+      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 05</div><div class="ph-caption">User Testing</div></div>
+    </div>
+    <div class="placeholder-note">
+      <strong>[PLACEHOLDER — Yang Renyu / Yang Mengxi to fill]</strong><br>
+      Add 5 photos: 2 × climber interviews at gym · 1 × coach observation · 1 × team ideation session · 1 × early user testing<br>
+      Caption format: initials · location · one-line quote from participant
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══ IDEATION & ALTERNATIVES ══════════════════════════════════════════ -->
+<section id="ideation">
+  <div class="content-section reveal">
+    <div class="section-label">03 — Ideation &amp; Alternatives</div>
+    <h2 class="section-title">Exploring the<br>Design Space</h2>
+    <p class="section-intro">Rapid ideation sketches, design alternatives considered, and how we chose our final direction.</p>
+
+    <!-- Crazy Eights -->
+    <div class="subsection-label">Crazy Eights — Rapid UI Sketching</div>
+    <div class="sketch-grid">
+      <div class="sketch-slot"><div class="sketch-num">01</div><div class="sketch-label">Route Logging Card</div></div>
+      <div class="sketch-slot"><div class="sketch-num">02</div><div class="sketch-label">Badge Unlock Screen</div></div>
+      <div class="sketch-slot"><div class="sketch-num">03</div><div class="sketch-label">Session Timer + Voice</div></div>
+      <div class="sketch-slot"><div class="sketch-num">04</div><div class="sketch-label">Community Feed</div></div>
+      <div class="sketch-slot"><div class="sketch-num">05</div><div class="sketch-label">Coach Dashboard</div></div>
+      <div class="sketch-slot"><div class="sketch-num">06</div><div class="sketch-label">Map / Gym Discovery</div></div>
+      <div class="sketch-slot"><div class="sketch-num">07</div><div class="sketch-label">Profile + Badge Wall</div></div>
+      <div class="sketch-slot"><div class="sketch-num">08</div><div class="sketch-label">Leaderboard Toggle</div></div>
+    </div>
+    <div class="placeholder-note">
+      <strong>[PLACEHOLDER — Chen Zixi / Yang Renyu to fill]</strong><br>
+      Replace grey boxes with photos of actual hand-drawn UI sketches. Each sketch = one screen concept, quick 1-minute draw.<br>
+      Take photos with good lighting; crop square; upload to /assets/sketches/
+    </div>
+
+    <!-- Design Alternatives -->
+    <div class="subsection-label">Design Alternatives — Key Decisions</div>
+    <div class="alt-section">
+      <div class="alt-block">
+        <div class="alt-block-title">Platform Decision</div>
+        <table class="alt-table">
+          <tr class="rejected">
+            <td>Pure Web SPA<br><span class="badge-row"><span class="badge badge-gray">Rejected</span></span></td>
+            <td>Fast prototype; no native device APIs; poor offline capability.</td>
+          </tr>
+          <tr class="selected">
+            <td>Flutter (Mobile + Web)<br><span class="badge-row"><span class="badge badge-green">Selected</span></span></td>
+            <td>Cross-platform single codebase. Runs on Chrome for demo; compiles to iOS/Android for production.</td>
+          </tr>
+          <tr class="rejected">
+            <td>WeChat Mini Program<br><span class="badge-row"><span class="badge badge-gray">Rejected</span></span></td>
+            <td>Locked ecosystem; WeChat login required; no English language support.</td>
+          </tr>
+        </table>
+      </div>
+      <div class="alt-block">
+        <div class="alt-block-title">Voice Feature Decision</div>
+        <table class="alt-table">
+          <tr class="rejected">
+            <td>Manual Form Entry<br><span class="badge-row"><span class="badge badge-gray">Rejected as Primary</span></span></td>
+            <td>Simple to implement but too much friction mid-climb when hands are occupied.</td>
+          </tr>
+          <tr class="rejected">
+            <td>Wearable (Apple Watch)<br><span class="badge-row"><span class="badge badge-gray">Out of Scope</span></span></td>
+            <td>Ideal UX but hardware dependency; no watchOS experience in team.</td>
+          </tr>
+          <tr class="selected">
+            <td>AI Voice (STT + LLM)<br><span class="badge-row"><span class="badge badge-green">Selected</span></span></td>
+            <td>DeepSeek NLP + Web Speech API. Hands-free, works on any phone via Chrome.</td>
+          </tr>
+        </table>
+      </div>
+      <div class="alt-block">
+        <div class="alt-block-title">Gamification Mechanic</div>
+        <table class="alt-table">
+          <tr class="selected">
+            <td>Badges + XP Layer<br><span class="badge-row"><span class="badge badge-green">Selected</span></span></td>
+            <td>Visual, collectible badges as primary reward. XP accumulation as secondary layer.</td>
+          </tr>
+          <tr class="rejected">
+            <td>Points + Level System Only<br><span class="badge-row"><span class="badge badge-gray">Partial</span></span></td>
+            <td>Familiar but abstract — no immediate visual payoff. Kept as secondary metric.</td>
+          </tr>
+          <tr class="rejected">
+            <td>Random Loot Boxes<br><span class="badge-row"><span class="badge badge-gray">Rejected</span></span></td>
+            <td>Engaging but manipulative dark pattern. Not appropriate for a fitness-focused app.</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Figma Prototype -->
+    <div class="subsection-label">Low-Fidelity Figma Prototype</div>
+    <div class="figma-link-box">
+      <div class="figma-icon">🎨</div>
+      <div class="figma-link-text">
+        <h4>Interactive Lo-Fi Prototype</h4>
+        <p>Early-stage Figma prototype covering key user flows: Onboarding → Home → Record Session → Badge Wall → Community → Profile. Click-through prototype validated with 3 users before development began.</p>
+        <a href="#" onclick="return false;">[PLACEHOLDER — Chen Zixi: replace href with actual Figma share link]</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══ TECHNICAL IMPLEMENTATION ════════════════════════════════════════ -->
+<section id="system">
+  <div class="content-section reveal">
+    <div class="section-label">04 — Technical Implementation</div>
+    <h2 class="section-title">System &amp;<br>Architecture</h2>
+    <p class="section-intro">Full-stack architecture, technology choices, live deployment, and individual team contributions.</p>
+
+    <!-- Architecture Diagram -->
+    <div class="subsection-label">System Architecture</div>
+    <div class="arch-diagram">
+<pre>
+ ┌─────────────────────────────────────────────────────────────────────────┐
+ │                    <span class="arch-highlight">BETAUP — SYSTEM ARCHITECTURE</span>                         │
+ │                                                                         │
+ │  ┌──────────────────────────────────────────────────────────────────┐   │
+ │  │              <span class="arch-label">Flutter Client  (Web Browser / Mobile)</span>             │   │
+ │  │    Auth · Record Session · Profile · Community · Explore · Map   │   │
+ │  │    Voice Assistant  (Web Speech API → DeepSeek → flutter_tts)    │   │
+ │  └───────────────────────────┬──────────────────────────────────────┘   │
+ │                              │  HTTPS  /  REST API  (JSON)              │
+ │  ┌───────────────────────────▼──────────────────────────────────────┐   │
+ │  │          <span class="arch-label">Spring Boot 3.x  Backend  (Java 21 · Port 8080)</span>          │   │
+ │  │    JWT Authentication · JPA / Hibernate · Business Logic          │   │
+ │  │    Achievement Engine · Notification Service · Admin Module       │   │
+ │  └───────────┬────────────────────────┬───────────────────┬─────────┘   │
+ │              │                        │                   │             │
+ │  ┌───────────▼───────────┐  ┌─────────▼──────────┐  ┌────▼──────────┐  │
+ │  │  <span class="arch-label">H2 In-Memory (Dev)</span>    │  │  <span class="arch-label">DeepSeek Chat API</span> │  │  <span class="arch-label">Geolocator</span>    │  │
+ │  │  MySQL / PostgreSQL   │  │  NLP for Voice      │  │  Location     │  │
+ │  │  (Production target)  │  │  Assistant (LLM)    │  │  Services     │  │
+ │  └───────────────────────┘  └────────────────────┘  └───────────────┘  │
+ └─────────────────────────────────────────────────────────────────────────┘
+</pre>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="subsection-label">Technology Stack</div>
+    <div class="tech-stack-row">
+      <span class="pill pill-orange">Spring Boot 3.2</span>
+      <span class="pill pill-orange">Java 21</span>
+      <span class="pill pill-blue">Flutter 3.x</span>
+      <span class="pill pill-blue">Dart</span>
+      <span class="pill pill-green">H2 In-Memory DB</span>
+      <span class="pill pill-gold">DeepSeek Chat API</span>
+      <span class="pill pill-gold">Web Speech API</span>
+      <span class="pill pill-green">JWT Authentication</span>
+      <span class="pill pill-blue">REST / JSON</span>
+      <span class="pill pill-orange">Geolocator</span>
+      <span class="pill pill-green">GitHub Pages</span>
+    </div>
+
+    <!-- Live System URL -->
+    <div class="subsection-label">Live System</div>
+    <div class="live-url-box">
+      <div class="live-url-icon">🚀</div>
+      <div class="live-url-text">
+        <h4>Deployed BetaUp Application</h4>
+        <p>The full-stack system (Spring Boot API + Flutter web build) deployed to a public URL for live demonstration and usability testing.</p>
+        <div class="live-url-badge">[PLACEHOLDER — deploy to Railway (backend) + Vercel (Flutter web) · update this URL before Week 10 submission]</div>
+      </div>
+    </div>
+
+    <!-- Contribution Table -->
+    <div class="subsection-label">Individual Contributions</div>
+    <div class="contrib-wrapper">
+      <table class="contrib-table">
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th>Role</th>
+            <th>Contributions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="lead-row">
+            <td>
+              <strong>Cao Yuhan</strong>
+              <span>曹雨涵 · 2360894</span>
+              <div class="contrib-role">Lead Developer</div>
+            </td>
+            <td style="color:var(--summit);font-family:'Space Mono',monospace;font-size:0.72rem;">Full Stack Engineering</td>
+            <td>
+              <ul class="contrib-ul">
+                <li>Designed and built the complete Spring Boot REST API — 70+ endpoints spanning Auth, Climbs, Sessions, Badges, Community, Notifications, Map, and Admin modules</li>
+                <li>Built the entire Flutter frontend — 15+ screens, custom navigation shell (MainShell), and responsive layout for web and mobile</li>
+                <li>Designed and implemented JWT authentication system with role-based access control (CLIMBER / COACH / ADMIN)</li>
+                <li>Built the gamification engine: badge unlock trigger logic, streak calculation, XP accumulation, automatic push notifications on unlock</li>
+                <li>Integrated DeepSeek Chat API with multi-turn system prompt engineering for structured JSON action extraction</li>
+                <li>Implemented full voice assistant pipeline: Web Speech API STT → DeepSeek NLP → flutter_tts TTS</li>
+                <li>Designed the panda voice assistant UI widget using custom Flutter <code>CustomPainter</code> (ears, face, eye patches, animated pulse dot)</li>
+                <li>Built the real-time notification system (new badge, follow, coach approval, community interactions)</li>
+                <li>Implemented the full community module: posts, comments, likes, follow/unfollow social graph</li>
+                <li>Built the coach certification workflow: user applies → admin reviews → approve or reject → role upgrade</li>
+                <li>Built the admin dashboard: user management, content moderation, platform statistics</li>
+                <li>Implemented location-based gym discovery with Geolocator and interactive map integration</li>
+                <li>Designed the complete database schema and JPA entity model (12+ entities, relationships, cascades)</li>
+                <li>Set up GitHub repository structure, commit conventions, and wrote deployment configuration</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Yang Renyu</strong>
+              <span>杨仁雨 · 2360772</span>
+              <div class="contrib-role">User Research</div>
+            </td>
+            <td style="color:var(--moss);font-family:'Space Mono',monospace;font-size:0.72rem;">Research &amp; Discovery</td>
+            <td>
+              <div class="placeholder-note" style="margin:0;">[Placeholder — Yang Renyu to fill in: user interview design, questionnaire creation, survey distribution, persona validation, user journey map creation, field research at climbing venue]</div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Chen Zixi</strong>
+              <span>陈子熹 · 2362352</span>
+              <div class="contrib-role">UI / UX Design</div>
+            </td>
+            <td style="color:var(--sky);font-family:'Space Mono',monospace;font-size:0.72rem;">Design &amp; Frontend</td>
+            <td>
+              <div class="placeholder-note" style="margin:0;">[Placeholder — Chen Zixi to fill in: Figma low-fi and hi-fi prototype design, visual style guide, map/explore screen frontend implementation, database schema review and fixes]</div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Yang Mengxi</strong>
+              <span>杨梦溪 · 2364303</span>
+              <div class="contrib-role">Evaluation</div>
+            </td>
+            <td style="color:var(--accent);font-family:'Space Mono',monospace;font-size:0.72rem;">Testing &amp; Media</td>
+            <td>
+              <div class="placeholder-note" style="margin:0;">[Placeholder — Yang Mengxi to fill in: usability testing with 3 participants, SUS questionnaire design and analysis, poster design (Week 8), 2-minute demo video production]</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══ EVALUATION ═══════════════════════════════════════════════════════ -->
+<section id="evaluation">
+  <div class="content-section reveal">
+    <div class="section-label">05 — Evaluation &amp; Reflection</div>
+    <h2 class="section-title">Testing with<br>Real Users</h2>
+    <p class="section-intro">System Usability Scale scores, qualitative findings, and iterative improvements driven by user feedback.</p>
+
+    <!-- SUS Scores -->
+    <div class="subsection-label">Usability Testing — SUS Results</div>
+    <p style="font-size:0.85rem;color:#888;line-height:1.7;margin-bottom:1.5rem;max-width:680px;">
+      Three participants tested the Alpha version on Chrome in a think-aloud session (~15 min each). Tasks included: creating an account, logging a climb, viewing badges, posting to community, and using the voice assistant.
+    </p>
+    <div class="sus-grid">
+      <div class="sus-card">
+        <div class="sus-placeholder">👤</div>
+        <div class="sus-score">—</div>
+        <span class="sus-label">Participant 01</span>
+        <div class="sus-participant">[Name/initials to fill]</div>
+      </div>
+      <div class="sus-card">
+        <div class="sus-placeholder">👤</div>
+        <div class="sus-score">—</div>
+        <span class="sus-label">Participant 02</span>
+        <div class="sus-participant">[Name/initials to fill]</div>
+      </div>
+      <div class="sus-card">
+        <div class="sus-placeholder">👤</div>
+        <div class="sus-score">—</div>
+        <span class="sus-label">Average SUS</span>
+        <div class="sus-participant">Target: &gt;68 = above average</div>
+      </div>
+    </div>
+
+    <!-- Findings -->
+    <div class="findings-box" style="margin-top:1.5rem;">
+      <div class="findings-col issues">
+        <h4>Issues Found</h4>
+        <ul>
+          <li>[Issue 1 — e.g. "Could not find voice assistant button immediately"]</li>
+          <li>[Issue 2 — e.g. "Badge unlock animation was too brief to notice"]</li>
+          <li>[Issue 3 — e.g. "Session end button placement was unclear"]</li>
+        </ul>
+      </div>
+      <div class="findings-col positives">
+        <h4>Positive Feedback</h4>
+        <ul>
+          <li>[Quote 1 — e.g. "The panda is adorable — I immediately wanted to try it" — P1]</li>
+          <li>[Quote 2 — e.g. "Stats updating live while logging was really satisfying" — P2]</li>
+          <li>[Quote 3 — e.g. "Badge unlock felt genuinely rewarding" — P3]</li>
+        </ul>
+      </div>
+    </div>
+    <div class="placeholder-note">
+      <strong>[PLACEHOLDER — Yang Mengxi to fill]</strong><br>
+      Run SUS test with 3 participants using the live app. Collect 10-question SUS questionnaire. Record think-aloud session notes. Fill in scores and quotes above.
+    </div>
+
+    <!-- Before / After -->
+    <div class="subsection-label">Before / After — Iterative Improvements</div>
+    <div class="ba-grid">
+      <div class="ba-pair">
+        <div class="ba-label">Voice Button: Plain FAB → Animated Panda</div>
+        <div class="ba-screens">
+          <div class="ba-slot">
+            <div class="ba-marker before-marker">BEFORE</div>
+            <div class="ph-icon" style="font-size:2rem;opacity:0.2;">📱</div>
+            <div class="ph-text">[Screenshot placeholder]</div>
+          </div>
+          <div class="ba-slot">
+            <div class="ba-marker after-marker">AFTER</div>
+            <div class="ph-icon" style="font-size:2rem;opacity:0.2;">🐼</div>
+            <div class="ph-text">[Screenshot placeholder]</div>
+          </div>
+        </div>
+      </div>
+      <div class="ba-pair">
+        <div class="ba-label">Record Tab: Form Only → Voice-First with Form Fallback</div>
+        <div class="ba-screens">
+          <div class="ba-slot">
+            <div class="ba-marker before-marker">BEFORE</div>
+            <div class="ph-icon" style="font-size:2rem;opacity:0.2;">📋</div>
+            <div class="ph-text">[Screenshot placeholder]</div>
+          </div>
+          <div class="ba-slot">
+            <div class="ba-marker after-marker">AFTER</div>
+            <div class="ph-icon" style="font-size:2rem;opacity:0.2;">🎙️</div>
+            <div class="ph-text">[Screenshot placeholder]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="placeholder-note">
+      <strong>[PLACEHOLDER — all team members to fill]</strong><br>
+      Take screenshots of the app before and after each significant design iteration. Drag-and-drop images into the ba-slot divs and remove the placeholder icons.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══ AI TECHNICAL REFLECTION ══════════════════════════════════════════ -->
+<section id="reflection">
+  <div class="content-section reveal">
+    <div class="section-label">06 — Technical Reflection</div>
+    <h2 class="section-title">AI-Assisted<br>Development</h2>
+    <p class="section-intro">How we used large language model tools, what we generated, how we verified it, and the ethical considerations.</p>
+
+    <div class="reflection-content">
+
+      <!-- Claude Code -->
+      <div class="ai-tool-block">
+        <div class="ai-tool-header">
+          <div class="ai-tool-badge">AI TOOL [1]</div>
+          <div>
+            <div class="ai-tool-name">Claude Code — Anthropic</div>
+            <span class="ai-tool-url">claude.ai · accessed April 2026</span>
+          </div>
+        </div>
+        <div class="ai-tool-body">
+          <p><strong>Used for:</strong> Spring Boot API scaffolding (controller, service, repository layers), Flutter screen component generation, JWT authentication boilerplate, database schema design, DeepSeek system prompt engineering, and the voice assistant pipeline — including the <code>VoiceService</code> state machine, <code>DeepSeekClient</code> HTTP wrapper, and the custom <code>CustomPainter</code> panda widget.</p>
+          <div class="verify">
+            Verification approach: Every generated backend endpoint was manually tested via browser or Postman before integration into the Flutter client. Flutter screens were hot-reloaded and exercised on Chrome. Voice assistant state machine edge cases (simultaneous TTS + STT, network failure during DeepSeek call, empty transcripts) were tested by simulating each failure mode.
+          </div>
+        </div>
+      </div>
+
+      <!-- DeepSeek -->
+      <div class="ai-tool-block">
+        <div class="ai-tool-header">
+          <div class="ai-tool-badge">AI TOOL [2]</div>
+          <div>
+            <div class="ai-tool-name">DeepSeek Chat API — DeepSeek</div>
+            <span class="ai-tool-url">api.deepseek.com · accessed April 2026</span>
+          </div>
+        </div>
+        <div class="ai-tool-body">
+          <p><strong>Used as:</strong> The NLP engine inside the voice assistant, parsing natural-language Chinese climbing commands into structured JSON actions — <code>LOG_CLIMB</code>, <code>START_SESSION</code>, <code>END_SESSION</code>, and <code>QUERY_STATS</code> — with typed parameters (grade, venue, result, attempts, notes).</p>
+          <div class="verify">
+            Verification approach: The system prompt was iterated 5+ times to improve robustness. Edge cases explicitly tested: partial commands ("log V5"), ambiguous grades ("blue route"), requests outside app scope ("book a gym slot"), multi-turn context (asking about a session that was just started), and Chinese/English mixed input.
+          </div>
+        </div>
+      </div>
+
+      <!-- Ethics -->
+      <div class="ethics-block">
+        <h3>Ethical Considerations</h3>
+        <div class="ethics-grid">
+          <div class="ethics-item">
+            <h4>Accessibility</h4>
+            <p>All AI-generated UI components were checked for contrast ratios (minimum 4.5:1 for body text). The voice assistant is a supplementary input method — every voice action is also reachable via touch UI, so the app remains fully usable for users in noisy environments or with speech difficulties.</p>
+          </div>
+          <div class="ethics-item">
+            <h4>Language Bias</h4>
+            <p>The DeepSeek NLP model performs better on Chinese commands due to its training data distribution. We document this limitation clearly: non-Chinese speakers may experience lower voice recognition accuracy. A future iteration would support English commands equally.</p>
+          </div>
+          <div class="ethics-item">
+            <h4>Data Privacy</h4>
+            <p>No voice audio is stored by BetaUp. Transcribed text is sent to DeepSeek's API for NLP processing; users are informed of this via the microphone permissions dialogue before first use. All session and climb data is stored only in our local H2 database instance.</p>
+          </div>
+          <div class="ethics-item">
+            <h4>Code Ownership</h4>
+            <p>AI-generated code was reviewed, understood, and in many cases refactored by the lead developer before integration. We do not submit AI output as-is. The developer is responsible for correctness, security (JWT, SQL safety), and alignment with user requirements.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- References -->
+      <div class="ref-list">
+        <h3>References</h3>
+        <ol>
+          <li><strong>[1]</strong> Claude Code, Anthropic, claude.ai, accessed April 2026. Used for backend API development, Flutter UI scaffolding, and AI voice assistant pipeline.</li>
+          <li><strong>[2]</strong> DeepSeek Chat, DeepSeek, api.deepseek.com, accessed April 2026. Used as NLP engine for AI voice assistant natural language understanding.</li>
+          <li><strong>[3]</strong> Hamari, J., Koivisto, J., &amp; Sarsa, H. (2014). Does Gamification Work? A Literature Review of Empirical Studies on Gamification. <em>HICSS</em>. DOI: 10.1109/HICSS.2014.377</li>
+          <li><strong>[4]</strong> Deterding, S., Dixon, D., Khaled, R., &amp; Nacke, L. (2011). From Game Design Elements to Gamefulness: Defining "Gamification". <em>MindTrek</em>. DOI: 10.1145/2181037.2181040</li>
+          <li><strong>[5]</strong> Consolvo, S., McDonald, D. W., &amp; Landay, J. A. (2009). Theory-driven Design Strategies for Technologies that Support Behaviour Change. <em>CHI</em>. DOI: 10.1145/1518701.1518766</li>
+          <li><strong>[6]</strong> Rooksby, J., Rost, M., Morrison, A., &amp; Chalmers, M. (2014). Personal Tracking as Lived Informatics. <em>CHI</em>. DOI: 10.1145/2556288.2557039</li>
+        </ol>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══ TEAM ══════════════════════════════════════════════════════════════ -->
+<section id="team">
   <div class="team-section reveal">
     <div class="section-label">Our Team</div>
     <h2 class="section-title">Group C2-6</h2>
@@ -645,7 +1453,7 @@
         <div class="member-name">Cao Yuhan</div>
         <div class="member-name-cn">曹雨涵</div>
         <div class="member-id">ID: 2360894</div>
-        <div class="member-role">Development</div>
+        <div class="member-role">Lead Developer</div>
         <a class="member-github" href="https://github.com/AlinaYuhan" target="_blank">@AlinaYuhan</a>
       </div>
       <div class="member-card">
@@ -678,115 +1486,74 @@
 
 <hr class="divider">
 
-<section>
-  <div class="process-section reveal">
-    <div class="section-label">Design Process</div>
-    <h2 class="section-title">Project Milestones</h2>
-
-    <div class="timeline">
-      <div class="timeline-step">
-        <div class="step-dot active">W1</div>
-        <div class="step-week">Week 1–3</div>
-        <div class="step-title">Foundation</div>
-        <div class="step-desc">Group formation, topic selection, initial brainstorming, and portfolio site initialization.</div>
-      </div>
-      <div class="timeline-step">
-        <div class="step-dot active">W4</div>
-        <div class="step-week">Week 4–6</div>
-        <div class="step-title">Research & Design</div>
-        <div class="step-desc">User research, personas, journey maps, academic literature review, and low-fi prototypes.</div>
-      </div>
-      <div class="timeline-step">
-        <div class="step-dot">W8</div>
-        <div class="step-week">Week 8</div>
-        <div class="step-title">Poster & Alpha</div>
-        <div class="step-desc">Poster presentation, functional core logic in system, initial user testing results.</div>
-      </div>
-      <div class="timeline-step">
-        <div class="step-dot">W10</div>
-        <div class="step-week">Week 10</div>
-        <div class="step-title">Final Submission</div>
-        <div class="step-desc">Live web app, 2-min CHI-style video, final portfolio with iterative feedback logs.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<section>
-  <div class="research-section reveal">
-    <div class="section-label">Research Focus</div>
-    <h2 class="section-title">Key Questions</h2>
-
-    <div class="research-grid">
-      <div class="research-card">
-        <h3>Who are our stakeholders?</h3>
-        <p>Our primary users are <strong style="color:#f5f0e8">recreational and competitive climbers</strong> seeking motivation and progress tracking. Secondary users are <strong style="color:#f5f0e8">coaches and activity organizers</strong> who need tools to manage training sessions and communicate with athletes.</p>
-      </div>
-      <div class="research-card">
-        <h3>What gaps exist in current systems?</h3>
-        <p>Existing climbing apps (e.g., 27crags, Crimpd) focus on route databases but lack <strong style="color:#f5f0e8">meaningful gamification, real-time coach communication, and community-building</strong> features that make sessions genuinely playful and social.</p>
-      </div>
-      <div class="research-card">
-        <h3>What design requirements do we prioritize?</h3>
-        <p>Three must-have playful features: (1) <strong style="color:#f5f0e8">Achievement & Badge System</strong>, (2) <strong style="color:#f5f0e8">Live Session Challenges</strong> between climbers, and (3) <strong style="color:#f5f0e8">Coach Feedback Loop</strong> with visual progress reports.</p>
-      </div>
-      <div class="research-card">
-        <h3>How will we evaluate our design?</h3>
-        <p>We will conduct <strong style="color:#f5f0e8">usability testing with 3+ real climbers</strong> using our Alpha prototype, collect SUS scores and qualitative feedback, then iterate. Final evaluation includes comparing before/after screenshots of improved features.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
+<!-- ═══ RESOURCES ════════════════════════════════════════════════════════ -->
 <section>
   <div class="links-section reveal">
     <div class="section-label">Project Links</div>
     <h2 class="section-title">Resources</h2>
 
     <div class="links-grid">
-      <div class="link-card">
-        <div class="link-icon">📘</div>
-        <div class="link-title">Process Portfolio</div>
-        <div class="link-desc">Full documentation of our design process — research, personas, prototypes, evaluations, and reflections.</div>
-        <div class="link-url">Coming Soon · AlinaYuhan.github.io/betaup</div>
-      </div>
+      <a class="link-card" href="https://github.com/AlinaYuhan/betaup" target="_blank">
+        <div class="link-icon">⚙️</div>
+        <div class="link-title">GitHub Repository</div>
+        <div class="link-desc">Source code for the full BetaUp system — Spring Boot backend and Flutter frontend. Includes README with setup instructions.</div>
+        <div class="link-url">github.com/AlinaYuhan/betaup</div>
+      </a>
       <div class="link-card">
         <div class="link-icon">🚀</div>
         <div class="link-title">Live System</div>
-        <div class="link-desc">The functional web-based prototype of BetaUp, accessible via a live URL for testing and demonstration.</div>
-        <div class="link-url">Coming Week 8 · vercel.app</div>
+        <div class="link-desc">The deployed BetaUp application — fully functional Spring Boot API + Flutter web client accessible from any browser.</div>
+        <div class="link-url">[Deploying Week 10 · Railway + Vercel]</div>
       </div>
       <div class="link-card">
         <div class="link-icon">🎬</div>
         <div class="link-title">Video Demo</div>
-        <div class="link-desc">A 2-minute CHI-style teaser video showcasing the user journey, core features, and design impact.</div>
-        <div class="link-url">Coming Week 10 · MP4 · 1080p</div>
+        <div class="link-desc">2-minute CHI-style demo video showcasing the user journey, voice assistant, badge system, and community features at 1080p.</div>
+        <div class="link-url">[Submitting Week 10 · MP4 · H.264]</div>
       </div>
     </div>
   </div>
 </section>
 
+<!-- ═══ FOOTER ═══════════════════════════════════════════════════════════ -->
 <footer>
   <div class="footer-left">BETAUP</div>
   <div class="footer-right">
     CPT208 Human-Centric Computing · Group C2-6<br>
     XJTLU · Semester 2 · 2025–2026<br>
-    Dr Yue Li &amp; Dr Teng Ma
+    Dr Yue Li &amp; Dr Teng Ma<br>
+    AlinaYuhan.github.io/betaup
   </div>
 </footer>
 
 <script>
+  // ── Reveal on scroll ─────────────────────────────────────────────────
   const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
+  const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) entry.target.classList.add('visible');
     });
-  }, { threshold: 0.1 });
-  reveals.forEach(el => observer.observe(el));
+  }, { threshold: 0.08 });
+  reveals.forEach(el => revealObserver.observe(el));
+
+  // ── Sticky nav: scrolled state + active link ─────────────────────────
+  const nav = document.getElementById('topnav');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const sections = document.querySelectorAll('section[id]');
+
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 80);
+
+    let current = '';
+    sections.forEach(section => {
+      if (window.scrollY >= section.offsetTop - 140) {
+        current = section.id;
+      }
+    });
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+  }, { passive: true });
 </script>
 </body>
 </html>
