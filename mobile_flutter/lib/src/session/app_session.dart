@@ -31,29 +31,31 @@ class AppSession extends ChangeNotifier {
     _isInitializing = true;
     notifyListeners();
 
-    final preferences = await SharedPreferences.getInstance();
-    final storedAuth = preferences.getString(_storageKey);
-
-    if (storedAuth == null || storedAuth.isEmpty) {
-      _isInitializing = false;
-      notifyListeners();
-      return;
-    }
-
     try {
-      final decoded = jsonDecode(storedAuth) as Map<String, dynamic>;
-      _token = decoded["token"] as String?;
-      if (_token == null || _token!.isEmpty) {
-        await preferences.remove(_storageKey);
-      } else {
-        _user = UserProfile.fromJson(
-          Map<String, dynamic>.from(decoded["user"] as Map),
-        );
-        _user = await api.fetchCurrentUser();
-        await _persist();
+      final preferences = await SharedPreferences.getInstance();
+      final storedAuth = preferences.getString(_storageKey);
+
+      if (storedAuth != null && storedAuth.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(storedAuth) as Map<String, dynamic>;
+          _token = decoded["token"] as String?;
+          if (_token == null || _token!.isEmpty) {
+            await preferences.remove(_storageKey);
+          } else {
+            _user = UserProfile.fromJson(
+              Map<String, dynamic>.from(decoded["user"] as Map),
+            );
+            _user = await api.fetchCurrentUser();
+            await _persist();
+          }
+        } catch (_) {
+          await preferences.remove(_storageKey);
+          _token = null;
+          _user = null;
+        }
       }
     } catch (_) {
-      await preferences.remove(_storageKey);
+      // SharedPreferences unavailable (e.g. iOS 26 beta) — start unauthenticated.
       _token = null;
       _user = null;
     }
@@ -103,23 +105,25 @@ class AppSession extends ChangeNotifier {
   Future<void> logout() async {
     _token = null;
     _user = null;
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.remove(_storageKey);
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.remove(_storageKey);
+    } catch (_) {}
     notifyListeners();
   }
 
   Future<void> _persist() async {
-    if (_token == null || _token!.isEmpty || _user == null) {
-      return;
-    }
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
-      _storageKey,
-      jsonEncode({
-        "token": _token,
-        "user": _user!.toJson(),
-      }),
-    );
+    if (_token == null || _token!.isEmpty || _user == null) return;
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setString(
+        _storageKey,
+        jsonEncode({
+          "token": _token,
+          "user": _user!.toJson(),
+        }),
+      );
+    } catch (_) {}
   }
 }
 

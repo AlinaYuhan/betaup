@@ -320,7 +320,9 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
       );
     }
 
-    final entries = _entries ?? [];
+    final entries = (_entries ?? [])
+        .where((e) => e.name.toLowerCase() != 'admin')
+        .toList();
     final currentUserId = SessionScope.of(context).user?.id;
 
     if (entries.isEmpty) {

@@ -23,6 +23,9 @@ public interface ClimbLogRepository extends JpaRepository<ClimbLog, Long> {
     Page<ClimbLog> findByUserId(Long userId, Pageable pageable);
 
     @EntityGraph(attributePaths = "user")
+    List<ClimbLog> findByUserIdAndSessionIdOrderByCreatedAtAsc(Long userId, Long sessionId);
+
+    @EntityGraph(attributePaths = "user")
     List<ClimbLog> findByUserIdOrderByDateDescCreatedAtDesc(Long userId);
 
     @EntityGraph(attributePaths = "user")

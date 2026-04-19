@@ -1,11 +1,14 @@
 package com.betaup.controller;
 
+import com.betaup.dto.climb.ClimbLogResponse;
 import com.betaup.dto.common.ApiResponse;
 import com.betaup.dto.common.PageResponse;
 import com.betaup.dto.session.SessionDto;
 import com.betaup.dto.session.SessionStartRequest;
 import com.betaup.dto.session.SessionSummaryDto;
+import com.betaup.service.ClimbService;
 import com.betaup.service.SessionService;
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SessionController {
 
     private final SessionService sessionService;
+    private final ClimbService climbService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<SessionSummaryDto>>> getSessions(
@@ -47,5 +51,10 @@ public class SessionController {
     @PostMapping("/{id}/end")
     public ResponseEntity<ApiResponse<SessionSummaryDto>> endSession(@PathVariable Long id) {
         return ResponseEntity.ok(sessionService.endSession(id));
+    }
+
+    @GetMapping("/{id}/climbs")
+    public ResponseEntity<ApiResponse<List<ClimbLogResponse>>> getSessionClimbs(@PathVariable Long id) {
+        return ResponseEntity.ok(climbService.getClimbsBySession(id));
     }
 }

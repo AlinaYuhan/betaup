@@ -167,6 +167,17 @@ public class ClimbServiceImpl implements ClimbService {
         return ApiResponse.success("Grade stats loaded.", stats);
     }
 
+    @Override
+    public ApiResponse<List<ClimbLogResponse>> getClimbsBySession(Long sessionId) {
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
+        List<ClimbLogResponse> climbs = climbLogRepository
+            .findByUserIdAndSessionIdOrderByCreatedAtAsc(user.getId(), sessionId)
+            .stream()
+            .map(this::toResponse)
+            .toList();
+        return ApiResponse.success("Session climbs loaded.", climbs);
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private static ClimbStatus deriveStatus(ClimbResult result) {

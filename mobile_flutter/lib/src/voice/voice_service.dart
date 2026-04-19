@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -18,7 +17,6 @@ class VoiceService extends ChangeNotifier {
   final AppSession _session;
   final DeepSeekClient _deepseek;
   final SpeechToText _stt = SpeechToText();
-  final FlutterTts _tts = FlutterTts();
 
   VoiceState _state = VoiceState.idle;
   String? _errorMessage;
@@ -46,7 +44,6 @@ class VoiceService extends ChangeNotifier {
   /// Open the chat panel and start the first listening turn.
   Future<void> openConversation() async {
     if (_conversationOpen) {
-      // Already open — just (re)start listening if idle.
       if (_state == VoiceState.idle) await startListening();
       return;
     }
@@ -59,7 +56,6 @@ class VoiceService extends ChangeNotifier {
   void closeConversation() {
     _conversationOpen = false;
     _stt.stop();
-    _tts.stop();
     _messages.clear();
     _interimText = null;
     _errorMessage = null;
@@ -69,7 +65,6 @@ class VoiceService extends ChangeNotifier {
   Future<void> startListening() async {
     if (_state != VoiceState.idle) return;
 
-    // Web handles mic permission natively; skip permission_handler on web.
     if (!kIsWeb) {
       final micStatus = await Permission.microphone.request();
       if (!micStatus.isGranted) {
@@ -115,13 +110,11 @@ class VoiceService extends ChangeNotifier {
   Future<void> stopListening() async {
     if (_state != VoiceState.listening) return;
     await _stt.stop();
-    // onStatus("notListening") will fire → _handleListeningDone
   }
 
   /// Reset from error state and optionally re-open listening.
   void reset() {
     _stt.stop();
-    _tts.stop();
     _errorMessage = null;
     _setState(VoiceState.idle);
     if (_conversationOpen) {
@@ -142,7 +135,6 @@ class VoiceService extends ChangeNotifier {
       _processTranscript(text);
     } else {
       _setState(VoiceState.idle);
-      // Nothing heard — wait briefly then try again if conversation is open.
       if (_conversationOpen) {
         Future.delayed(const Duration(milliseconds: 600), startListening);
       }
@@ -152,12 +144,10 @@ class VoiceService extends ChangeNotifier {
   Future<void> _processTranscript(String text) async {
     _setState(VoiceState.processing);
 
-    // Show the user's message immediately in the chat panel.
     _messages.add(ChatMessage(text: text, isUser: true));
     notifyListeners();
 
     try {
-      // Pass history without the current turn (it's passed as userText).
       final historyForLLM = _messages.length > 1
           ? _messages.sublist(0, _messages.length - 1)
           : const <ChatMessage>[];
@@ -168,29 +158,13 @@ class VoiceService extends ChangeNotifier {
       _messages.add(ChatMessage(text: result.reply, isUser: false));
       notifyListeners();
 
+      // TTS removed — response shown as text in chat bubble.
       _setState(VoiceState.responding);
-      await _tts.setLanguage("zh-CN");
-
-      // Use a Completer so we can await TTS completion reliably.
-      final ttsCompleter = Completer<void>();
-      _tts.setCompletionHandler(() {
-        if (!ttsCompleter.isCompleted) ttsCompleter.complete();
-      });
-      _tts.setErrorHandler((_) {
-        if (!ttsCompleter.isCompleted) ttsCompleter.complete();
-      });
-
-      await _tts.speak(result.reply);
-
-      // Wait for TTS to finish (30 s safety timeout).
-      await ttsCompleter.future
-          .timeout(const Duration(seconds: 30), onTimeout: () {});
 
       await _executeAction(result.action);
 
       _setState(VoiceState.idle);
 
-      // Continuous conversation: automatically re-listen.
       if (_conversationOpen) {
         await Future.delayed(const Duration(milliseconds: 600));
         await startListening();
@@ -233,14 +207,12 @@ class VoiceService extends ChangeNotifier {
           if (active != null) await _session.api.endSession(active.id);
 
         case QueryStatsAction():
-          break; // Answer is already in the reply text.
+          break;
 
         case NoAction():
           break;
       }
-    } catch (_) {
-      // Silently ignore action failures — the TTS reply already committed.
-    }
+    } catch (_) {}
   }
 
   void _setState(VoiceState newState) {
@@ -256,7 +228,6 @@ class VoiceService extends ChangeNotifier {
   @override
   void dispose() {
     _stt.stop();
-    _tts.stop();
     super.dispose();
   }
 }

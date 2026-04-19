@@ -39,7 +39,7 @@ class ApiClient {
     if (!kIsWeb && Platform.isAndroid) {
       return "http://10.0.2.2:8080/api";
     }
-    return "http://127.0.0.1:8080/api";
+    return "http://localhost:8080/api";
   }
 
   Future<UserProfile> fetchCurrentUser() async {
@@ -171,6 +171,12 @@ class ApiClient {
       SessionSummary.fromJson,
     );
     return result.items;
+  }
+
+  Future<List<ClimbLog>> fetchSessionClimbs(int sessionId) async {
+    final data = await _send("GET", "/sessions/$sessionId/climbs");
+    if (data == null) return [];
+    return (data as List).map((e) => ClimbLog.fromJson(JsonMap.from(e as Map))).toList();
   }
 
   // ── Badge / Feedback ───────────────────────────────────────────────────
@@ -537,8 +543,7 @@ class ApiClient {
           throw const ApiException("Unsupported HTTP method.");
       }
     } on TimeoutException {
-      throw const ApiException(
-          "Request timed out. Check the backend connection.");
+      throw const ApiException("Request timed out. Check the backend connection.");
     } on SocketException {
       throw const ApiException("Cannot reach the BetaUp backend.");
     } on http.ClientException catch (error) {

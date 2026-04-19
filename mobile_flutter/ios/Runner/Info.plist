@@ -26,12 +26,19 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>BetaUp connects to your Apple Watch via Bluetooth to monitor heart rate during climbing sessions.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>BetaUp uses your location to verify gym check-ins and center the map on your position.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>BetaUp Voice Assistant uses speech recognition to understand your commands.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>BetaUp Voice Assistant needs the microphone to listen to your voice commands.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>BetaUp Voice Assistant uses speech recognition to understand your commands.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

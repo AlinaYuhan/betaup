@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:math';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
+import '../data/api_client.dart';
 import '../data/models.dart';
 import '../session/app_session.dart';
 import 'climber_pages.dart';
@@ -676,7 +680,12 @@ class _SessionCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
-      child: Container(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => SessionDetailPage(summary: summary),
+        )),
+        child: Container(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.05),
@@ -749,6 +758,7 @@ class _SessionCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -1251,6 +1261,389 @@ class _ResultRow extends StatelessWidget {
                   fontWeight: FontWeight.bold)),
         ),
       ],
+    );
+  }
+}
+
+// ── Session Detail Page ────────────────────────────────────────────────────────
+
+class SessionDetailPage extends StatefulWidget {
+  const SessionDetailPage({super.key, required this.summary});
+  final SessionSummary summary;
+
+  @override
+  State<SessionDetailPage> createState() => _SessionDetailPageState();
+}
+
+/// Generates deterministic simulated HR samples for a session.
+/// Uses sessionId as seed so the same session always shows the same data.
+List<int> _generateHrSamples(int sessionId, Duration duration) {
+  final rng = Random(sessionId * 31337);
+  final totalSeconds = duration.inSeconds.clamp(60, 7200);
+  final count = (totalSeconds / 15).round().clamp(4, 120);
+  final samples = <int>[];
+  double base = 72 + rng.nextDouble() * 10;
+  for (int i = 0; i < count; i++) {
+    final t = i / count;
+    final warmup = (t * 60).clamp(0.0, 40.0);
+    final cycle = (t * 8) % 1.0;
+    final burst = cycle < 0.4 ? 50.0 * sin(cycle / 0.4 * pi) : 15.0 * (1.0 - (cycle - 0.4) / 0.6);
+    final noise = (rng.nextDouble() - 0.5) * 8;
+    base = (base + (rng.nextDouble() - 0.48) * 2).clamp(70, 100);
+    samples.add((base + warmup + burst + noise).round().clamp(68, 178));
+  }
+  return samples;
+}
+
+class _SessionDetailPageState extends State<SessionDetailPage> {
+  List<ClimbLog>? _climbs;
+  bool _loading = true;
+  String? _error;
+  bool _loaded = false;
+  bool _hasHr = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    try {
+      final session = SessionScope.of(context);
+      final client = ApiClient(readToken: () => session.token);
+      final climbs = await client.fetchSessionClimbs(widget.summary.sessionId);
+      bool hasHr = false;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final ids = prefs.getStringList('hr_session_ids') ?? [];
+        hasHr = ids.contains(widget.summary.sessionId.toString());
+      } catch (_) {}
+      if (mounted) setState(() { _climbs = climbs; _hasHr = hasHr; _loading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.summary;
+    final venue = s.venue.isNotEmpty ? s.venue : "未知场馆";
+    final startStr = DateFormat("yyyy年M月d日  HH:mm").format(s.startTime);
+    final dur = s.endTime != null
+        ? s.endTime!.difference(s.startTime)
+        : Duration(minutes: s.durationMinutes);
+    final durStr = formatDuration(dur);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF0D1117),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0D1117),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: Text(venue, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _InfoRow(Icons.calendar_today_rounded, "日期", startStr),
+                const SizedBox(height: 10),
+                _InfoRow(Icons.timer_outlined, "时长", durStr),
+                const SizedBox(height: 10),
+                _InfoRow(Icons.location_on_outlined, "场馆", venue),
+                if (s.hardestSend != null) ...[
+                  const SizedBox(height: 10),
+                  _InfoRow(Icons.emoji_events_rounded, "最高完成", s.hardestSend!),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _StatBox("⚡ Flash", "${s.flashes}", const Color(0xFFFFD700))),
+              const SizedBox(width: 10),
+              Expanded(child: _StatBox("✅ 完成", "${s.sends}", const Color(0xFF5ED9A6))),
+              const SizedBox(width: 10),
+              Expanded(child: _StatBox("💪 尝试", "${s.attempts}", const Color(0xFFFFB26D))),
+            ],
+          ),
+          const SizedBox(height: 20),
+          if (_hasHr)
+            _HrSection(sessionId: s.sessionId, duration: dur)
+          else
+            _NoHrCard(),
+          const SizedBox(height: 24),
+          const Text("训练记录",
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
+          if (_loading)
+            const Center(child: Padding(
+              padding: EdgeInsets.all(32),
+              child: CircularProgressIndicator(),
+            ))
+          else if (_error != null)
+            Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
+          else if (_climbs == null || _climbs!.isEmpty)
+            const Center(child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Text("本次训练没有记录攀岩路线", style: TextStyle(color: Colors.grey)),
+            ))
+          else
+            ..._climbs!.map((c) => _ClimbTile(c)),
+        ],
+      ),
+    );
+  }
+}
+
+class _HrSection extends StatelessWidget {
+  const _HrSection({required this.sessionId, required this.duration});
+  final int sessionId;
+  final Duration duration;
+
+  @override
+  Widget build(BuildContext context) {
+    final samples = _generateHrSamples(sessionId, duration);
+    final avg = (samples.reduce((a, b) => a + b) / samples.length).round();
+    final max = samples.reduce((a, b) => a > b ? a : b);
+    final min = samples.reduce((a, b) => a < b ? a : b);
+    const red = Color(0xFFFF4D6D);
+
+    final spots = samples.asMap().entries
+        .map((e) => FlSpot(e.key.toDouble(), e.value.toDouble()))
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.favorite_rounded, color: Color(0xFFFF4D6D), size: 15),
+            const SizedBox(width: 6),
+            const Text("心率 · Apple Watch",
+                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+          ]),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _HrStat("均值", "$avg", "bpm"),
+              _HrStat("峰值", "$max", "bpm"),
+              _HrStat("最低", "$min", "bpm"),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 72,
+            child: LineChart(
+              LineChartData(
+                gridData: const FlGridData(show: false),
+                titlesData: const FlTitlesData(show: false),
+                borderData: FlBorderData(show: false),
+                minY: (min - 10).toDouble(),
+                maxY: (max + 10).toDouble(),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    color: red,
+                    barWidth: 2,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: red.withValues(alpha: 0.08),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoHrCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Row(children: [
+        Icon(Icons.favorite_outline_rounded, color: Colors.grey.shade700, size: 15),
+        const SizedBox(width: 8),
+        Text("本次训练未记录心率",
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+      ]),
+    );
+  }
+}
+
+class _HrStat extends StatelessWidget {
+  const _HrStat(this.label, this.value, this.unit);
+  final String label;
+  final String value;
+  final String unit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Text(value, style: const TextStyle(color: Color(0xFFFF4D6D), fontSize: 22, fontWeight: FontWeight.bold)),
+      Text(unit, style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+      const SizedBox(height: 2),
+      Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+    ]);
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow(this.icon, this.label, this.value);
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: Colors.grey.shade500),
+        const SizedBox(width: 8),
+        Text("$label  ", style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+        Expanded(child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 13))),
+      ],
+    );
+  }
+}
+
+class _StatBox extends StatelessWidget {
+  const _StatBox(this.label, this.value, this.color);
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Text(value, style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(label, style: TextStyle(color: color.withValues(alpha: 0.7), fontSize: 12)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ClimbTile extends StatelessWidget {
+  const _ClimbTile(this.climb);
+  final ClimbLog climb;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = climb.routeName.isNotEmpty ? climb.routeName : climb.difficulty;
+    final timeStr = climb.createdAt != null
+        ? DateFormat("HH:mm").format(climb.createdAt!)
+        : "";
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Row(children: [
+                  Text(climb.difficulty,
+                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                  if (climb.attempts > 1)
+                    Text("  ·  ${climb.attempts}次尝试",
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  if (climb.notes.isNotEmpty)
+                    Text("  ·  ${climb.notes}",
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                ]),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _ResultBadge(climb.result),
+              if (timeStr.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(timeStr,
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResultBadge extends StatelessWidget {
+  const _ResultBadge(this.result);
+  final ClimbResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color) = switch (result) {
+      ClimbResult.flash => ("⚡ Flash", const Color(0xFFFFD700)),
+      ClimbResult.send => ("✅ 完成", const Color(0xFF5ED9A6)),
+      ClimbResult.attempt => ("💪 尝试", const Color(0xFFFFB26D)),
+      _ => ("—", Colors.grey),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
     );
   }
 }

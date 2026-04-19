@@ -23,4 +23,6 @@ public interface ClimbService {
     ApiResponse<Void> deleteClimbLog(Long climbLogId);
 
     ApiResponse<List<GradeStatDto>> getGradeStats();
+
+    ApiResponse<List<ClimbLogResponse>> getClimbsBySession(Long sessionId);
 }
