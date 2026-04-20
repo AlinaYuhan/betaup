@@ -1,4 +1,6 @@
 import 'dart:async';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -17,6 +19,31 @@ class VoiceService extends ChangeNotifier {
   final AppSession _session;
   final DeepSeekClient _deepseek;
   final SpeechToText _stt = SpeechToText();
+
+  Future<void> _speak(String text) async {
+    if (!kIsWeb) return;
+    final synth = html.window.speechSynthesis;
+    if (synth == null) return;
+    synth.cancel();
+    final utterance = html.SpeechSynthesisUtterance(text)
+      ..lang = 'zh-CN'
+      ..rate = 0.85
+      ..volume = 1.0;
+    final completer = Completer<void>();
+    utterance.onEnd.listen((_) {
+      if (!completer.isCompleted) completer.complete();
+    });
+    utterance.onError.listen((_) {
+      if (!completer.isCompleted) completer.complete();
+    });
+    synth.speak(utterance);
+    await completer.future;
+  }
+
+  void _stopSpeaking() {
+    if (!kIsWeb) return;
+    html.window.speechSynthesis?.cancel();
+  }
 
   VoiceState _state = VoiceState.idle;
   String? _errorMessage;
@@ -56,6 +83,7 @@ class VoiceService extends ChangeNotifier {
   void closeConversation() {
     _conversationOpen = false;
     _stt.stop();
+    _stopSpeaking();
     _messages.clear();
     _interimText = null;
     _errorMessage = null;
@@ -158,15 +186,15 @@ class VoiceService extends ChangeNotifier {
       _messages.add(ChatMessage(text: result.reply, isUser: false));
       notifyListeners();
 
-      // TTS removed — response shown as text in chat bubble.
       _setState(VoiceState.responding);
+      await _speak(result.reply);  // 等待播报完毕再继续
 
       await _executeAction(result.action);
 
       _setState(VoiceState.idle);
 
       if (_conversationOpen) {
-        await Future.delayed(const Duration(milliseconds: 600));
+        await Future.delayed(const Duration(milliseconds: 300));
         await startListening();
       }
     } catch (e) {
@@ -228,6 +256,7 @@ class VoiceService extends ChangeNotifier {
   @override
   void dispose() {
     _stt.stop();
+    _stopSpeaking();
     super.dispose();
   }
 }

@@ -12,12 +12,12 @@ const _chinaCenter = LatLng(35.8617, 104.1954);
 const _defaultZoom = 4.2;
 const _gymZoom = 12.5;
 const _userZoom = 13.5;
-const _gpsFenceMeters = 500.0;
-const _mapTileSubdomains = ["1", "2", "3", "4"];
+const _gpsFenceMeters = 2000.0;
+const _mapTileSubdomains = ["a", "b", "c"];
 const _mapTileUrlTemplate =
-    "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}";
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 const _mapTileFallbackUrlTemplate =
-    "https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}";
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 class ExploreTab extends StatefulWidget {
   const ExploreTab({super.key});
@@ -300,8 +300,22 @@ class _ExploreTabState extends State<ExploreTab> {
 
     final theme = Theme.of(context);
 
+    final loc = _userLocation;
+    List<Gym> sortedGyms;
+    if (loc == null) {
+      sortedGyms = _gyms;
+    } else {
+      final lat = loc.latitude;
+      final lng = loc.longitude;
+      sortedGyms = [..._gyms]..sort((a, b) {
+          final da = Geolocator.distanceBetween(lat, lng, a.lat, a.lng);
+          final db = Geolocator.distanceBetween(lat, lng, b.lat, b.lng);
+          return da.compareTo(db);
+        });
+    }
+
     return Column(
-      children: _gyms.map((gym) {
+      children: sortedGyms.map((gym) {
         final isSelected = gym.id == _selectedGymId;
         final distance = _userLocation == null
             ? null

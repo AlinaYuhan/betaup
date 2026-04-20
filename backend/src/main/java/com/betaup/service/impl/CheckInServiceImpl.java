@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class CheckInServiceImpl implements CheckInService {
 
-    private static final double GEOFENCE_RADIUS_METERS = 500.0;
+    private static final double GEOFENCE_RADIUS_METERS = 2000.0;
 
     private final CheckInRepository checkInRepository;
     private final GymRepository gymRepository;
@@ -50,7 +50,12 @@ public class CheckInServiceImpl implements CheckInService {
                 request.getUserLat(), request.getUserLng(),
                 gym.getLat(), gym.getLng()
             );
-            gpsVerified = distanceMeters <= GEOFENCE_RADIUS_METERS;
+            if (distanceMeters > GEOFENCE_RADIUS_METERS) {
+                throw new IllegalStateException(
+                    String.format("You are %.0f m from this gym (limit: %.0f m). Move closer or use Manual Check-In.",
+                        distanceMeters, GEOFENCE_RADIUS_METERS));
+            }
+            gpsVerified = true;
         }
 
         CheckIn checkIn = CheckIn.builder()
