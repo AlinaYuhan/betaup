@@ -21,10 +21,19 @@ class DeepSeekClient {
     AppSession session, {
     List<ChatMessage> history = const [],
   }) async {
-    final activeSession = await _safeFetch(session.api.fetchActiveSession());
-    final stats = await _safeFetch(session.api.fetchStats("LAST_7_DAYS"));
+    // Fetch all data concurrently to minimise latency.
+    final results = await Future.wait([
+      _safeFetch(session.api.fetchActiveSession()),
+      _safeFetch(session.api.fetchStats("LAST_7_DAYS")),
+      _safeFetch(session.api.fetchStats("LAST_30_DAYS")),
+      _safeFetch(session.api.fetchStats("ALL_TIME")),
+    ]);
+    final activeSession = results[0] as ClimbSession?;
+    final stats7   = results[1] as ClimbStats?;
+    final stats30  = results[2] as ClimbStats?;
+    final statsAll = results[3] as ClimbStats?;
 
-    final systemPrompt = _buildSystemPrompt(activeSession, stats);
+    final systemPrompt = _buildSystemPrompt(activeSession, stats7, stats30, statsAll);
 
     // Keep last 8 turns for context (to stay within token limits).
     final recentHistory = history.length > 8
@@ -76,46 +85,62 @@ class DeepSeekClient {
     }
   }
 
-  String _buildSystemPrompt(ClimbSession? session, ClimbStats? stats) {
+  String _buildSystemPrompt(
+    ClimbSession? session,
+    ClimbStats? stats7,
+    ClimbStats? stats30,
+    ClimbStats? statsAll,
+  ) {
     final buf = StringBuffer();
     buf.writeln(
-      "You are BetaUp Voice, the in-app voice assistant for the BetaUp climbing tracker. "
-      "Help users log climbs, manage sessions, query their stats, and answer general climbing questions. "
-      "Always reply in the same language the user speaks (Chinese if they speak Chinese). "
-      "Be friendly, concise, and encouraging — like a supportive climbing buddy.\n\n"
-      "You MUST respond with a JSON object in exactly this format — no extra text:\n"
-      '{"reply": "<spoken response>", "action": <action object or null>}\n\n'
-      "Supported action types:\n"
-      '  LOG_CLIMB:     {"type":"LOG_CLIMB","difficulty":"V5","routeName":null,"result":"FLASH","attempts":1,"notes":null}\n'
-      '  START_SESSION: {"type":"START_SESSION","venue":"某岩馆"}\n'
+      "你是攀达（Panda），BetaUp 攀岩训练 App 的语音助手，一只热爱攀岩的熊猫。\n"
+      "风格：亲切简洁，像熟悉的朋友，一句话说完，不啰嗦。\n\n"
+      "【你能做的事】\n"
+      "- 记录攀爬（LOG_CLIMB）\n"
+      "- 开始/结束训练（START_SESSION / END_SESSION）\n"
+      "- 查询训练数据（QUERY_STATS）——只用下方【训练统计】里的数字，不编造\n"
+      "- 回答攀岩知识、技术、装备问题\n\n"
+      "【限制】\n"
+      "- 无活跃训练 session 时，拒绝 LOG_CLIMB，引导用户先说【开始训练】\n"
+      "- 不编造统计数字\n\n"
+      "【输出格式（严格 JSON，不含多余文字）】\n"
+      '{"reply":"<朗读的一句话>","action":<action对象或null>}\n\n'
+      "【Action 类型】\n"
+      '  LOG_CLIMB:     {"type":"LOG_CLIMB","difficulty":"V5","result":"FLASH","attempts":1,"notes":null}\n'
+      '  START_SESSION: {"type":"START_SESSION","venue":"<岩馆名，不确定就用未指定场馆>"}\n'
       '  END_SESSION:   {"type":"END_SESSION"}\n'
-      '  QUERY_STATS:   {"type":"QUERY_STATS","period":"LAST_7_DAYS"}  // LAST_7_DAYS | LAST_30_DAYS | ALL_TIME\n'
-      "  null  — for general conversation, advice, or gym questions\n\n"
-      "Result values: FLASH = topped on first try, SEND = topped after attempts, ATTEMPT = did not top.\n"
-      "Difficulty: V0-V17 (bouldering) or 5.6-5.15d (sport/top-rope).\n\n"
-      "Examples:\n"
-      '  User: "刚登了条V5红色，闪送" → {"reply":"太棒了！V5闪送已记录！","action":{"type":"LOG_CLIMB","difficulty":"V5","result":"FLASH","attempts":1}}\n'
-      '  User: "开始今天训练" → {"reply":"好的，训练开始！加油！","action":{"type":"START_SESSION","venue":"未知场馆"}}\n'
-      '  User: "这周练了多少" → {"reply":"这周你完成了X条路线...","action":{"type":"QUERY_STATS","period":"LAST_7_DAYS"}}\n'
-      '  User: "附近有什么岩馆" → {"reply":"我没有实时位置数据，建议在大众点评搜索\'室内攀岩\'，或在高德/百度地图搜索附近攀岩馆。","action":null}\n',
+      '  QUERY_STATS:   {"type":"QUERY_STATS","period":"LAST_7_DAYS"}\n'
+      "  null           — 聊天/知识/无需操作\n\n"
+      "result 枚举：FLASH=一次登顶  SEND=多次后登顶  ATTEMPT=未登顶\n"
+      "difficulty：V0–V17（抱石）或 5.6–5.15d（运动攀）\n\n"
+      "【示例】\n"
+      '  "刚闪了条V5" → {"reply":"V5 闪送，记录了！","action":{"type":"LOG_CLIMB","difficulty":"V5","result":"FLASH","attempts":1}}\n'
+      '  "试了3次才送V4" → {"reply":"V4 三次登顶，加油！","action":{"type":"LOG_CLIMB","difficulty":"V4","result":"SEND","attempts":3}}\n'
+      '  "开始训练" → {"reply":"好，训练开始！","action":{"type":"START_SESSION","venue":"未指定场馆"}}\n'
+      '  无session时说"记录V5" → {"reply":"你还没开始训练哦，先说开始训练吧。","action":null}\n',
     );
 
     if (session != null) {
       final startStr = DateFormat("HH:mm").format(session.startTime.toLocal());
-      buf.writeln(
-          "CURRENT STATE: Active session at '${session.venue}' started at $startStr.");
+      buf.writeln("【当前状态】正在训练，场馆：${session.venue}，开始于 $startStr。");
     } else {
-      buf.writeln("CURRENT STATE: No active climbing session.");
+      buf.writeln("【当前状态】无活跃训练 session。");
     }
 
-    if (stats != null) {
-      final s = stats.summary;
-      buf.writeln(
-        "LAST 7 DAYS: ${s.totalClimbs} climbs — "
-        "${s.totalFlashes} flashes, ${s.totalSends} sends, ${s.totalAttempts} attempts. "
-        "Flash rate: ${s.flashRatePct}%."
-        "${s.topGrade != null ? ' Top grade: ${s.topGrade}.' : ''}",
-      );
+    buf.writeln("【训练统计】");
+    if (stats7 != null) {
+      final s = stats7.summary;
+      buf.writeln("最近7天：${s.totalClimbs}条 — ${s.totalFlashes}闪 ${s.totalSends}送，"
+          "闪送率${s.flashRatePct}%${s.topGrade != null ? '，最高${s.topGrade}' : ''}。");
+    }
+    if (stats30 != null) {
+      final s = stats30.summary;
+      buf.writeln("最近30天：${s.totalClimbs}条 — ${s.totalFlashes}闪 ${s.totalSends}送"
+          "${s.topGrade != null ? '，最高${s.topGrade}' : ''}。");
+    }
+    if (statsAll != null) {
+      final s = statsAll.summary;
+      buf.writeln("历史总计：${s.totalClimbs}条${s.topGrade != null ? '，最高${s.topGrade}' : ''}。");
     }
 
     return buf.toString();

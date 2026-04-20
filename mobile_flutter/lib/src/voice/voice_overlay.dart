@@ -87,8 +87,9 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
       case VoiceState.error:
         widget.service.reset();
       case VoiceState.processing:
-      case VoiceState.responding:
         break;
+      case VoiceState.responding:
+        widget.service.interruptSpeaking();
     }
   }
 
@@ -358,7 +359,7 @@ class _ConversationPanelState extends State<_ConversationPanel> {
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  "BetaUp 语音助手",
+                  "攀达 Panda",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,

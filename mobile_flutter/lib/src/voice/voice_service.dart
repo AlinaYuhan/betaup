@@ -140,6 +140,16 @@ class VoiceService extends ChangeNotifier {
     await _stt.stop();
   }
 
+  /// Interrupt TTS mid-playback and immediately start listening again.
+  void interruptSpeaking() {
+    if (_state != VoiceState.responding) return;
+    _stopSpeaking();
+    _setState(VoiceState.idle);
+    if (_conversationOpen) {
+      Future.delayed(const Duration(milliseconds: 200), startListening);
+    }
+  }
+
   /// Reset from error state and optionally re-open listening.
   void reset() {
     _stt.stop();
@@ -212,18 +222,19 @@ class VoiceService extends ChangeNotifier {
             :final attempts,
             :final notes,
           ):
-          final today = DateFormat("yyyy-MM-dd").format(DateTime.now());
           final activeSession =
               await _session.api.fetchActiveSession().catchError((_) => null);
+          if (activeSession == null) return; // prompt层已拦截，代码层兜底
+          final today = DateFormat("yyyy-MM-dd").format(DateTime.now());
           await _session.api.createClimb({
             "difficulty": difficulty,
             if (routeName != null && routeName.isNotEmpty) "routeName": routeName,
             "date": today,
-            "venue": activeSession?.venue ?? "未知场馆",
+            "venue": activeSession.venue,
             "result": result,
             "attempts": attempts,
             if (notes != null && notes.isNotEmpty) "notes": notes,
-            if (activeSession != null) "sessionId": activeSession.id,
+            "sessionId": activeSession.id,
           });
 
         case StartSessionAction(:final venue):
@@ -240,7 +251,12 @@ class VoiceService extends ChangeNotifier {
         case NoAction():
           break;
       }
-    } catch (_) {}
+    } catch (_) {
+      const errMsg = "抱歉，操作没成功，你可以重试一下。";
+      _messages.add(const ChatMessage(text: errMsg, isUser: false));
+      notifyListeners();
+      await _speak(errMsg);
+    }
   }
 
   void _setState(VoiceState newState) {
