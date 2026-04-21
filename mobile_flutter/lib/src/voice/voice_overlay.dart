@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../ui/common.dart';
 import 'voice_service.dart';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
@@ -56,6 +57,15 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
         _pulseCtrl.stop();
         _pulseCtrl.reset();
       }
+    }
+
+    // Show badge unlock dialog when pending badges arrive.
+    final badges = widget.service.pendingBadges;
+    if (badges.isNotEmpty) {
+      widget.service.clearPendingBadges();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) showBadgeUnlockDialog(context, badges);
+      });
     }
 
     // Show error as snackbar (only once on transition into error).

@@ -27,13 +27,18 @@ class DeepSeekClient {
       _safeFetch(session.api.fetchStats("LAST_7_DAYS")),
       _safeFetch(session.api.fetchStats("LAST_30_DAYS")),
       _safeFetch(session.api.fetchStats("ALL_TIME")),
+      _safeFetch(session.api.fetchSessions(page: 0, size: 1)),
     ]);
     final activeSession = results[0] as ClimbSession?;
     final stats7   = results[1] as ClimbStats?;
     final stats30  = results[2] as ClimbStats?;
     final statsAll = results[3] as ClimbStats?;
+    final recentSessions = results[4] as List<SessionSummary>?;
+    final lastVenue = recentSessions?.isNotEmpty == true
+        ? (recentSessions!.first.venue.isNotEmpty ? recentSessions.first.venue : null)
+        : null;
 
-    final systemPrompt = _buildSystemPrompt(activeSession, stats7, stats30, statsAll);
+    final systemPrompt = _buildSystemPrompt(activeSession, stats7, stats30, statsAll, lastVenue);
 
     // Keep last 8 turns for context (to stay within token limits).
     final recentHistory = history.length > 8
@@ -90,11 +95,12 @@ class DeepSeekClient {
     ClimbStats? stats7,
     ClimbStats? stats30,
     ClimbStats? statsAll,
+    String? lastVenue,
   ) {
     final buf = StringBuffer();
     buf.writeln(
       "你是攀达（Panda），BetaUp 攀岩训练 App 的语音助手，一只热爱攀岩的熊猫。\n"
-      "风格：亲切简洁，像熟悉的朋友，一句话说完，不啰嗦。\n\n"
+      "风格：亲切简洁，一句话说完，不啰嗦。用用户相同的语言回复：用户说中文就中文，说英文就英文。\n\n"
       "【你能做的事】\n"
       "- 记录攀爬（LOG_CLIMB）\n"
       "- 开始/结束训练（START_SESSION / END_SESSION）\n"
@@ -103,6 +109,10 @@ class DeepSeekClient {
       "【限制】\n"
       "- 无活跃训练 session 时，拒绝 LOG_CLIMB，引导用户先说【开始训练】\n"
       "- 不编造统计数字\n\n"
+      "【语音识别纠正】\n"
+      "- STT 容易把 V 级别识别错：'the 5'/'be five'/'V five' 均指 V5，以此类推\n"
+      "- 听到 'the N' 或 'be N'（N 为数字）时，自动判断为 VN 级别\n"
+      "- 英文 'flash'=FLASH，'send'=SEND，'attempt'/'fell'=ATTEMPT\n\n"
       "【输出格式（严格 JSON，不含多余文字）】\n"
       '{"reply":"<朗读的一句话>","action":<action对象或null>}\n\n'
       "【Action 类型】\n"
@@ -115,8 +125,9 @@ class DeepSeekClient {
       "difficulty：V0–V17（抱石）或 5.6–5.15d（运动攀）\n\n"
       "【示例】\n"
       '  "刚闪了条V5" → {"reply":"V5 闪送，记录了！","action":{"type":"LOG_CLIMB","difficulty":"V5","result":"FLASH","attempts":1}}\n'
+      '  "I just flashed V5" → {"reply":"V5 flash, logged!","action":{"type":"LOG_CLIMB","difficulty":"V5","result":"FLASH","attempts":1}}\n'
       '  "试了3次才送V4" → {"reply":"V4 三次登顶，加油！","action":{"type":"LOG_CLIMB","difficulty":"V4","result":"SEND","attempts":3}}\n'
-      '  "开始训练" → {"reply":"好，训练开始！","action":{"type":"START_SESSION","venue":"未指定场馆"}}\n'
+      '  "开始训练" → {"reply":"好，训练开始！","action":{"type":"START_SESSION","venue":"<常用场馆或未指定场馆>"}}\n'
       '  无session时说"记录V5" → {"reply":"你还没开始训练哦，先说开始训练吧。","action":null}\n',
     );
 
@@ -125,6 +136,10 @@ class DeepSeekClient {
       buf.writeln("【当前状态】正在训练，场馆：${session.venue}，开始于 $startStr。");
     } else {
       buf.writeln("【当前状态】无活跃训练 session。");
+    }
+
+    if (lastVenue != null && lastVenue.isNotEmpty && lastVenue != "未指定场馆") {
+      buf.writeln("【常用场馆】$lastVenue（用户上次训练场馆，开始训练时可主动询问是否使用该场馆）");
     }
 
     buf.writeln("【训练统计】");

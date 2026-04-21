@@ -30,6 +30,9 @@ class _RecordTabState extends State<RecordTab>
   final _statsKey = GlobalKey<StatsTabState>();
   final _badgesKey = GlobalKey<BadgeProgressTabState>();
 
+  AppSession? _session;
+  int _lastVoiceVersion = 0;
+
   @override
   void initState() {
     super.initState();
@@ -37,7 +40,28 @@ class _RecordTabState extends State<RecordTab>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final session = SessionScope.of(context);
+    if (_session != session) {
+      _session?.removeListener(_onSessionChange);
+      _session = session;
+      _session!.addListener(_onSessionChange);
+      _lastVoiceVersion = session.voiceVersion;
+    }
+  }
+
+  void _onSessionChange() {
+    final vv = _session?.voiceVersion ?? 0;
+    if (vv != _lastVoiceVersion) {
+      _lastVoiceVersion = vv;
+      _refreshAll();
+    }
+  }
+
+  @override
   void dispose() {
+    _session?.removeListener(_onSessionChange);
     _tabController.dispose();
     super.dispose();
   }
@@ -121,16 +145,13 @@ class _TrainingHomeTab extends StatefulWidget {
 }
 
 class _TrainingHomeTabState extends State<_TrainingHomeTab> {
-  // Active session
   ClimbSession? _activeSession;
   Timer? _ticker;
   Duration _elapsed = Duration.zero;
 
-  // Session history
   List<SessionSummary> _sessions = [];
   bool _sessionsLoading = true;
 
-  // GPS
   _GpsStatus _gpsStatus = _GpsStatus.loading;
   _NearbyResult? _gpsResult;
   List<Gym> _gyms = [];
@@ -138,17 +159,37 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
   bool _starting = false;
   bool _initialized = false;
 
+  AppSession? _appSession;
+  int _lastVoiceVersion = 0;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final session = SessionScope.of(context);
+    if (_appSession != session) {
+      _appSession?.removeListener(_onSessionChange);
+      _appSession = session;
+      _appSession!.addListener(_onSessionChange);
+      _lastVoiceVersion = session.voiceVersion;
+    }
     if (!_initialized) {
       _initialized = true;
       _init();
     }
   }
 
+  void _onSessionChange() {
+    final vv = _appSession?.voiceVersion ?? 0;
+    if (vv != _lastVoiceVersion) {
+      _lastVoiceVersion = vv;
+      _loadSessions();
+      _checkActiveSession();
+    }
+  }
+
   @override
   void dispose() {
+    _appSession?.removeListener(_onSessionChange);
     _ticker?.cancel();
     super.dispose();
   }

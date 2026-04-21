@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+import '../data/models.dart';
 import '../session/app_session.dart';
 import 'deepseek_client.dart';
 import 'voice_action.dart';
@@ -51,17 +52,19 @@ class VoiceService extends ChangeNotifier {
   bool _processingTriggered = false;
   bool _conversationOpen = false;
 
-  // Conversation history (all turns, for display and LLM context).
   final List<ChatMessage> _messages = [];
-
-  // The text being recognised in real-time (shown as interim bubble).
+  List<BadgeProgress>? _pendingBadges;
   String? _interimText;
 
-  // Getters ───────────────────────────────────────────────────────────────────
   VoiceState get state => _state;
   String? get errorMessage => _errorMessage;
   bool get conversationOpen => _conversationOpen;
   List<ChatMessage> get messages => List.unmodifiable(_messages);
+  List<BadgeProgress> get pendingBadges => _pendingBadges ?? const [];
+
+  void clearPendingBadges() {
+    _pendingBadges = null;
+  }
 
   /// Real-time transcript shown while listening; null at other times.
   String? get interimText => _state == VoiceState.listening ? _interimText : null;
@@ -76,6 +79,17 @@ class VoiceService extends ChangeNotifier {
     }
     _conversationOpen = true;
     notifyListeners();
+
+    if (_messages.isEmpty) {
+      const greeting =
+          "嗨！我是攀达 🐼 你可以说「开始训练」「记录攀爬」「查看统计」，或者聊聊攀岩技巧，有什么可以帮你？";
+      _messages.add(const ChatMessage(text: greeting, isUser: false));
+      notifyListeners();
+      _setState(VoiceState.responding);
+      await _speak(greeting);
+      _setState(VoiceState.idle);
+    }
+
     await startListening();
   }
 
@@ -226,7 +240,7 @@ class VoiceService extends ChangeNotifier {
               await _session.api.fetchActiveSession().catchError((_) => null);
           if (activeSession == null) return; // prompt层已拦截，代码层兜底
           final today = DateFormat("yyyy-MM-dd").format(DateTime.now());
-          await _session.api.createClimb({
+          final log = await _session.api.createClimb({
             "difficulty": difficulty,
             if (routeName != null && routeName.isNotEmpty) "routeName": routeName,
             "date": today,
@@ -236,14 +250,21 @@ class VoiceService extends ChangeNotifier {
             if (notes != null && notes.isNotEmpty) "notes": notes,
             "sessionId": activeSession.id,
           });
+          if (log.newlyUnlockedBadges.isNotEmpty) {
+            (_pendingBadges ??= []).addAll(log.newlyUnlockedBadges);
+            notifyListeners();
+          }
+          _session.bumpVoiceVersion();
 
         case StartSessionAction(:final venue):
           await _session.api.startSession(venue);
+          _session.bumpVoiceVersion();
 
         case EndSessionAction():
           final active =
               await _session.api.fetchActiveSession().catchError((_) => null);
           if (active != null) await _session.api.endSession(active.id);
+          _session.bumpVoiceVersion();
 
         case QueryStatsAction():
           break;

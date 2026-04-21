@@ -19,6 +19,7 @@ class AppSession extends ChangeNotifier {
   UserProfile? _user;
   bool _isInitializing = true;
   int _profileVersion = 0;
+  int _voiceVersion = 0;
 
   bool get isInitializing => _isInitializing;
   bool get isAuthenticated =>
@@ -26,6 +27,12 @@ class AppSession extends ChangeNotifier {
   String? get token => _token;
   UserProfile? get user => _user;
   int get profileVersion => _profileVersion;
+  int get voiceVersion => _voiceVersion;
+
+  void bumpVoiceVersion() {
+    _voiceVersion++;
+    notifyListeners();
+  }
 
   Future<void> initialize() async {
     _isInitializing = true;
