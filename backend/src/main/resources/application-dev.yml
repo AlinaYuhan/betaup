@@ -12,3 +12,10 @@ spring:
     console:
       enabled: true
       path: /h2-console
+
+app:
+  amap:
+    js-key: ${AMAP_JS_KEY:c0e5d2cfbca61b4aaba2d5c842ca16ec}
+    js-security-code: ${AMAP_JS_SECURITY_CODE:29a2552ada703baebc01a8ce264d8df7}
+    web-service-key: ${AMAP_WEB_SERVICE_KEY:51ef2d63cadad93526e5902a3d0a3de4}
+    geocode-url: ${AMAP_GEOCODE_URL:https://restapi.amap.com/v3/geocode/geo}

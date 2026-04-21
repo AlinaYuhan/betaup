@@ -99,6 +99,23 @@
     width: 100%;
   }
 
+  .gym-map-shell .amap-logo,
+  .gym-map-shell .amap-copyright {
+    filter: saturate(0.15) brightness(1.25);
+  }
+
+  .gym-amap-label {
+    border-radius: 999px;
+    background: rgba(8, 16, 24, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f3f7fb;
+    font-size: 12px;
+    line-height: 1;
+    padding: 7px 10px;
+    white-space: nowrap;
+    box-shadow: 0 10px 24px rgba(8, 16, 24, 0.35);
+  }
+
   .gym-map-shell .leaflet-container {
     height: 100%;
     width: 100%;

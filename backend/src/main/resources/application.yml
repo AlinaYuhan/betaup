@@ -32,3 +32,8 @@ app:
     expiration-ms: ${BETAUP_JWT_EXPIRATION_MS:86400000}
   upload:
     dir: ${BETAUP_UPLOAD_DIR:${user.home}/.betaup-uploads}
+  amap:
+    js-key: ${AMAP_JS_KEY:}
+    js-security-code: ${AMAP_JS_SECURITY_CODE:}
+    web-service-key: ${AMAP_WEB_SERVICE_KEY:}
+    geocode-url: ${AMAP_GEOCODE_URL:https://restapi.amap.com/v3/geocode/geo}

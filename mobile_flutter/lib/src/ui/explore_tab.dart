@@ -266,7 +266,7 @@ class _ExploreTabState extends State<ExploreTab> {
                     showFlutterMapAttribution: false,
                     attributions: [
                       TextSourceAttribution(
-                        "AutoNavi",
+                        "OpenStreetMap contributors",
                       ),
                     ],
                   ),

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import L from "leaflet";
 import api from "../../api/axios";
 import EmptyState from "../../components/common/EmptyState";
 import LoadingState from "../../components/common/LoadingState";
@@ -10,11 +9,96 @@ import { getApiErrorMessage } from "../../utils/api";
 const ALL_CITIES_VALUE = "__ALL_CITIES__";
 const DEFAULT_MAP_CENTER = [35.8617, 104.1954];
 const DEFAULT_MAP_ZOOM = 4;
-const GPS_VERIFICATION_RADIUS_METERS = 500;
-const CHINA_TILE_URL =
-  "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}";
-const CHINA_TILE_SUBDOMAINS = ["1", "2", "3", "4"];
-const CHINA_TILE_ATTRIBUTION = "&copy; AutoNavi";
+const GPS_VERIFICATION_RADIUS_METERS = 2000;
+const AMAP_SCRIPT_ID = "betaup-amap-jsapi";
+
+let amapLoadPromise = null;
+
+function createMarkerContent(isSelected) {
+  const background = isSelected ? "#ff7a18" : "#38bdf8";
+  const border = isSelected ? "#ffffff" : "#ffb37a";
+  const size = isSelected ? 22 : 18;
+
+  return `
+    <div
+      style="
+        width:${size}px;
+        height:${size}px;
+        border-radius:999px;
+        background:${background};
+        border:3px solid ${border};
+        box-shadow:0 10px 24px rgba(8, 16, 24, 0.35);
+      "
+    ></div>
+  `;
+}
+
+function createUserMarkerContent() {
+  return `
+    <div
+      style="
+        width:16px;
+        height:16px;
+        border-radius:999px;
+        background:#38bdf8;
+        border:3px solid #ffffff;
+        box-shadow:0 10px 24px rgba(56, 189, 248, 0.35);
+      "
+    ></div>
+  `;
+}
+
+async function loadAmap(config) {
+  if (window.AMap) {
+    return window.AMap;
+  }
+
+  if (!config?.jsKey || !config?.jsSecurityCode) {
+    throw new Error("AMap JS key or security code is missing.");
+  }
+
+  if (amapLoadPromise) {
+    return amapLoadPromise;
+  }
+
+  amapLoadPromise = new Promise((resolve, reject) => {
+    window._AMapSecurityConfig = {
+      securityJsCode: config.jsSecurityCode,
+    };
+
+    const existingScript = document.getElementById(AMAP_SCRIPT_ID);
+    if (existingScript) {
+      existingScript.addEventListener("load", () => resolve(window.AMap), { once: true });
+      existingScript.addEventListener("error", () => {
+        amapLoadPromise = null;
+        reject(new Error("Failed to load AMap JS API."));
+      }, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = AMAP_SCRIPT_ID;
+    script.async = true;
+    script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(config.jsKey)}&plugin=AMap.ToolBar`;
+    script.onload = () => {
+      if (window.AMap) {
+        resolve(window.AMap);
+        return;
+      }
+
+      amapLoadPromise = null;
+      reject(new Error("AMap JS API loaded, but AMap is unavailable."));
+    };
+    script.onerror = () => {
+      amapLoadPromise = null;
+      reject(new Error("Failed to load AMap JS API."));
+    };
+
+    document.head.appendChild(script);
+  });
+
+  return amapLoadPromise;
+}
 
 function splitGymTypes(types) {
   return (types ?? "")
@@ -96,144 +180,188 @@ function readCurrentPosition() {
 
 function GymMap({ gyms, selectedGym, onSelectGymId, userLocation }) {
   const mapElementRef = useRef(null);
+  const amapRef = useRef(null);
   const mapRef = useRef(null);
-  const gymLayerRef = useRef(null);
-  const userLayerRef = useRef(null);
+  const gymMarkersRef = useRef([]);
+  const userOverlaysRef = useRef([]);
   const hasFittedBoundsRef = useRef(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     if (!mapElementRef.current || mapRef.current) {
       return undefined;
     }
 
-    const map = L.map(mapElementRef.current, {
-      zoomControl: false,
-      preferCanvas: true,
-    }).setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
+    let cancelled = false;
 
-    L.tileLayer(CHINA_TILE_URL, {
-      maxZoom: 19,
-      subdomains: CHINA_TILE_SUBDOMAINS,
-      attribution: CHINA_TILE_ATTRIBUTION,
-    }).addTo(map);
+    async function initMap() {
+      try {
+        const response = await api.get("/maps/amap-config");
+        const config = response.data.data ?? {};
+        const AMap = await loadAmap(config);
 
-    L.control.zoom({ position: "topright" }).addTo(map);
+        if (cancelled || !mapElementRef.current) {
+          return;
+        }
 
-    mapRef.current = map;
+        const map = new AMap.Map(mapElementRef.current, {
+          viewMode: "2D",
+          resizeEnable: true,
+          zoom: DEFAULT_MAP_ZOOM,
+          center: [DEFAULT_MAP_CENTER[1], DEFAULT_MAP_CENTER[0]],
+        });
+
+        map.addControl(new AMap.ToolBar({
+          position: {
+            right: "16px",
+            top: "16px",
+          },
+        }));
+
+        amapRef.current = AMap;
+        mapRef.current = map;
+        setLoadError("");
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(getApiErrorMessage(error, "Failed to load AMap."));
+        }
+      }
+    }
+
+    initMap();
 
     return () => {
-      map.remove();
+      cancelled = true;
+      if (mapRef.current) {
+        mapRef.current.destroy();
+      }
+      amapRef.current = null;
       mapRef.current = null;
     };
   }, []);
 
   useEffect(() => {
+    const AMap = amapRef.current;
     const map = mapRef.current;
-    if (!map) {
+    if (!map || !AMap) {
       return;
     }
 
-    if (gymLayerRef.current) {
-      gymLayerRef.current.remove();
-      gymLayerRef.current = null;
+    if (gymMarkersRef.current.length) {
+      map.remove(gymMarkersRef.current);
+      gymMarkersRef.current = [];
     }
 
-    const markerLayer = L.layerGroup();
-    const markerBounds = [];
+    const markers = [];
 
     gyms.forEach((gym) => {
       if (!Number.isFinite(gym.lat) || !Number.isFinite(gym.lng)) {
         return;
       }
 
-      markerBounds.push([gym.lat, gym.lng]);
-
       const isSelected = gym.id === selectedGym?.id;
-      const marker = L.circleMarker([gym.lat, gym.lng], {
-        radius: isSelected ? 11 : 8,
-        weight: isSelected ? 3 : 2,
-        color: isSelected ? "#ffffff" : "#ffb37a",
-        fillColor: isSelected ? "#ff7a18" : "#8ad7ff",
-        fillOpacity: 0.92,
-      });
-
-      marker.bindTooltip(gym.name, {
-        direction: "top",
-        offset: [0, -10],
+      const marker = new AMap.Marker({
+        position: [gym.lng, gym.lat],
+        title: gym.name,
+        anchor: "center",
+        offset: new AMap.Pixel(0, 0),
+        content: createMarkerContent(isSelected),
       });
 
       marker.on("click", () => onSelectGymId(gym.id));
-      marker.addTo(markerLayer);
+      marker.setLabel({
+        direction: "top",
+        offset: new AMap.Pixel(0, -6),
+        content: `<div class="gym-amap-label">${gym.name}</div>`,
+      });
+
+      markers.push(marker);
     });
 
-    markerLayer.addTo(map);
-    gymLayerRef.current = markerLayer;
+    if (markers.length) {
+      map.add(markers);
+    }
+    gymMarkersRef.current = markers;
 
-    if (!markerBounds.length) {
+    if (!markers.length) {
       hasFittedBoundsRef.current = false;
-      map.setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
+      map.setZoomAndCenter(DEFAULT_MAP_ZOOM, [DEFAULT_MAP_CENTER[1], DEFAULT_MAP_CENTER[0]]);
       return;
     }
 
     if (selectedGym && Number.isFinite(selectedGym.lat) && Number.isFinite(selectedGym.lng)) {
-      map.flyTo([selectedGym.lat, selectedGym.lng], Math.max(map.getZoom(), 11), {
-        duration: 0.45,
-      });
+      map.setCenter([selectedGym.lng, selectedGym.lat]);
+      if (map.getZoom() < 11) {
+        map.setZoom(11);
+      }
       hasFittedBoundsRef.current = true;
       return;
     }
 
     if (!hasFittedBoundsRef.current) {
-      map.fitBounds(markerBounds, {
-        padding: [28, 28],
-        maxZoom: 6,
-      });
+      map.setFitView(markers);
+      if (map.getZoom() > 6) {
+        map.setZoom(6);
+      }
       hasFittedBoundsRef.current = true;
     }
   }, [gyms, onSelectGymId, selectedGym]);
 
   useEffect(() => {
+    const AMap = amapRef.current;
     const map = mapRef.current;
-    if (!map) {
+    if (!map || !AMap) {
       return;
     }
 
-    if (userLayerRef.current) {
-      userLayerRef.current.remove();
-      userLayerRef.current = null;
+    if (userOverlaysRef.current.length) {
+      map.remove(userOverlaysRef.current);
+      userOverlaysRef.current = [];
     }
 
     if (!userLocation) {
       return;
     }
 
-    const userLayer = L.layerGroup([
-      L.circle([userLocation.lat, userLocation.lng], {
-        radius: 180,
-        color: "#8ad7ff",
-        weight: 1,
-        fillColor: "#8ad7ff",
-        fillOpacity: 0.12,
-      }),
-      L.circleMarker([userLocation.lat, userLocation.lng], {
-        radius: 7,
-        color: "#ffffff",
-        weight: 2,
-        fillColor: "#38bdf8",
-        fillOpacity: 1,
-      }).bindTooltip("Your location", {
-        direction: "top",
-        offset: [0, -10],
-      }),
-    ]);
-
-    userLayer.addTo(map);
-    userLayerRef.current = userLayer;
-
-    map.flyTo([userLocation.lat, userLocation.lng], Math.max(map.getZoom(), 12), {
-      duration: 0.45,
+    const userCircle = new AMap.Circle({
+      center: [userLocation.lng, userLocation.lat],
+      radius: 180,
+      strokeColor: "#8ad7ff",
+      strokeWeight: 1,
+      fillColor: "#8ad7ff",
+      fillOpacity: 0.12,
     });
+    const userMarker = new AMap.Marker({
+      position: [userLocation.lng, userLocation.lat],
+      anchor: "center",
+      offset: new AMap.Pixel(0, 0),
+      content: createUserMarkerContent(),
+      title: "Your location",
+    });
+    userMarker.setLabel({
+      direction: "top",
+      offset: new AMap.Pixel(0, -8),
+      content: '<div class="gym-amap-label">Your location</div>',
+    });
+
+    map.add([userCircle, userMarker]);
+    userOverlaysRef.current = [userCircle, userMarker];
+
+    map.setCenter([userLocation.lng, userLocation.lat]);
+    if (map.getZoom() < 12) {
+      map.setZoom(12);
+    }
   }, [userLocation]);
+
+  if (loadError) {
+    return (
+      <div className="gym-map-shell">
+        <div className="flex min-h-[520px] items-center justify-center px-6 text-center text-sm text-slate-300">
+          {loadError}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="gym-map-shell">
@@ -419,7 +547,10 @@ export default function GymExplorePage() {
             </button>
             <StatusPill label={`${filteredGyms.length} gyms`} />
             {userLocation ? (
-              <StatusPill label={nearbyGymCount > 0 ? `${nearbyGymCount} within 500m` : "Location ready"} tone={nearbyGymCount > 0 ? "success" : "warm"} />
+              <StatusPill
+                label={nearbyGymCount > 0 ? `${nearbyGymCount} within ${GPS_VERIFICATION_RADIUS_METERS}m` : "Location ready"}
+                tone={nearbyGymCount > 0 ? "success" : "warm"}
+              />
             ) : null}
           </div>
         </div>

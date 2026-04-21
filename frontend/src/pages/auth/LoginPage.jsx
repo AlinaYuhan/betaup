@@ -39,21 +39,20 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,122,24,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(138,215,255,0.14),transparent_32%)]" />
           <div className="relative flex h-full flex-col justify-between gap-10">
             <div>
-              <span className="eyebrow">BetaUp MVP</span>
+              <span className="eyebrow">BETAUP MOBILE</span>
               <h1 className="max-w-xl font-display text-6xl uppercase leading-none tracking-[0.05em] text-white sm:text-7xl">
-                Climbing progress, coach insight, one shared system.
+                Welcome back to BetaUp
               </h1>
               <p className="mt-6 max-w-xl text-base text-slate-300 sm:text-lg">
-                Round 4 turns BetaUp into a more complete working slice. Register an account, sign in, and the UI now talks to the
-                Spring Boot API instead of local placeholder state.
+                Sign in to track climbs, monitor progress, and access role-based tools for climbers and coaches.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
               {[
-                ["Auth", "JWT login, register, and protected API calls"],
-                ["Logging", "Create climbs and see them persist"],
-                ["Coaching", "Coach feedback and live dashboards"],
+                ["Secure auth", "JWT login, register, and protected API calls"],
+                ["Role-based access", "Climber and coach workspaces with tailored tools"],
+                ["Synced backend", "Live data connected to the Spring Boot API"],
               ].map(([title, text]) => (
                 <div key={title} className="rounded-3xl border border-white/10 bg-black/20 p-5">
                   <p className="text-xs uppercase tracking-[0.25em] text-ice">{title}</p>

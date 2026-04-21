@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/status").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/gyms", "/api/gyms/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/maps/amap-config").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/leaderboard").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/posts", "/api/posts/**").permitAll()
