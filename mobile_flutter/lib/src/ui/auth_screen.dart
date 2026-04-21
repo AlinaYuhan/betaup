@@ -98,10 +98,10 @@ class _AuthScreenState extends State<AuthScreen> {
     final theme = Theme.of(context);
     final headline = _registerMode
         ? "Build a role-based account."
-        : "Mobile climbing intel synced to Java APIs.";
+        : "Welcome back to BetaUp";
     final helper = _registerMode
         ? "Registration still goes through Spring Boot, JWT, and MySQL. Flutter only replaces the mobile UI layer."
-        : "This Flutter client talks to the same backend as the current React app, with role-aware mobile navigation for climbers and coaches.";
+        : "Sign in to track climbs, monitor progress, and access role-based tools for climbers and coaches.";
 
     return BetaUpScaffold(
       title: "BetaUp",
@@ -129,9 +129,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       spacing: 10,
                       runSpacing: 10,
                       children: [
-                        StatusChip(label: "JWT auth"),
-                        StatusChip(label: "Role routing", color: Color(0xFF5ED9A6)),
-                        StatusChip(label: "Java backend", color: Color(0xFFFFB26D)),
+                        StatusChip(label: "Secure auth"),
+                        StatusChip(
+                            label: "Role-based access",
+                            color: Color(0xFF5ED9A6)),
+                        StatusChip(
+                            label: "Synced backend", color: Color(0xFFFFB26D)),
                       ],
                     ),
                   ],
@@ -244,7 +247,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       onPressed: _isSubmitting ? null : _submit,
                       child: Text(
                         _isSubmitting
-                            ? (_registerMode ? "Creating account..." : "Signing in...")
+                            ? (_registerMode
+                                ? "Creating account..."
+                                : "Signing in...")
                             : (_registerMode ? "Create account" : "Sign in"),
                       ),
                     ),
