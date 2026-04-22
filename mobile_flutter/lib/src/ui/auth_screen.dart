@@ -10,7 +10,7 @@ import '../session/app_session.dart';
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const _bg      = Color(0xFF06101C);
 const _surface = Color(0xFF0F1B2D);
-const _glass   = Color(0xE20C1827);
+const _glass   = Color(0x8C0C1827);
 const _field   = Color(0xFF091422);
 const _border  = Color(0xFF1C3050);
 const _orange  = Color(0xFFFF7A18);
@@ -163,34 +163,40 @@ class _AuthScreenState extends State<AuthScreen>
                   slivers: [
                     SliverFillRemaining(
                       hasScrollBody: false,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 28),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: 100),
-                            SlideTransition(
-                              position: _slide(0.00, 0.46),
-                              child: FadeTransition(
-                                opacity: _fade(0.00, 0.40),
-                                child: _buildBrand(),
-                              ),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 540),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 28),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const SizedBox(height: 100),
+                                SlideTransition(
+                                  position: _slide(0.00, 0.46),
+                                  child: FadeTransition(
+                                    opacity: _fade(0.00, 0.40),
+                                    child: _buildBrand(),
+                                  ),
+                                ),
+                                const SizedBox(height: 44),
+                                SlideTransition(
+                                  position: _slide(0.18, 0.66),
+                                  child: FadeTransition(
+                                    opacity: _fade(0.18, 0.60),
+                                    child: _buildCard(),
+                                  ),
+                                ),
+                                const Spacer(),
+                                FadeTransition(
+                                  opacity: _fade(0.60, 1.0),
+                                  child: _buildFooter(),
+                                ),
+                                const SizedBox(height: 28),
+                              ],
                             ),
-                            const SizedBox(height: 44),
-                            SlideTransition(
-                              position: _slide(0.18, 0.66),
-                              child: FadeTransition(
-                                opacity: _fade(0.18, 0.60),
-                                child: _buildCard(),
-                              ),
-                            ),
-                            const Spacer(),
-                            FadeTransition(
-                              opacity: _fade(0.60, 1.0),
-                              child: _buildFooter(),
-                            ),
-                            const SizedBox(height: 28),
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -254,30 +260,35 @@ class _AuthScreenState extends State<AuthScreen>
           ),
         ),
         const SizedBox(height: 10),
-        // Orange accent line — width echoes icon size
-        Container(
-          width: 44,
-          height: 3,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [_orange, _orangeB]),
-            borderRadius: BorderRadius.circular(2),
-            boxShadow: [
-              BoxShadow(
-                color: _orange.withValues(alpha: 0.65),
-                blurRadius: 8,
+        // Accent line + tagline share IntrinsicWidth so line matches text width
+        IntrinsicWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                height: 3,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [_orange, _orangeB]),
+                  borderRadius: BorderRadius.circular(2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _orange.withValues(alpha: 0.65),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Track every send.\nProve your progress.',
+                style: TextStyle(
+                  color: _white.withValues(alpha: 0.42),
+                  fontSize: 13,
+                  height: 1.6,
+                  letterSpacing: 0.3,
+                ),
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Tagline — two lines, slightly muted
-        Text(
-          'Track every send.\nProve your progress.',
-          style: TextStyle(
-            color: _white.withValues(alpha: 0.42),
-            fontSize: 13,
-            height: 1.6,
-            letterSpacing: 0.3,
           ),
         ),
       ],
@@ -385,24 +396,14 @@ class _AuthScreenState extends State<AuthScreen>
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
   Widget _buildTabs() {
-    return Row(
-      children: [
-        _Tab(
-          label: 'Log In',
-          selected: !_registerMode,
-          onTap: () => setState(() {
-            _registerMode = false; _error = ''; _passwordVisible = false;
-          }),
-        ),
-        const SizedBox(width: 28),
-        _Tab(
-          label: 'Sign Up',
-          selected: _registerMode,
-          onTap: () => setState(() {
-            _registerMode = true; _error = ''; _passwordVisible = false;
-          }),
-        ),
-      ],
+    return _SlidingTabs(
+      registerMode: _registerMode,
+      onLoginTap: () => setState(() {
+        _registerMode = false; _error = ''; _passwordVisible = false;
+      }),
+      onRegisterTap: () => setState(() {
+        _registerMode = true; _error = ''; _passwordVisible = false;
+      }),
     );
   }
 
@@ -766,60 +767,127 @@ class _ScenePainter extends CustomPainter {
   bool shouldRepaint(_ScenePainter old) => old.t != t || old.mouse != mouse;
 }
 
-// ── Tab ───────────────────────────────────────────────────────────────────────
-class _Tab extends StatelessWidget {
-  const _Tab({
-    required this.label,
-    required this.selected,
-    required this.onTap,
+// ── Sliding tab indicator ─────────────────────────────────────────────────────
+class _SlidingTabs extends StatefulWidget {
+  const _SlidingTabs({
+    required this.registerMode,
+    required this.onLoginTap,
+    required this.onRegisterTap,
   });
-  final String       label;
-  final bool         selected;
-  final VoidCallback onTap;
+  final bool         registerMode;
+  final VoidCallback onLoginTap;
+  final VoidCallback onRegisterTap;
+
+  @override
+  State<_SlidingTabs> createState() => _SlidingTabsState();
+}
+
+class _SlidingTabsState extends State<_SlidingTabs> {
+  final _loginKey = GlobalKey();
+  final _regKey   = GlobalKey();
+
+  double   _indicatorLeft  = 0;
+  double   _indicatorWidth = 0;
+  bool     _measured       = false;
+  Duration _animDuration   = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure(snap: true));
+  }
+
+  @override
+  void didUpdateWidget(_SlidingTabs old) {
+    super.didUpdateWidget(old);
+    if (old.registerMode != widget.registerMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _measure(snap: false));
+    }
+  }
+
+  void _measure({required bool snap}) {
+    final key    = widget.registerMode ? _regKey : _loginKey;
+    final tabBox = key.currentContext?.findRenderObject() as RenderBox?;
+    final myBox  = context.findRenderObject() as RenderBox?;
+    if (tabBox == null || myBox == null) return;
+    final local = myBox.globalToLocal(tabBox.localToGlobal(Offset.zero));
+    setState(() {
+      _indicatorLeft  = local.dx;
+      _indicatorWidth = tabBox.size.width;
+      _measured       = true;
+      _animDuration   = snap ? Duration.zero : const Duration(milliseconds: 260);
+    });
+  }
+
+  Widget _label({
+    required Key key,
+    required String text,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      key: key,
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedDefaultTextStyle(
+        duration: const Duration(milliseconds: 200),
+        style: TextStyle(
+          fontFamily:    'Oswald',
+          color:         selected ? _white : _muted,
+          fontSize:      17,
+          fontWeight:    selected ? FontWeight.w600 : FontWeight.w400,
+          letterSpacing: 0.5,
+        ),
+        child: Text(text),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      // IntrinsicWidth makes underline exactly match text width
-      child: IntrinsicWidth(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(
-                fontFamily: 'Oswald',
-                color:      selected ? _white : _muted,
-                fontSize:   17,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                letterSpacing: 0.5,
-              ),
-              child: Text(label),
-            ),
-            const SizedBox(height: 6),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 240),
-              curve: Curves.easeOutCubic,
-              height: 2,
-              decoration: BoxDecoration(
-                color: selected
-                    ? _orange
-                    : _orange.withValues(alpha: 0),
-                borderRadius: BorderRadius.circular(1),
-                boxShadow: selected
-                    ? [BoxShadow(
-                        color: _orange.withValues(alpha: 0.80),
-                        blurRadius: 8, spreadRadius: 1,
-                      )]
-                    : null,
-              ),
-            ),
+            _label(key: _loginKey, text: 'Log In',  selected: !widget.registerMode, onTap: widget.onLoginTap),
+            const SizedBox(width: 28),
+            _label(key: _regKey,   text: 'Sign Up', selected:  widget.registerMode, onTap: widget.onRegisterTap),
           ],
         ),
-      ),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 2,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_measured)
+                AnimatedPositioned(
+                  duration: _animDuration,
+                  curve: Curves.easeOutCubic,
+                  left:   _indicatorLeft,
+                  width:  _indicatorWidth,
+                  top: 0,
+                  height: 2,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [_orange, _orangeB]),
+                      borderRadius: BorderRadius.circular(1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _orange.withValues(alpha: 0.80),
+                          blurRadius: 8, spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
