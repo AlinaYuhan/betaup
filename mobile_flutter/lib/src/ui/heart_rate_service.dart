@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 // Platform-specific BLE implementation (BlePlatformImpl):
-//   Web  → heart_rate_ble_web.dart  (dart:html + JS bridge)
-//   iOS  → heart_rate_ble_io.dart   (flutter_blue_plus)
-//   Other→ heart_rate_ble_stub.dart (no-op)
+//   Web   -> heart_rate_ble_web.dart  (JS bridge)
+//   iOS   -> heart_rate_ble_io.dart   (flutter_blue_plus)
+//   Other -> heart_rate_ble_stub.dart (no-op)
 import 'heart_rate_ble_stub.dart'
     if (dart.library.html) 'heart_rate_ble_web.dart'
     if (dart.library.io) 'heart_rate_ble_io.dart';
@@ -13,10 +13,11 @@ import 'heart_rate_ble_stub.dart'
 class HeartRateSample {
   final DateTime time;
   final int bpm;
+
   const HeartRateSample({required this.time, required this.bpm});
 }
 
-/// Public API — delegates BLE work to the platform-specific BlePlatformImpl.
+/// Public API that delegates BLE work to the platform-specific BlePlatformImpl.
 class BleHeartRateService {
   static bool get supported => BlePlatformImpl.supported;
 
@@ -30,8 +31,6 @@ class BleHeartRateService {
       );
 
   static void disconnect() => BlePlatformImpl.disconnect();
-
-  // ── Stats helpers ────────────────────────────────────────────────────────
 
   static int averageBpm(List<HeartRateSample> samples) {
     if (samples.isEmpty) return 0;
@@ -51,9 +50,8 @@ class BleHeartRateService {
   }
 }
 
-// ── Mock Heart Rate Simulator ─────────────────────────────────────────────────
 /// Generates realistic climbing-session heart rate data for demo / web testing.
-/// Simulates: warmup → climbing bursts (130–160 bpm) → rest (90–110 bpm).
+/// Simulates: warmup -> climbing bursts (130-160 bpm) -> rest (90-110 bpm).
 class MockHeartRateSimulator {
   static Timer? _timer;
   static int _tick = 0;

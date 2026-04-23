@@ -32,7 +32,6 @@ class _SessionPageState extends State<SessionPage> {
   final List<HeartRateSample> _hrSamples = [];
   bool _bleConnecting = false;
   bool _bleConnected = false;
-  bool _demoMode = false;
 
   @override
   void initState() {
@@ -76,7 +75,6 @@ class _SessionPageState extends State<SessionPage> {
       setState(() {
         _bleConnecting = false;
         _bleConnected = true;
-        _demoMode = false;
       });
       // Mark this session as having HR data so the detail page can show it.
       try {

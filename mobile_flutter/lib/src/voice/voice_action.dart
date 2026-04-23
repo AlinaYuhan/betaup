@@ -58,7 +58,7 @@ class EndSessionAction extends VoiceAction {
   const EndSessionAction();
 }
 
-/// Query climbing statistics — the reply text already contains the answer.
+/// Query climbing statistics; the reply text already contains the answer.
 class QueryStatsAction extends VoiceAction {
   const QueryStatsAction({this.period = "LAST_7_DAYS"});
 
@@ -74,11 +74,10 @@ class NoAction extends VoiceAction {
   const NoAction();
 }
 
-// ── Conversation history ─────────────────────────────────────────────────────
-
 /// One turn in the voice conversation.
 class ChatMessage {
   const ChatMessage({required this.text, required this.isUser});
+
   final String text;
   final bool isUser;
 }

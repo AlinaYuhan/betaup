@@ -1478,10 +1478,10 @@ class _HrSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            const Icon(Icons.favorite_rounded, color: Color(0xFFFF4D6D), size: 15),
-            const SizedBox(width: 6),
-            const Text("心率 · Apple Watch",
+          const Row(children: [
+            Icon(Icons.favorite_rounded, color: Color(0xFFFF4D6D), size: 15),
+            SizedBox(width: 6),
+            Text("?? ? Apple Watch",
                 style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
           ]),
           const SizedBox(height: 14),
@@ -1672,11 +1672,12 @@ class _ResultBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unreachable_switch_case
     final (label, color) = switch (result) {
       ClimbResult.flash => ("⚡ Flash", const Color(0xFFFFD700)),
       ClimbResult.send => ("✅ 完成", const Color(0xFF5ED9A6)),
       ClimbResult.attempt => ("💪 尝试", const Color(0xFFFFB26D)),
-      _ => ("—", Colors.grey),
+
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

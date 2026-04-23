@@ -1,8 +1,7 @@
-import { createContext, useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import api from "../api/axios";
 import { getApiErrorMessage } from "../utils/api";
-
-export const AuthContext = createContext(null);
+import { AuthContext } from "./auth-context";
 
 function readStoredAuth() {
   try {
@@ -14,7 +13,13 @@ function readStoredAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const storedAuth = readStoredAuth();
+  const initialAuthRef = useRef(null);
+
+  if (initialAuthRef.current === null) {
+    initialAuthRef.current = readStoredAuth();
+  }
+
+  const storedAuth = initialAuthRef.current;
   const [token, setToken] = useState(storedAuth.token ?? "");
   const [user, setUser] = useState(storedAuth.user ?? null);
   const [isLoading, setIsLoading] = useState(Boolean(storedAuth.token));
@@ -49,7 +54,7 @@ export function AuthProvider({ children }) {
     }
 
     bootstrapAuth();
-  }, []);
+  }, [storedAuth.token]);
 
   const login = async ({ email, password }) => {
     const response = await api.post("/auth/login", { email, password });

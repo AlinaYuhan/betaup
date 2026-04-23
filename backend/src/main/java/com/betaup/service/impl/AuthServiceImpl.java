@@ -56,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
             throw new ConflictException("该邮箱已被注册。");
         }
         if (userRepository.existsByNameIgnoreCase(name)) {
-            throw new ConflictException("该昵称已被使用，请换一个。");
+            throw new ConflictException("该昵称已被使用，请更换一个。");
         }
 
         User userToCreate = User.builder()
@@ -84,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
         if (request.getName() != null && !request.getName().isBlank()) {
             String newName = request.getName().trim();
             if (userRepository.existsByNameIgnoreCaseAndIdNot(newName, user.getId())) {
-                throw new ConflictException("该昵称已被使用，请换一个。");
+                throw new ConflictException("该昵称已被使用，请更换一个。");
             }
             user.setName(newName);
         }

@@ -1,25 +1,36 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
-import 'dart:js_util' as js_util;
+import 'dart:js_interop';
 
-import 'package:flutter/foundation.dart';
+@JS('window')
+external _BleWindow get _window;
 
-/// Web Bluetooth implementation — delegates to web/ble_heart_rate.js
+extension type _BleWindow(JSObject _) implements JSObject {
+  external JSAny? get bleHeartRate;
+}
+
+extension type _BleBridge(JSObject _) implements JSObject {
+  external JSBoolean isSupported();
+  external JSPromise<JSBoolean> connect(JSFunction onBpm);
+  external void disconnect();
+}
+
+/// Web Bluetooth implementation delegated to `web/ble_heart_rate.js`.
 class BlePlatformImpl {
-  static Object? _getBridge() {
-    if (!kIsWeb) return null;
-    try {
-      return js_util.getProperty<Object?>(html.window, 'bleHeartRate');
-    } catch (_) {
+  static _BleBridge? _getBridge() {
+    final bridge = _window.bleHeartRate;
+    if (bridge == null) {
       return null;
     }
+    return bridge as _BleBridge;
   }
 
   static bool get supported {
     final bridge = _getBridge();
-    if (bridge == null) return false;
+    if (bridge == null) {
+      return false;
+    }
+
     try {
-      return js_util.callMethod<bool>(bridge, 'isSupported', []);
+      return bridge.isSupported().toDart;
     } catch (_) {
       return false;
     }
@@ -29,15 +40,19 @@ class BlePlatformImpl {
     required void Function(int bpm) onBpm,
   }) async {
     final bridge = _getBridge();
-    if (bridge == null) return false;
+    if (bridge == null) {
+      return false;
+    }
+
     try {
-      final callback = js_util.allowInterop((dynamic bpm) {
-        final v = (bpm as num).toInt();
-        if (v > 0) onBpm(v);
-      });
-      final promise =
-          js_util.callMethod<Object>(bridge, 'connect', [callback]);
-      return await js_util.promiseToFuture<bool>(promise);
+      final callback = ((JSNumber bpm) {
+        final value = bpm.toDartInt;
+        if (value > 0) {
+          onBpm(value);
+        }
+      }).toJS;
+      final connected = await bridge.connect(callback).toDart;
+      return connected.toDart;
     } catch (_) {
       return false;
     }
@@ -45,9 +60,12 @@ class BlePlatformImpl {
 
   static void disconnect() {
     final bridge = _getBridge();
-    if (bridge == null) return;
+    if (bridge == null) {
+      return;
+    }
+
     try {
-      js_util.callMethod<void>(bridge, 'disconnect', []);
+      bridge.disconnect();
     } catch (_) {}
   }
 }

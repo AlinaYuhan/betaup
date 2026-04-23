@@ -399,8 +399,8 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
   final _controller = TextEditingController();
   final _picker = ImagePicker();
   PostType _type = PostType.general;
-  List<XFile> _selectedImages = [];
-  List<Uint8List> _selectedImagePreviews = [];
+  final List<XFile> _selectedImages = [];
+  final List<Uint8List> _selectedImagePreviews = [];
   XFile? _selectedVideo;
   bool _submitting = false;
   String? _errorMsg;

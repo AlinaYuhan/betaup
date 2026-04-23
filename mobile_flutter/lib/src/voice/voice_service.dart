@@ -1,6 +1,4 @@
 import 'dart:async';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
 
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +9,7 @@ import '../data/models.dart';
 import '../session/app_session.dart';
 import 'deepseek_client.dart';
 import 'voice_action.dart';
+import 'voice_speech.dart';
 
 enum VoiceState { idle, listening, processing, responding, error }
 
@@ -21,37 +20,11 @@ class VoiceService extends ChangeNotifier {
   final DeepSeekClient _deepseek;
   final SpeechToText _stt = SpeechToText();
 
-  Future<void> _speak(String text) async {
-    if (!kIsWeb) return;
-    final synth = html.window.speechSynthesis;
-    if (synth == null) return;
-    synth.cancel();
-    final utterance = html.SpeechSynthesisUtterance(text)
-      ..lang = 'zh-CN'
-      ..rate = 0.85
-      ..volume = 1.0;
-    final completer = Completer<void>();
-    utterance.onEnd.listen((_) {
-      if (!completer.isCompleted) completer.complete();
-    });
-    utterance.onError.listen((_) {
-      if (!completer.isCompleted) completer.complete();
-    });
-    synth.speak(utterance);
-    await completer.future;
-  }
-
-  void _stopSpeaking() {
-    if (!kIsWeb) return;
-    html.window.speechSynthesis?.cancel();
-  }
-
   VoiceState _state = VoiceState.idle;
   String? _errorMessage;
   bool _sttReady = false;
   bool _processingTriggered = false;
   bool _conversationOpen = false;
-
   final List<ChatMessage> _messages = [];
   List<BadgeProgress>? _pendingBadges;
   String? _interimText;
@@ -69,24 +42,25 @@ class VoiceService extends ChangeNotifier {
   /// Real-time transcript shown while listening; null at other times.
   String? get interimText => _state == VoiceState.listening ? _interimText : null;
 
-  // ── Public interface ────────────────────────────────────────────────────────
-
   /// Open the chat panel and start the first listening turn.
   Future<void> openConversation() async {
     if (_conversationOpen) {
-      if (_state == VoiceState.idle) await startListening();
+      if (_state == VoiceState.idle) {
+        await startListening();
+      }
       return;
     }
+
     _conversationOpen = true;
     notifyListeners();
 
     if (_messages.isEmpty) {
       const greeting =
-          "嗨！我是攀达 🐼 你可以说「开始训练」「记录攀爬」「查看统计」，或者聊聊攀岩技巧，有什么可以帮你？";
+          "嗨，我是攀攀。你可以说“开始训练”“记录攀爬”“查看统计”，或者直接问我攀岩相关问题。";
       _messages.add(const ChatMessage(text: greeting, isUser: false));
       notifyListeners();
       _setState(VoiceState.responding);
-      await _speak(greeting);
+      await speakText(greeting);
       _setState(VoiceState.idle);
     }
 
@@ -97,7 +71,7 @@ class VoiceService extends ChangeNotifier {
   void closeConversation() {
     _conversationOpen = false;
     _stt.stop();
-    _stopSpeaking();
+    stopSpeaking();
     _messages.clear();
     _interimText = null;
     _errorMessage = null;
@@ -105,12 +79,14 @@ class VoiceService extends ChangeNotifier {
   }
 
   Future<void> startListening() async {
-    if (_state != VoiceState.idle) return;
+    if (_state != VoiceState.idle) {
+      return;
+    }
 
     if (!kIsWeb) {
       final micStatus = await Permission.microphone.request();
       if (!micStatus.isGranted) {
-        _setError("需要麦克风权限才能使用语音助手");
+        _setError("需要麦克风权限才能使用语音助手。");
         return;
       }
     }
@@ -118,7 +94,9 @@ class VoiceService extends ChangeNotifier {
     if (!_sttReady) {
       _sttReady = await _stt.initialize(
         onError: (_) {
-          if (_state == VoiceState.listening) _handleListeningDone();
+          if (_state == VoiceState.listening) {
+            _handleListeningDone();
+          }
         },
         onStatus: (status) {
           if (status == "done" || status == "notListening") {
@@ -129,7 +107,7 @@ class VoiceService extends ChangeNotifier {
     }
 
     if (!_sttReady) {
-      _setError("语音识别初始化失败，请检查设备是否支持");
+      _setError("语音识别初始化失败，请检查设备是否支持。");
       return;
     }
 
@@ -141,7 +119,9 @@ class VoiceService extends ChangeNotifier {
       onResult: (result) {
         _interimText = result.recognizedWords;
         notifyListeners();
-        if (result.finalResult) _handleListeningDone();
+        if (result.finalResult) {
+          _handleListeningDone();
+        }
       },
       listenFor: const Duration(seconds: 60),
       pauseFor: const Duration(seconds: 3),
@@ -150,14 +130,18 @@ class VoiceService extends ChangeNotifier {
 
   /// Manually stop recording and process whatever was captured.
   Future<void> stopListening() async {
-    if (_state != VoiceState.listening) return;
+    if (_state != VoiceState.listening) {
+      return;
+    }
     await _stt.stop();
   }
 
   /// Interrupt TTS mid-playback and immediately start listening again.
   void interruptSpeaking() {
-    if (_state != VoiceState.responding) return;
-    _stopSpeaking();
+    if (_state != VoiceState.responding) {
+      return;
+    }
+    stopSpeaking();
     _setState(VoiceState.idle);
     if (_conversationOpen) {
       Future.delayed(const Duration(milliseconds: 200), startListening);
@@ -174,10 +158,10 @@ class VoiceService extends ChangeNotifier {
     }
   }
 
-  // ── Internal ────────────────────────────────────────────────────────────────
-
   void _handleListeningDone() {
-    if (_processingTriggered || _state != VoiceState.listening) return;
+    if (_processingTriggered || _state != VoiceState.listening) {
+      return;
+    }
     _processingTriggered = true;
 
     final text = (_interimText ?? "").trim();
@@ -185,11 +169,12 @@ class VoiceService extends ChangeNotifier {
 
     if (text.isNotEmpty) {
       _processTranscript(text);
-    } else {
-      _setState(VoiceState.idle);
-      if (_conversationOpen) {
-        Future.delayed(const Duration(milliseconds: 600), startListening);
-      }
+      return;
+    }
+
+    _setState(VoiceState.idle);
+    if (_conversationOpen) {
+      Future.delayed(const Duration(milliseconds: 600), startListening);
     }
   }
 
@@ -200,21 +185,19 @@ class VoiceService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final historyForLLM = _messages.length > 1
+      final historyForLlm = _messages.length > 1
           ? _messages.sublist(0, _messages.length - 1)
           : const <ChatMessage>[];
 
       final result =
-          await _deepseek.chat(text, _session, history: historyForLLM);
+          await _deepseek.chat(text, _session, history: historyForLlm);
 
       _messages.add(ChatMessage(text: result.reply, isUser: false));
       notifyListeners();
 
       _setState(VoiceState.responding);
-      await _speak(result.reply);  // 等待播报完毕再继续
-
+      await speakText(result.reply);
       await _executeAction(result.action);
-
       _setState(VoiceState.idle);
 
       if (_conversationOpen) {
@@ -238,11 +221,15 @@ class VoiceService extends ChangeNotifier {
           ):
           final activeSession =
               await _session.api.fetchActiveSession().catchError((_) => null);
-          if (activeSession == null) return; // prompt层已拦截，代码层兜底
+          if (activeSession == null) {
+            return;
+          }
+
           final today = DateFormat("yyyy-MM-dd").format(DateTime.now());
           final log = await _session.api.createClimb({
             "difficulty": difficulty,
-            if (routeName != null && routeName.isNotEmpty) "routeName": routeName,
+            if (routeName != null && routeName.isNotEmpty)
+              "routeName": routeName,
             "date": today,
             "venue": activeSession.venue,
             "result": result,
@@ -263,7 +250,9 @@ class VoiceService extends ChangeNotifier {
         case EndSessionAction():
           final active =
               await _session.api.fetchActiveSession().catchError((_) => null);
-          if (active != null) await _session.api.endSession(active.id);
+          if (active != null) {
+            await _session.api.endSession(active.id);
+          }
           _session.bumpVoiceVersion();
 
         case QueryStatsAction():
@@ -273,10 +262,10 @@ class VoiceService extends ChangeNotifier {
           break;
       }
     } catch (_) {
-      const errMsg = "抱歉，操作没成功，你可以重试一下。";
+      const errMsg = "抱歉，操作没有成功，你可以再试一次。";
       _messages.add(const ChatMessage(text: errMsg, isUser: false));
       notifyListeners();
-      await _speak(errMsg);
+      await speakText(errMsg);
     }
   }
 
@@ -293,7 +282,7 @@ class VoiceService extends ChangeNotifier {
   @override
   void dispose() {
     _stt.stop();
-    _stopSpeaking();
+    stopSpeaking();
     super.dispose();
   }
 }

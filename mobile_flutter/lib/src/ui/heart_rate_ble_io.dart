@@ -10,8 +10,7 @@ class BlePlatformImpl {
   static StreamSubscription<dynamic>? _scanSub;
   static StreamSubscription<dynamic>? _notifySub;
 
-  static const _hrSvcUuid  = '0000180d-0000-1000-8000-00805f9b34fb';
-  static const _hrCharUuid = '00002a37-0000-1000-8000-00805f9b34fb';
+  static const _hrSvcUuid = '0000180d-0000-1000-8000-00805f9b34fb';
 
   static bool get supported => true;
 

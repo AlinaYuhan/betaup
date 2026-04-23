@@ -36,3 +36,28 @@ flutter pub get
 ```
 
 - The backend remains in `backend/` and does not need code changes for this mobile client.
+
+## Windows path workaround
+
+When this project is placed under a non-ASCII Windows path, `flutter run -d windows`
+can generate a broken `windows/flutter/ephemeral/generated_config.cmake`, which then
+causes missing `cpp_client_wrapper/*.cc` build errors.
+
+Use the helper script below from the current `mobile_flutter/` directory. It creates
+an ASCII junction path and runs the Windows build there:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tool\run_windows.ps1
+```
+
+Extra Flutter arguments are forwarded, for example:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tool\run_windows.ps1 --dart-define=BETAUP_API_BASE_URL=http://127.0.0.1:8080/api
+```
+
+To verify compilation only:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tool\run_windows.ps1 -BuildOnly
+```
