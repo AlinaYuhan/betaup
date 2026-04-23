@@ -906,6 +906,8 @@ class Post {
     required this.likedByMe,
     required this.createdAt,
     this.newlyUnlockedBadges = const [],
+    this.isBeta = false,
+    this.routeName,
   });
 
   final int id;
@@ -923,6 +925,8 @@ class Post {
   final bool likedByMe;
   final DateTime? createdAt;
   final List<BadgeProgress> newlyUnlockedBadges;
+  final bool isBeta;
+  final String? routeName;
 
   /// Helper to get all media URLs (backward compatible)
   List<String> get allMediaUrls {
@@ -955,6 +959,8 @@ class Post {
             (json["newlyUnlockedBadges"] as List<dynamic>? ?? [])
                 .map((e) => BadgeProgress.fromJson(e as JsonMap))
                 .toList(),
+        isBeta: (json["isBeta"] ?? json["beta"]) == true,
+        routeName: json["routeName"] as String?,
       );
 
   Post copyWith({int? likeCount, bool? likedByMe}) => Post(
@@ -972,6 +978,8 @@ class Post {
         likedByMe: likedByMe ?? this.likedByMe,
         createdAt: createdAt,
         newlyUnlockedBadges: newlyUnlockedBadges,
+        isBeta: isBeta,
+        routeName: routeName,
       );
 }
 

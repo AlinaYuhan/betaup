@@ -25,6 +25,8 @@ public class PostDto {
     private int commentCount;
     private boolean likedByMe;
     private LocalDateTime createdAt;
+    private boolean isBeta;
+    private String routeName;
     /** Non-null only on the createPost response; null/absent otherwise. */
     private List<BadgeProgressDto> newlyUnlockedBadges;
 }

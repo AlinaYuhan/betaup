@@ -18,6 +18,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"user"})
+    Page<Post> findByIsBetaTrueOrderByCreatedAtDesc(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"user"})
     java.util.Optional<Post> findWithUserById(Long id);
 
     long countByUserId(Long userId);

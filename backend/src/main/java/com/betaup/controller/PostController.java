@@ -44,9 +44,11 @@ public class PostController {
         @RequestParam(required = false) String type
     ) {
         var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        var posts = (type != null && !type.isBlank())
-            ? postRepository.findByTypeOrderByCreatedAtDesc(PostType.valueOf(type.toUpperCase()), pageable)
-            : postRepository.findAllByOrderByCreatedAtDesc(pageable);
+        var posts = (type != null && type.equalsIgnoreCase("BETA"))
+            ? postRepository.findByIsBetaTrueOrderByCreatedAtDesc(pageable)
+            : (type != null && !type.isBlank())
+                ? postRepository.findByTypeOrderByCreatedAtDesc(PostType.valueOf(type.toUpperCase()), pageable)
+                : postRepository.findAllByOrderByCreatedAtDesc(pageable);
 
         Long currentUserId = tryGetCurrentUserId();
         List<PostDto> dtos = posts.getContent().stream()
@@ -101,6 +103,8 @@ public class PostController {
                 .user(user)
                 .content(content)
                 .type(request.getType() != null ? request.getType() : PostType.GENERAL)
+                .isBeta(request.isBeta())
+                .routeName(request.getRouteName())
                 .build();
 
             if (storedMediaList != null && !storedMediaList.isEmpty()) {
@@ -160,6 +164,8 @@ public class PostController {
             .commentCount(post.getCommentCount())
             .likedByMe(currentUserId != null && postLikeRepository.existsByUserIdAndPostId(currentUserId, post.getId()))
             .createdAt(post.getCreatedAt())
+            .isBeta(post.isBeta())
+            .routeName(post.getRouteName())
             .build();
     }
 

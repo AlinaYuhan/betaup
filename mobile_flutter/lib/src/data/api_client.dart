@@ -333,6 +333,8 @@ class ApiClient {
     required String content,
     required PostType type,
     List<XFile>? mediaFiles,
+    bool isBeta = false,
+    String? routeName,
   }) async {
     final files = <http.MultipartFile>[];
     if (mediaFiles != null && mediaFiles.isNotEmpty) {
@@ -347,6 +349,8 @@ class ApiClient {
       fields: {
         "content": content,
         "type": type.rawValue,
+        "beta": isBeta.toString(),
+        if (routeName != null && routeName.isNotEmpty) "routeName": routeName,
       },
       files: files,
     );

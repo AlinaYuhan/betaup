@@ -59,6 +59,13 @@ public class Post {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean isBeta = false;
+
+    @Column(length = 100)
+    private String routeName;
+
     // Helper methods for multi-image support
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

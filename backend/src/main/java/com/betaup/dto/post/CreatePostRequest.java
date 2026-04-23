@@ -9,4 +9,6 @@ public class CreatePostRequest {
     @Size(max = 500)
     private String content = "";
     private PostType type = PostType.GENERAL;
+    private boolean isBeta = false;
+    private String routeName;
 }

@@ -20,7 +20,7 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
     with SingleTickerProviderStateMixin {
   // Panda position — distance from right / bottom screen edges.
   double _right = 16;
-  double _bottom = 90;
+  double _bottom = 160;
 
   late final AnimationController _pulseCtrl;
   late final Animation<double> _pulseScale;

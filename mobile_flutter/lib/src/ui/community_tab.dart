@@ -23,11 +23,12 @@ class _CommunityTabState extends State<CommunityTab>
   late final TabController _tabController;
   final _allKey = GlobalKey<_FeedListState>();
   final _partnerKey = GlobalKey<_FeedListState>();
+  final _betaKey = GlobalKey<_FeedListState>();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -40,6 +41,7 @@ class _CommunityTabState extends State<CommunityTab>
     debugPrint("[FEED] onPostCreated, allKeyState=${_allKey.currentState}");
     _allKey.currentState?.reload();
     _partnerKey.currentState?.reload();
+    _betaKey.currentState?.reload();
   }
 
   Future<void> _showCreatePost() async {
@@ -68,6 +70,7 @@ class _CommunityTabState extends State<CommunityTab>
           tabs: const [
             Tab(text: "全部动态"),
             Tab(text: "找搭子"),
+            Tab(text: "Beta 线路"),
           ],
         ),
       ),
@@ -81,6 +84,7 @@ class _CommunityTabState extends State<CommunityTab>
         children: [
           _FeedList(key: _allKey, type: null),
           _FeedList(key: _partnerKey, type: PostType.findPartner),
+          _FeedList(key: _betaKey, betaOnly: true),
         ],
       ),
     );
@@ -88,8 +92,9 @@ class _CommunityTabState extends State<CommunityTab>
 }
 
 class _FeedList extends StatefulWidget {
-  const _FeedList({super.key, required this.type});
+  const _FeedList({super.key, this.type, this.betaOnly = false});
   final PostType? type;
+  final bool betaOnly;
 
   @override
   State<_FeedList> createState() => _FeedListState();
@@ -123,7 +128,9 @@ class _FeedListState extends State<_FeedList> {
     try {
       final session = SessionScope.of(context);
       final client = ApiClient(readToken: () => session.token);
-      final posts = await client.fetchPosts(type: widget.type?.rawValue);
+      final posts = await client.fetchPosts(
+        type: widget.betaOnly ? "BETA" : widget.type?.rawValue,
+      );
       debugPrint("[FEED] _load success, count=${posts.length}");
       if (mounted) {
         setState(() {
@@ -321,14 +328,15 @@ class _PostCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (post.type == PostType.findPartner)
-                    const Chip(
-                      label: Text("找搭子",
-                          style: TextStyle(fontSize: 11, color: Colors.white)),
-                      backgroundColor: Colors.teal,
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                    ),
+                  if (post.isBeta)
+                    _TagBadge(
+                      label: post.routeName != null && post.routeName!.isNotEmpty
+                          ? '🧗 Beta · ${post.routeName}'
+                          : '🧗 Beta',
+                      color: const Color(0xFFFF7A18),
+                    )
+                  else if (post.type == PostType.findPartner)
+                    const _TagBadge(label: '找搭子', color: Colors.teal),
                 ],
               ),
             ),
@@ -404,10 +412,13 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
   XFile? _selectedVideo;
   bool _submitting = false;
   String? _errorMsg;
+  bool _isBeta = false;
+  final _routeNameController = TextEditingController();
 
   @override
   void dispose() {
     _controller.dispose();
+    _routeNameController.dispose();
     super.dispose();
   }
 
@@ -488,6 +499,8 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
         content: content,
         type: _type,
         mediaFiles: _selectedImages.isNotEmpty ? _selectedImages : (_selectedVideo != null ? [_selectedVideo!] : null),
+        isBeta: _isBeta,
+        routeName: _isBeta ? _routeNameController.text.trim() : null,
       );
       debugPrint("[POST] created successfully: id=${post.id}");
       if (!mounted) return;
@@ -553,6 +566,24 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
               ),
             ],
           ),
+          SwitchListTile(
+            value: _isBeta,
+            onChanged: (v) => setState(() => _isBeta = v),
+            title: const Text("🧗 这是 Beta 线路"),
+            subtitle: const Text("分享过线技巧，帮助其他人突破难关"),
+            activeThumbColor: const Color(0xFFFF7A18),
+            contentPadding: EdgeInsets.zero,
+          ),
+          if (_isBeta) ...[
+            TextField(
+              controller: _routeNameController,
+              decoration: const InputDecoration(
+                labelText: "线路名称（如 Blue Slab V5）",
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -689,6 +720,27 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TagBadge extends StatelessWidget {
+  const _TagBadge({required this.label, required this.color});
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 11, color: Colors.white, height: 1.2),
       ),
     );
   }
