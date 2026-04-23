@@ -10,9 +10,6 @@ import '../session/app_session.dart';
 import 'climber_pages.dart';
 import 'common.dart';
 import 'heart_rate_service.dart';
-
-/// Full-screen training session page.
-/// Shown when user taps "开始训练".
 class SessionPage extends StatefulWidget {
   const SessionPage({super.key, required this.session});
   final ClimbSession session;
@@ -26,8 +23,6 @@ class _SessionPageState extends State<SessionPage> {
   Duration _elapsed = Duration.zero;
   int _logCount = 0;
   bool _ending = false;
-
-  // ── Heart rate state ─────────────────────────────────────────────────────
   int? _currentBpm;
   final List<HeartRateSample> _hrSamples = [];
   bool _bleConnecting = false;
@@ -61,7 +56,6 @@ class _SessionPageState extends State<SessionPage> {
 
   Future<void> _connectHeartRate() async {
     setState(() => _bleConnecting = true);
-    // Small delay so the connecting spinner is visible briefly.
     await Future.delayed(const Duration(milliseconds: 800));
     MockHeartRateSimulator.start(onSample: (sample) {
       if (mounted) {
@@ -76,7 +70,6 @@ class _SessionPageState extends State<SessionPage> {
         _bleConnecting = false;
         _bleConnected = true;
       });
-      // Mark this session as having HR data so the detail page can show it.
       try {
         final prefs = await SharedPreferences.getInstance();
         final ids = prefs.getStringList('hr_session_ids') ?? [];
@@ -107,7 +100,6 @@ class _SessionPageState extends State<SessionPage> {
     try {
       final api = SessionScope.of(context).api;
       final summary = await api.endSession(widget.session.id);
-      // Disconnect watch before showing report
       BleHeartRateService.disconnect();
 
       if (!mounted) return;
@@ -161,8 +153,6 @@ class _SessionPageState extends State<SessionPage> {
         child: Column(
           children: [
             const Spacer(flex: 2),
-
-            // ── Timer display ──────────────────────────────────────────────
             Text(
               _timerLabel,
               style: const TextStyle(
@@ -180,8 +170,6 @@ class _SessionPageState extends State<SessionPage> {
             ),
 
             const Spacer(flex: 1),
-
-            // ── Stats row ──────────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 32),
               decoration: BoxDecoration(
@@ -213,8 +201,6 @@ class _SessionPageState extends State<SessionPage> {
             ),
 
             const SizedBox(height: 16),
-
-            // ── Apple Watch connect button ──────────────────────────────────
             _WatchConnectButton(
               connected: _bleConnected,
               connecting: _bleConnecting,
@@ -222,8 +208,6 @@ class _SessionPageState extends State<SessionPage> {
             ),
 
             const Spacer(flex: 2),
-
-            // ── Action buttons ─────────────────────────────────────────────
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -266,8 +250,6 @@ class _SessionPageState extends State<SessionPage> {
   }
 }
 
-// ── Watch connect button ──────────────────────────────────────────────────────
-
 class _WatchConnectButton extends StatelessWidget {
   const _WatchConnectButton({
     required this.connected,
@@ -298,7 +280,6 @@ class _WatchConnectButton extends StatelessWidget {
 
     return Column(
       children: [
-        // Real BLE connect button
         GestureDetector(
           onTap: connecting ? null : onTap,
           child: Container(
@@ -383,8 +364,6 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-// ── War Report Sheet ─────────────────────────────────────────────────────────
-
 class _WarReportSheet extends StatelessWidget {
   const _WarReportSheet({
     required this.summary,
@@ -402,10 +381,10 @@ class _WarReportSheet extends StatelessWidget {
     final m = dur.inMinutes.remainder(60);
     final s = dur.inSeconds.remainder(60);
     final durationStr = h > 0
-        ? "$h时$m分$s秒"
+        ? "$h h $m m $s s"
         : m > 0
-            ? "$m分$s秒"
-            : "$s秒";
+            ? "$m m $s s"
+            : "$s s";
 
     return DraggableScrollableSheet(
       expand: false,
@@ -415,7 +394,6 @@ class _WarReportSheet extends StatelessWidget {
         controller: controller,
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
         children: [
-          // Drag handle
           Center(
             child: Container(
               width: 40,
@@ -427,8 +405,6 @@ class _WarReportSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-
-          // Title
           const Text(
             "训练战报",
             textAlign: TextAlign.center,
@@ -443,8 +419,6 @@ class _WarReportSheet extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 24),
-
-          // Duration + hardest
           Row(
             children: [
               Expanded(
@@ -467,8 +441,6 @@ class _WarReportSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-
-          // Log stats
           Row(
             children: [
               Expanded(
@@ -499,8 +471,6 @@ class _WarReportSheet extends StatelessWidget {
               ),
             ],
           ),
-
-          // Grade breakdown
           if (summary.gradeSummary.isNotEmpty) ...[
             const SizedBox(height: 24),
             const Text(
@@ -573,7 +543,7 @@ class _WarReportSheet extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     if (attemptOnly)
-                      Text("💪${stat.total}",
+                      Text("尝试 ${stat.total}",
                           style: const TextStyle(
                               fontSize: 12, color: Color(0xFFFFB26D)))
                     else ...[
@@ -582,7 +552,7 @@ class _WarReportSheet extends StatelessWidget {
                               fontSize: 12, color: Colors.grey.shade400)),
                       if (stat.flashes > 0) ...[
                         const SizedBox(width: 4),
-                        Text("⚡${stat.flashes}",
+                        Text("Flash ${stat.flashes}",
                             style: const TextStyle(
                                 fontSize: 11, color: Color(0xFFFFD700))),
                       ],
@@ -592,8 +562,6 @@ class _WarReportSheet extends StatelessWidget {
               );
             }),
           ],
-
-          // ── Heart Rate Section ──────────────────────────────────────────
           const SizedBox(height: 24),
           _HeartRateSection(samples: heartRateSamples),
 
@@ -612,8 +580,6 @@ class _WarReportSheet extends StatelessWidget {
     );
   }
 }
-
-// ── Heart Rate Section ────────────────────────────────────────────────────────
 
 class _HeartRateSection extends StatelessWidget {
   const _HeartRateSection({required this.samples});
@@ -814,8 +780,6 @@ class _HeartRateChart extends StatelessWidget {
     );
   }
 }
-
-// ── Report Card ───────────────────────────────────────────────────────────────
 
 class _ReportCard extends StatelessWidget {
   const _ReportCard({

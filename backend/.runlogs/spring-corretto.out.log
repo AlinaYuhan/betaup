@@ -1,8 +1,0 @@
-[INFO] Scanning for projects...
-[INFO] 
-[INFO] ---------------------< com.betaup:betaup-backend >----------------------
-[INFO] Building BetaUp 0.0.1-SNAPSHOT
-[INFO]   from pom.xml
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] >>> spring-boot:3.5.13:run (default-cli) > test-compile @ betaup-backend >>>

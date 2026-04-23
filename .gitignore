@@ -4,3 +4,11 @@ frontend/dist/
 .tools/
 backend-starter/
 backend-starter.zip
+backend/.codex-run/
+backend/.runlogs/
+backend/hs_err_pid*.log
+backend/replay_pid*.log
+mobile_flutter/.codex_flutter_run.err.log
+mobile_flutter/.codex_flutter_run.out.log
+mobile_flutter/.flutter-version.err.log
+mobile_flutter/.flutter-version.out.log
