@@ -382,6 +382,13 @@
   .contrib-role { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--moss); text-transform: uppercase; letter-spacing: 0.1em; background: rgba(74,124,89,0.1); border: 1px solid rgba(74,124,89,0.3); padding: 0.2rem 0.55rem; border-radius: 2px; display: inline-block; margin-top: 0.4rem; }
   .contrib-ul { margin: 0.75rem 0 0; padding-left: 1.1rem; }
   .contrib-ul li { margin-bottom: 0.3rem; }
+  .ctag-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .ctag { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.05em; padding: 0.2rem 0.55rem; border-radius: 2px; border: 1px solid; white-space: nowrap; }
+  .ctag-orange { color: var(--summit); background: rgba(232,80,10,0.07); border-color: rgba(232,80,10,0.25); }
+  .ctag-green  { color: var(--moss);   background: rgba(74,124,89,0.07);  border-color: rgba(74,124,89,0.25); }
+  .ctag-blue   { color: var(--sky);    background: rgba(100,160,220,0.07); border-color: rgba(100,160,220,0.25); }
+  .ctag-gold   { color: var(--accent); background: rgba(240,165,0,0.07);  border-color: rgba(240,165,0,0.25); }
+  .ctag-dim    { color: #666;          background: transparent;            border-color: #2a2a2a; }
   .live-url-box { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 4px; padding: 1.75rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 1.5rem; }
   .live-url-icon { font-size: 2rem; flex-shrink: 0; }
   .live-url-text h4 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--chalk); margin-bottom: 0.3rem; }
@@ -472,6 +479,69 @@
   }
   .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── Visual Architecture Diagram ───────────────────────────────────── */
+  /* ── Visual Architecture Diagram ───────────────────────────────────── */
+  .arch-visual {
+    background: linear-gradient(160deg, #0e0e10 0%, #0b0b0d 100%);
+    border: 1px solid #1e1e1e;
+    border-radius: 10px;
+    padding: 2rem 2rem 1.75rem;
+    margin-top: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-visual::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(74,144,217,0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 50% 100%, rgba(232,80,10,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .av-layer { border-radius: 8px; padding: 1.25rem 1.5rem; position: relative; }
+  .av-flutter {
+    border: 1px solid rgba(74,144,217,0.28);
+    background: rgba(74,144,217,0.04);
+    box-shadow: 0 0 0 1px rgba(74,144,217,0.05) inset, 0 1px 20px rgba(74,144,217,0.05);
+  }
+  .av-backend {
+    border: 1px solid rgba(232,80,10,0.28);
+    background: rgba(232,80,10,0.04);
+    box-shadow: 0 0 0 1px rgba(232,80,10,0.05) inset, 0 1px 20px rgba(232,80,10,0.05);
+  }
+  .av-layer-badge { font-family: 'Space Mono',monospace; font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 0.9rem; display: flex; align-items: center; gap: 0.6rem; }
+  .av-flutter .av-layer-badge { color: #5a9fd4; }
+  .av-backend .av-layer-badge { color: var(--summit); }
+  .av-layer-badge::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.12; }
+  .av-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .av-tags + .av-tags { margin-top: 0.4rem; }
+  .av-tag { font-family: 'Space Mono',monospace; font-size: 0.57rem; padding: 0.2rem 0.6rem; border-radius: 3px; letter-spacing: 0.04em; white-space: nowrap; transition: border-color 0.2s; }
+  .av-tag-blue { background: rgba(74,144,217,0.1); color: #5a9fd4; border: 1px solid rgba(74,144,217,0.2); }
+  .av-tag-blue:hover { border-color: rgba(74,144,217,0.5); }
+  .av-tag-orange { background: rgba(232,80,10,0.1); color: var(--summit); border: 1px solid rgba(232,80,10,0.22); }
+  .av-tag-orange:hover { border-color: rgba(232,80,10,0.5); }
+  .av-tag-dim { background: rgba(80,80,80,0.06); color: #454545; border: 1px solid #1e1e1e; }
+  .av-connector { display: flex; flex-direction: column; align-items: center; padding: 0.55rem 0; }
+  .av-conn-line { width: 1px; height: 16px; background: linear-gradient(to bottom, #252525, #2e2e2e); }
+  .av-conn-text { font-family: 'Space Mono',monospace; font-size: 0.53rem; color: #2e2e2e; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.15rem 0.7rem; border: 1px solid #1e1e1e; border-radius: 2px; background: #0c0c0e; }
+  .av-conn-arrow { color: #282828; font-size: 0.75rem; line-height: 1; }
+  .av-branch-row { display: grid; grid-template-columns: repeat(3,1fr); }
+  .av-branch { display: flex; justify-content: center; padding: 0.45rem 0 0.4rem; }
+  .av-branch-inner { display: flex; flex-direction: column; align-items: center; }
+  .av-branch-line { width: 1px; height: 14px; background: #242424; }
+  .av-branch-arrow { width: 0; height: 0; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid #262626; }
+  .av-bottom { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; align-items: start; }
+  .av-data {
+    border: 1px solid #1c1c1c;
+    border-radius: 8px;
+    padding: 1rem 1rem 0.9rem;
+    background: linear-gradient(135deg, #121214 0%, #0f0f11 100%);
+    transition: border-color 0.3s;
+  }
+  .av-data:hover { border-color: #2a2a2a; }
+  .av-data-icon { font-size: 1.1rem; margin-bottom: 0.45rem; }
+  .av-data-name { font-family: 'Space Mono',monospace; font-size: 0.6rem; color: #666; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.35rem; }
+  .av-data-desc { font-size: 0.73rem; color: #383838; line-height: 1.6; }
 
   /* ── Responsive ─────────────────────────────────────────────────────── */
   @media (max-width: 900px) {
@@ -573,7 +643,7 @@
         </div>
         <div class="meta-item">
           <span class="meta-label">Good-to-Have Features Delivered</span>
-          <span class="meta-value">Location-based gym discovery · AI Voice Assistant</span>
+          <span class="meta-value">Location-based gym discovery · AI Voice Assistant · BLE Heart Rate Monitor</span>
         </div>
       </div>
       <div class="pill-row">
@@ -606,6 +676,16 @@
         <div class="feature-icon">📍</div>
         <div class="feature-title">Location-Aware Gym Discovery</div>
         <div class="feature-desc">Discover climbing venues nearby, check in, and link session data to a real location. C2 track's location-based Good-to-Have fully realised.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏫</div>
+        <div class="feature-title">Coach Certification System</div>
+        <div class="feature-desc">Coaches apply for certified status through the app; admins review and approve or reject applications. Verified coaches unlock a dedicated panel to view athlete data and post training feedback — a complete role-based workflow rarely seen in consumer climbing apps.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">❤️</div>
+        <div class="feature-title">BLE Heart Rate Monitor</div>
+        <div class="feature-desc">Bluetooth LE integration that connects to an Apple Watch or compatible wearable to stream real-time heart rate data during a climbing session, enabling hardware-linked training insights.</div>
       </div>
     </div>
   </div>
@@ -660,14 +740,14 @@
     <!-- Motivation Statement -->
     <div class="subsection-label">The Why — Motivation Statement</div>
     <div style="background:#1a1a1a;border:1px solid #242424;border-radius:4px;padding:2.5rem;max-width:860px;">
-      <p style="font-size:0.95rem;color:#bbb;line-height:1.9;margin-bottom:1.2rem;">
-        Rock climbing has evolved from a niche pursuit into one of the fastest-growing fitness activities worldwide, gaining its Olympic debut at Tokyo 2020 and attracting over 35 million participants globally. Yet the digital ecosystem for climbers remains surprisingly fragmented: route databases such as <strong style="color:var(--chalk)">27crags</strong> catalogue walls but offer no community dynamics; training apps like <strong style="color:var(--chalk)">Crimpd</strong> optimise strength workouts but ignore the social dimension; general fitness platforms like <strong style="color:var(--chalk)">Strava</strong> were never designed for climbing's unique grading systems and venue culture.
+      <p style="font-size:0.92rem;color:#bbb;line-height:1.9;margin-bottom:1.2rem;">
+        We chose rock climbing as our research focus because climbing uniquely combines <strong style="color:var(--chalk)">physical challenge, technical skill, and social interaction</strong>. Unlike running or general fitness, climbing demands route-reading, movement planning, and mental composure — creating richer user needs around session logging, technique analysis, progress feedback, and community connection.
       </p>
-      <p style="font-size:0.95rem;color:#bbb;line-height:1.9;margin-bottom:1.2rem;">
-        Several of our team members are regular gym climbers at XJTLU's campus wall. We found ourselves juggling three different apps, a spreadsheet, and WhatsApp group chats to manage what should be one coherent experience — log a send, celebrate with friends, receive coach feedback, and discover new routes nearby. <strong style="color:var(--chalk)">BetaUp was built from that frustration.</strong>
+      <p style="font-size:0.92rem;color:#bbb;line-height:1.9;margin-bottom:1.2rem;">
+        Since climbing's Olympic debut at <strong style="color:var(--chalk)">Tokyo 2020</strong>, the sport has attracted a growing wave of younger participants. Yet the digital ecosystem still largely prioritises utility over experience — existing apps focus on training records or route databases, while <strong style="color:var(--chalk)">fun, engagement, and playfulness remain underserved</strong>.
       </p>
-      <p style="font-size:0.95rem;color:#bbb;line-height:1.9;">
-        By placing gamification, coach communication, and social connectivity at its core, BetaUp makes training sessions genuinely enjoyable and progress immediately visible. The project aligns with CPT208's Active Lifestyles theme by applying human-centric design principles to reduce friction for climbers of all levels — turning every session into a small, satisfying achievement, whether it is a first V2 send or closing a V8 project that has been open for months.
+      <p style="font-size:0.92rem;color:#bbb;line-height:1.9;">
+        Several team members are regular gym climbers at XJTLU's campus wall. We found ourselves juggling multiple apps, spreadsheets, and WeChat group chats for what should be one coherent experience — log a send, celebrate progress, get coach feedback, and find routes nearby. <strong style="color:var(--chalk)">BetaUp was built from that frustration</strong>, filling the gap between pure utility and genuinely playful daily engagement.
       </p>
     </div>
 
@@ -686,89 +766,81 @@
         <tbody>
           <tr>
             <td>
-              <strong>Hamari, Koivisto &amp; Sarsa (2014)</strong><br>
-              Does Gamification Work? A Literature Review of Empirical Studies on Gamification
-              <span class="cite-venue">HICSS 2014</span>
-              <span class="cite-doi">DOI: 10.1109/HICSS.2014.377</span>
+              <strong>BoulderPlay: Exploring AR and Vibrotactile Integration for Novel Bouldering Experiences</strong>
+              <span class="cite-venue">CHI 2025</span>
             </td>
             <td>
               <ul class="strength-list">
-                <li>Strong empirical meta-analysis across 24 peer-reviewed studies</li>
-                <li>Identifies badges, leaderboards, and points as primary engagement drivers</li>
-                <li>Broad applicability across health, education, and commerce domains</li>
+                <li>Strong novelty — transforms route completion into a dynamic, interactive game experience</li>
+                <li>Multi-modal interaction (visual AR + haptic feedback) creates a richer, more immersive session</li>
+                <li>Proves climbing apps can be genuinely playful beyond logging, training, and route lookup</li>
               </ul>
             </td>
             <td>
               <ul class="gap-list">
-                <li>No climbing-specific or extreme-sport context data</li>
-                <li>Most studies span &lt; 3 months — no longitudinal evidence</li>
-                <li>Does not address negative effects of over-gamification (burnout, extrinsic pressure)</li>
+                <li>Still a prototype — not designed for long-term, everyday use</li>
+                <li>Small sample and short session duration — findings are exploratory with limited generalisability</li>
+                <li>Some participants felt it was "a game with climbing elements" rather than real training</li>
               </ul>
             </td>
           </tr>
           <tr>
             <td>
-              <strong>Deterding, Dixon, Khaled &amp; Nacke (2011)</strong><br>
-              From Game Design Elements to Gamefulness: Defining "Gamification"
-              <span class="cite-venue">MindTrek 2011</span>
-              <span class="cite-doi">DOI: 10.1145/2181037.2181040</span>
+              <strong>Embedding and Generation of Indoor Climbing Routes with Variational Autoencoder</strong>
+              <span class="cite-venue">IJCAI 2020</span>
             </td>
             <td>
               <ul class="strength-list">
-                <li>Defines foundational vocabulary still cited in 12,000+ papers (PBL framework)</li>
-                <li>Clearly distinguishes gamification from serious games and playful design</li>
-                <li>Rigorous taxonomy applicable across any interactive system</li>
+                <li>AI-generated route content — system creates content rather than merely displaying it</li>
+                <li>Clear methodology using a standardised MoonBoard grid; reproducible and extensible</li>
+                <li>Generated routes showed a degree of authenticity, validated by real climbers in the app</li>
               </ul>
             </td>
             <td>
               <ul class="gap-list">
-                <li>No empirical user study — purely conceptual framework</li>
-                <li>Provides no HCI evaluation or measurement guidelines</li>
-                <li>Predates mobile-first and wearable design eras</li>
+                <li>Generation quality is inconsistent — results vary despite overall feasibility</li>
+                <li>Focused on efficiency of route generation, not user experience or engagement</li>
+                <li>Relies on MoonBoard's fixed grid; difficult to generalise to real gym wall layouts</li>
               </ul>
             </td>
           </tr>
           <tr>
             <td>
-              <strong>Consolvo, McDonald &amp; Landay (2009)</strong><br>
-              Theory-driven Design Strategies for Technologies that Support Behaviour Change
-              <span class="cite-venue">CHI 2009</span>
-              <span class="cite-doi">DOI: 10.1145/1518701.1518766</span>
+              <strong>Wearable and Non-Invasive Sensors for Rock Climbing Applications</strong>
+              <span class="cite-venue">Sensors 2023</span>
             </td>
             <td>
               <ul class="strength-list">
-                <li>8 actionable design strategies derived from a real-world user study (20 participants)</li>
-                <li>Covers abstract and ambient feedback patterns relevant to health app design</li>
-                <li>Strong HCI methodological framing grounded in social learning theory</li>
+                <li>Comprehensive survey covering respiration, ECG, EMG, eye gaze, NIRS, and hold force sensors</li>
+                <li>Strong framework for science-based training — fatigue, movement efficiency, muscle load analysis</li>
+                <li>Provides quantifiable feedback entry points for building professional-grade climbing tools</li>
               </ul>
             </td>
             <td>
               <ul class="gap-list">
-                <li>Mobile-first design considerations entirely absent — pre-smartphone era</li>
-                <li>Does not address competitive gamification or social comparison</li>
-                <li>Focuses on individual behaviour change, ignoring coach-athlete dynamics</li>
+                <li>Heavy hardware dependency — multiple sensor types mean high cost and wearing complexity</li>
+                <li>Useful for performance analysis but offers little for playful engagement or daily retention</li>
+                <li>High deployment barrier — impractical for casual gym users or beginner climbers</li>
               </ul>
             </td>
           </tr>
           <tr>
             <td>
-              <strong>Rooksby, Rost, Morrison &amp; Chalmers (2014)</strong><br>
-              Personal Tracking as Lived Informatics
-              <span class="cite-venue">CHI 2014</span>
-              <span class="cite-doi">DOI: 10.1145/2556288.2557039</span>
+              <strong>Computer Vision Based Indoor Rock Climbing Analysis</strong>
+              <span class="cite-venue">CVPR Workshop 2022</span>
             </td>
             <td>
               <ul class="strength-list">
-                <li>Rich qualitative diary study with 22 participants revealing real tracking habits</li>
-                <li>Identifies 5 distinct personal tracking styles (directive, aesthetic, documentary…)</li>
-                <li>Reveals common failure modes of data-driven apps that feel like chores</li>
+                <li>High automation — identifies holds, colours, pose, and key movement moments from video</li>
+                <li>Strong accuracy: hold detection 96.3% mAP, colour classification 99.3%</li>
+                <li>Significant-frame approach reduces computation while capturing key climbing actions</li>
               </ul>
             </td>
             <td>
               <ul class="gap-list">
-                <li>Active sports context absent — most data from steps, sleep, and calories</li>
-                <li>No design recommendations specific to skill-based sports like climbing</li>
-                <li>Coach or trainer perspective completely missing from analysis</li>
+                <li>Small dataset — only 53 manually annotated wall images used for training</li>
+                <li>Sensitive to pose estimation errors — body occlusion degrades frame analysis quality</li>
+                <li>Limited robustness to similar-coloured routes; threshold tuning needed per environment</li>
               </ul>
             </td>
           </tr>
@@ -791,90 +863,98 @@
         <tbody>
           <tr>
             <td>
-              <strong>27crags</strong><br>
-              Route database &amp; climbing log
+              <strong>Vertical-Life</strong><br>
+              Training / Logbook / Topo
+              <span class="cite-venue">vertical-life.info</span>
+            </td>
+            <td>
+              <ul class="strength-list">
+                <li>Clear training orientation — suitable for goal-driven users seeking systematic progress</li>
+                <li>Strong progress tracking through ascents, training plans, and historical records</li>
+                <li>Comprehensive: training plans + logbook + topo + route sharing in one platform</li>
+              </ul>
+            </td>
+            <td>
+              <ul class="gap-list">
+                <li>Too serious — efficiency-focused; casual users and beginners may find it off-putting</li>
+                <li>No playful feedback loop — no daily tasks, exploratory challenges, or surprise mechanics</li>
+                <li>Low fun appeal — users open it to train and record, not for enjoyment</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong>27 Crags</strong><br>
+              Outdoor Guide / Route Discovery
               <span class="cite-venue">27crags.com</span>
             </td>
             <td>
               <ul class="strength-list">
-                <li>Largest global route database (700k+ routes, 140+ countries)</li>
-                <li>Clean offline map and route quality ratings from the community</li>
-                <li>Trusted and used by competition climbing circuits worldwide</li>
+                <li>Powerful crag and route search — ideal for pre-trip outdoor planning</li>
+                <li>Practical filtering by location and grade range for fast route discovery</li>
+                <li>Designed around "more climbing, less clicking" — efficient topo experience</li>
               </ul>
             </td>
             <td>
               <ul class="gap-list">
-                <li>No gamification, badge system, or progress celebration</li>
-                <li>No coach-athlete relationship or feedback workflow</li>
-                <li>Social feed is minimal and text-only — no community feel</li>
+                <li>Purely utility-driven — users open it to find routes, not to have fun</li>
+                <li>Single-task context — used before/at a crag; hard to build daily opening habit</li>
+                <li>No engagement mechanism — no achievement chains, social tasks, or growth narrative</li>
               </ul>
             </td>
           </tr>
           <tr>
             <td>
-              <strong>Crimpd</strong><br>
-              Strength &amp; fingerboard training
-              <span class="cite-venue">crimpd.com</span>
+              <strong>KAYA</strong><br>
+              Social + Gym Guide + Challenges
+              <span class="cite-venue">kayaclimb.com</span>
             </td>
             <td>
               <ul class="strength-list">
-                <li>Professional fingerboard and hangboard training plans from certified coaches</li>
-                <li>Structured progressive overload programming with clear visual guides</li>
-                <li>Clean, distraction-free onboarding for serious training</li>
+                <li>Stronger social layer — partner finding, community beta videos, higher interaction</li>
+                <li>Activity-driven participation — monthly challenges and leagues stimulate return visits</li>
+                <li>Closest to a "fun climbing app" — actively integrates community to increase engagement</li>
               </ul>
             </td>
             <td>
               <ul class="gap-list">
-                <li>No route logging or session tracking for gym climbing</li>
-                <li>No community, social feed, or leaderboard features</li>
-                <li>Only useful to climbers who own hang-board equipment</li>
+                <li>Fun depends on external events — flat experience when no challenge is active</li>
+                <li>Lacks lightweight daily gamification — no small tasks, exploration rewards, or growth narrative</li>
+                <li>No stable playful loop — drops in engagement when challenges, leagues, or friends are absent</li>
               </ul>
             </td>
           </tr>
           <tr>
             <td>
-              <strong>Strava</strong><br>
-              General sports &amp; running social network
-              <span class="cite-venue">strava.com</span>
+              <strong>Mountain Project</strong><br>
+              Route Database / Community Guide
+              <span class="cite-venue">mountainproject.com</span>
             </td>
             <td>
               <ul class="strength-list">
-                <li>Industry-leading achievement and badge system with 60+ activity types</li>
-                <li>Seamless GPS segment leaderboards and kudos social graph (100M+ users)</li>
-                <li>Clean activity feed with photos, comments, and group challenges</li>
+                <li>Most comprehensive information — routes, photos, area guides, and community forum</li>
+                <li>High community content value — ideal for route planning, beta lookup, and to-do lists</li>
+                <li>Classic platform with proven, very strong practical utility</li>
               </ul>
             </td>
             <td>
               <ul class="gap-list">
-                <li>No climbing-specific grading (V-scale, French grades, YDS)</li>
-                <li>GPS segments meaningless for indoor bouldering sessions</li>
-                <li>No coach certification workflow or athlete management</li>
-              </ul>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <strong>TopLogger</strong><br>
-              Competition climbing management
-              <span class="cite-venue">toplogger.nu</span>
-            </td>
-            <td>
-              <ul class="strength-list">
-                <li>Live competition scoring and real-time leaderboard used by IFSC events</li>
-                <li>Powerful venue operator tools for route setting and comp management</li>
-                <li>Multi-discipline support (lead, boulder, speed) with judge workflows</li>
-              </ul>
-            </td>
-            <td>
-              <ul class="gap-list">
-                <li>Far too complex for everyday recreational training use cases</li>
-                <li>No personal training narrative, progress history, or achievement system</li>
-                <li>No AI features, voice interaction, or social community layer</li>
+                <li>Feels like a reference tool — experience is information-centred, not entertainment-centred</li>
+                <li>Lacks systematic fun design — has community features but no gamification layer</li>
+                <li>Low playful engagement — users open it to find routes or save to-dos, not because the app is compelling</li>
               </ul>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Key Insight Callout -->
+    <div style="background:rgba(232,80,10,0.06);border:1px solid rgba(232,80,10,0.2);border-left:3px solid var(--summit);border-radius:4px;padding:1.5rem 2rem;margin-top:2rem;max-width:860px;">
+      <div style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;color:var(--summit);text-transform:uppercase;margin-bottom:0.6rem;">Key Insight</div>
+      <p style="font-size:0.87rem;color:#bbb;line-height:1.8;margin:0;">
+        All four products skew heavily towards <strong style="color:var(--chalk)">utility</strong> — they help users climb better, find routes, or manage training data. None delivers a <strong style="color:var(--chalk)">persistent, intrinsically enjoyable daily experience</strong>. The common pattern: engagement either depends on external events (challenges, competitions) or collapses once the immediate task is done. BetaUp targets this gap directly — placing gamification, social playfulness, and voice-first interaction at the core so every session feels like an achievement worth opening the app for.
+      </p>
     </div>
 
     <!-- Personas -->
@@ -925,47 +1005,21 @@
 
     <!-- Journey Map -->
     <div class="subsection-label">User Journey Map</div>
-    <div class="journey-map">
-      <div class="journey-step">
-        <div class="journey-dot">🏃</div>
-        <div class="journey-phase">Pre-Session</div>
-        <div class="journey-title">Preparing</div>
-        <div class="journey-desc">Check training plan, pack gear, travel to gym.</div>
-        <div class="journey-pain">Pain: Unsure what to work on today</div>
-        <div class="journey-fix">Fix: AI suggests a session plan based on recent logs</div>
-      </div>
-      <div class="journey-step">
-        <div class="journey-dot pain">🏟️</div>
-        <div class="journey-phase">Arrival</div>
-        <div class="journey-title">Check-In</div>
-        <div class="journey-desc">Warm up, check which routes are set, find climbing partner.</div>
-        <div class="journey-pain">Pain: No digital check-in, no warm-up guidance</div>
-        <div class="journey-fix">Fix: Start Session → venue auto-logged via location</div>
-      </div>
-      <div class="journey-step">
-        <div class="journey-dot pain">🧗</div>
-        <div class="journey-phase">Climbing</div>
-        <div class="journey-title">Active Session</div>
-        <div class="journey-desc">Attempt routes, track sends and attempts, take breaks.</div>
-        <div class="journey-pain">Pain: Hands full — can't log without stopping</div>
-        <div class="journey-fix">Fix: Voice assistant logs hands-free in real time</div>
-      </div>
-      <div class="journey-step">
-        <div class="journey-dot">📊</div>
-        <div class="journey-phase">Post-Session</div>
-        <div class="journey-title">Reviewing</div>
-        <div class="journey-desc">End session, view summary, share best send to community.</div>
-        <div class="journey-pain">Pain: Data entry is a chore after climbing</div>
-        <div class="journey-fix">Fix: Auto session summary + badge unlock celebration</div>
-      </div>
-      <div class="journey-step">
-        <div class="journey-dot">🏆</div>
-        <div class="journey-phase">Reflection</div>
-        <div class="journey-title">Progress Check</div>
-        <div class="journey-desc">Review weekly stats, compare with friends, set next goal.</div>
-        <div class="journey-pain">Pain: Stats buried in spreadsheets</div>
-        <div class="journey-fix">Fix: Visual progress chart + leaderboard position</div>
-      </div>
+
+    <div style="margin-bottom: 3rem;">
+      <div style="font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--moss);text-transform:uppercase;margin-bottom:0.8rem;">Primary User — Alex Chen · Amateur Boulderer (V4–V5)</div>
+      <p style="font-size:0.87rem;color:#bbb;line-height:1.8;max-width:860px;margin-bottom:1.5rem;">
+        This user journey map depicts the full end-to-end usage experience of BetaUp's primary user, amateur bouldering climber Alex Chen. Following 5 core experience stages including pre-session awareness, function consideration, platform operation, daily service use and long-term user retention, the record systematically sorts out Alex's practical operation behaviours, real training demands, emotional changes and existing pain points in daily climbing log management. It clearly shows the bottlenecks in traditional climbing record modes, such as cumbersome manual typing, scattered multi-app data storage, difficult peer progress comparison and incomplete long-term growth tracking. Meanwhile, it correspondingly matches targeted platform optimisation opportunities, verifying how BetaUp solves real user distress throughout the whole climbing cycle, and constructing a smooth, low-friction whole-process training experience for individual climbers.
+      </p>
+      <img src="assets/photos/journey-map-alex.png" alt="Alex Chen User Journey Map" style="width:100%;border-radius:6px;border:1px solid #1e1e1e;">
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+      <div style="font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--moss);text-transform:uppercase;margin-bottom:0.8rem;">Secondary User — Coach Li Wei · Part-Time IFSC Level 1 Coach</div>
+      <p style="font-size:0.87rem;color:#bbb;line-height:1.8;max-width:860px;margin-bottom:1.5rem;">
+        This journey map sorts out the complete business workflow of BetaUp's secondary user, part-time professional climbing coach Li Wei. In accordance with the full cycle from daily management distress awareness, platform function understanding, account permission onboarding, routine teaching service execution to long-term tool stickiness cultivation, it analyses the coach's actual working behaviours, professional management needs, emotional fluctuations and industry pain points under the dual pressure of daily job and part-time teaching. The content reflects the widespread shortcomings of traditional coach-student management methods, including scattered student data, inefficient manual statistics, delayed remote feedback and lack of standardised milestone certification. Combined with matching platform functional opportunities, it demonstrates how BetaUp builds a closed, efficient professional teaching management system, realising digital, lightweight and systematic student progress management for climbing coaches.
+      </p>
+      <img src="assets/photos/journey-map-coach.png" alt="Coach Li Wei User Journey Map" style="width:100%;border-radius:6px;border:1px solid #1e1e1e;">
     </div>
 
     <!-- Must-Have Features -->
@@ -974,45 +1028,82 @@
       <div class="must-have-card">
         <div class="must-have-number">01</div>
         <div class="must-have-icon">🏅</div>
-        <div class="must-have-title">Achievement &amp; Badge System</div>
+        <div class="must-have-title">Badge Collection System</div>
         <div class="must-have-desc">
-          Climbers automatically unlock achievement badges upon reaching milestones: first send, 10 sessions completed, first V5, 7-day streak, and 15 others. Each unlock triggers an animated celebration with a push notification. Badges are displayed publicly on the user's profile, creating an aspirational showcase visible to the community.
+          The platform contains four categories of badges: gym-specific badges, achievement badges, training log badges and social interaction badges. Users can unlock badges automatically after completing corresponding behaviours. Exclusive venue badges are available for local climbing gyms, while other badges reward continuous check-ins, completed training records and community engagement. All unlocked badges are displayed on personal profile pages. User research shows that badge rewards are the most popular feature among all user groups. It solves the lack of long-term positive feedback, turns invisible skill improvement into visible collectible goals, and greatly improves user continuous participation and motivation.
         </div>
         <div class="must-have-mechanism">Playfulness: immediate positive reinforcement · social display · collection drive</div>
       </div>
       <div class="must-have-card">
         <div class="must-have-number">02</div>
-        <div class="must-have-icon">📊</div>
-        <div class="must-have-title">Community Session Leaderboard</div>
+        <div class="must-have-icon">💬</div>
+        <div class="must-have-title">Community Post &amp; Social Interaction</div>
         <div class="must-have-desc">
-          Every training session contributes to a live community leaderboard ranked by sends, highest grade, or XP earned. Users see global and follower-only rankings in real time, with position changes animated. A weekly "Top Climber" badge is awarded to the session leader, renewing competitive motivation each week.
+          Users can publish image posts, climbing partner notices and route strategy guides on the community page. Other users can like, comment and interact with shared content, and tag coaches for professional advice. Users can also visit each other's personal pages to view training records and badge collections. It replaces scattered informal communication on social software, builds a vertical professional climbing community, turns isolated individual training into interactive shared experience, and helps climbers make friends and gain recognition from peers.
         </div>
-        <div class="must-have-mechanism">Playfulness: competitive ranking · social comparison · weekly reward cycle</div>
+        <div class="must-have-mechanism">Playfulness: peer recognition · shared progress · vertical climbing community</div>
       </div>
       <div class="must-have-card">
         <div class="must-have-number">03</div>
         <div class="must-have-icon">🐼</div>
-        <div class="must-have-title">AI Voice Assistant (Panda)</div>
+        <div class="must-have-title">AI Voice Assistant Logging</div>
         <div class="must-have-desc">
-          A draggable panda avatar activates a full-duplex voice interface powered by DeepSeek NLP and Web Speech API. Climbers speak naturally mid-session: "Log a V5 flash on the blue slab" or "Start my session at Campus Wall." The panda replies in Chinese, confirms the action, and saves data without touching the screen.
+          After each training session, users can simply tap the microphone icon and speak freely about their climbing details. The intelligent voice system automatically recognises professional climbing terms and generates standard structured training logs without manual typing. This feature effectively solves the common pain point where users are too exhausted to record sessions after training. It reduces recording time significantly, lowers operation friction, and makes routine training logging more convenient and enjoyable.
         </div>
-        <div class="must-have-mechanism">Playfulness: delightful character design · hands-free friction removal · conversational loop</div>
+        <div class="must-have-mechanism">Playfulness: hands-free convenience · conversational interaction · instant feedback</div>
       </div>
     </div>
 
-    <!-- User Interview Evidence -->
-    <div class="subsection-label">User Interview Evidence</div>
-    <div class="interview-grid">
-      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 01</div><div class="ph-caption">Climber Interview</div></div>
-      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 02</div><div class="ph-caption">Climber Interview</div></div>
-      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 03</div><div class="ph-caption">Coach Observation</div></div>
-      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 04</div><div class="ph-caption">Team Discussion</div></div>
-      <div class="photo-slot"><div class="ph-icon">📷</div><div class="ph-num">PHOTO 05</div><div class="ph-caption">User Testing</div></div>
+    <!-- User Research Evidence -->
+    <div class="subsection-label">User Research Evidence</div>
+
+    <!-- Questionnaire key stats -->
+    <div style="background:#1a1a1a;border:1px solid #242424;border-radius:4px;padding:2rem;margin-bottom:2rem;max-width:860px;">
+      <div style="font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;color:var(--moss);text-transform:uppercase;margin-bottom:1rem;">Questionnaire · 12 Valid Responses · Suzhou Climbing Community</div>
+      <ul style="font-size:0.87rem;color:#bbb;line-height:2.1;padding-left:1.2rem;margin:0;">
+        <li><strong style="color:var(--chalk)">75%</strong> of participants train indoors regularly (bouldering)</li>
+        <li>Top desired features: <strong style="color:var(--chalk)">track climbs &amp; progress charts (75%)</strong>, gym map &amp; check-in (66.67%), gym info &amp; booking (66.67%)</li>
+        <li>Biggest frustration: <strong style="color:var(--chalk)">cannot find route beta (66.67%)</strong>, no motivation to climb alone (58.33%), unsure of suitable routes (41.67%)</li>
+        <li>Most climbers rely on notes apps; many abandon logging due to tedious manual typing</li>
+      </ul>
     </div>
-    <div class="placeholder-note">
-      <strong>[PLACEHOLDER — Yang Renyu / Yang Mengxi to fill]</strong><br>
-      Add 5 photos: 2 × climber interviews at gym · 1 × coach observation · 1 × team ideation session · 1 × early user testing<br>
-      Caption format: initials · location · one-line quote from participant
+
+    <!-- Survey charts -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:3rem;">
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--granite);text-transform:uppercase;margin-bottom:0.6rem;">Primary Climbing Location</div>
+        <div style="height:240px;border-radius:4px;border:1px solid #1e1e1e;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
+          <img src="assets/photos/survey-location.jpg" alt="Survey: Primary Climbing Location" style="width:100%;height:100%;object-fit:contain;">
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--granite);text-transform:uppercase;margin-bottom:0.6rem;">Most Desired Features</div>
+        <div style="height:240px;border-radius:4px;border:1px solid #1e1e1e;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
+          <img src="assets/photos/survey-features.jpg" alt="Survey: Most Desired App Features" style="width:100%;height:100%;object-fit:contain;">
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--granite);text-transform:uppercase;margin-bottom:0.6rem;">Most Frustrating Issues</div>
+        <div style="height:240px;border-radius:4px;border:1px solid #1e1e1e;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
+          <img src="assets/photos/survey-frustrations.jpg" alt="Survey: Most Frustrating Issues" style="width:100%;height:100%;object-fit:contain;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Field observation photos -->
+    <div style="font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;color:var(--moss);text-transform:uppercase;margin-bottom:0.8rem;">Field Observation · Suzhou Indoor Climbing Gyms</div>
+    <p style="font-size:0.87rem;color:#bbb;line-height:1.8;max-width:860px;margin-bottom:1.5rem;">
+      We conducted on-site observations and face-to-face interviews with regular climbers at local Suzhou indoor bouldering gyms. Participants matched our core persona Alex Chen — intermediate V3–V5 climbers with long-term training habits who struggled with fragmented logging tools.
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div>
+        <img src="assets/photos/fieldwork-gym1.jpg" alt="Field observation at Suzhou climbing gym" style="width:100%;border-radius:4px;aspect-ratio:16/9;object-fit:cover;border:1px solid #1e1e1e;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--granite);margin-top:0.5rem;letter-spacing:0.05em;">On-site observation · Suzhou indoor bouldering venue</div>
+      </div>
+      <div>
+        <img src="assets/photos/fieldwork-gym2.jpg" alt="Field observation at Suzhou climbing gym" style="width:100%;border-radius:4px;aspect-ratio:16/9;object-fit:cover;border:1px solid #1e1e1e;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--granite);margin-top:0.5rem;letter-spacing:0.05em;">Observing climbers during active training sessions</div>
+      </div>
     </div>
   </div>
 </section>
@@ -1029,75 +1120,81 @@
     <!-- Crazy Eights -->
     <div class="subsection-label">Crazy Eights — Rapid UI Sketching</div>
     <div class="sketch-grid">
-      <div class="sketch-slot"><div class="sketch-num">01</div><div class="sketch-label">Route Logging Card</div></div>
-      <div class="sketch-slot"><div class="sketch-num">02</div><div class="sketch-label">Badge Unlock Screen</div></div>
-      <div class="sketch-slot"><div class="sketch-num">03</div><div class="sketch-label">Session Timer + Voice</div></div>
-      <div class="sketch-slot"><div class="sketch-num">04</div><div class="sketch-label">Community Feed</div></div>
-      <div class="sketch-slot"><div class="sketch-num">05</div><div class="sketch-label">Coach Dashboard</div></div>
-      <div class="sketch-slot"><div class="sketch-num">06</div><div class="sketch-label">Map / Gym Discovery</div></div>
-      <div class="sketch-slot"><div class="sketch-num">07</div><div class="sketch-label">Profile + Badge Wall</div></div>
-      <div class="sketch-slot"><div class="sketch-num">08</div><div class="sketch-label">Leaderboard Toggle</div></div>
-    </div>
-    <div class="placeholder-note">
-      <strong>[PLACEHOLDER — Chen Zixi / Yang Renyu to fill]</strong><br>
-      Replace grey boxes with photos of actual hand-drawn UI sketches. Each sketch = one screen concept, quick 1-minute draw.<br>
-      Take photos with good lighting; crop square; upload to /assets/sketches/
+      <div class="sketch-slot" style="padding:0;justify-content:flex-start;gap:0;overflow:hidden;border-style:solid;border-color:#2a2a2a;">
+        <div style="flex:1;width:100%;overflow:hidden;min-height:0;"><img src="assets/sketches/sketch-01.jpg" alt="Map / Explore screen sketch" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div class="sketch-label" style="padding:0.4rem 0.6rem;width:100%;box-sizing:border-box;background:#161616;border-top:1px solid #272727;color:#666;flex-shrink:0;">Map / Explore</div>
+      </div>
+      <div class="sketch-slot" style="padding:0;justify-content:flex-start;gap:0;overflow:hidden;border-style:solid;border-color:#2a2a2a;">
+        <div style="flex:1;width:100%;overflow:hidden;min-height:0;"><img src="assets/sketches/sketch-02.jpg" alt="Profile page sketch" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div class="sketch-label" style="padding:0.4rem 0.6rem;width:100%;box-sizing:border-box;background:#161616;border-top:1px solid #272727;color:#666;flex-shrink:0;">Profile Page</div>
+      </div>
+      <div class="sketch-slot" style="padding:0;justify-content:flex-start;gap:0;overflow:hidden;border-style:solid;border-color:#2a2a2a;">
+        <div style="flex:1;width:100%;overflow:hidden;min-height:0;"><img src="assets/sketches/sketch-03.jpg" alt="Session screen sketch" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div class="sketch-label" style="padding:0.4rem 0.6rem;width:100%;box-sizing:border-box;background:#161616;border-top:1px solid #272727;color:#666;flex-shrink:0;">Session Screen</div>
+      </div>
+      <div class="sketch-slot" style="padding:0;justify-content:flex-start;gap:0;overflow:hidden;border-style:solid;border-color:#2a2a2a;">
+        <div style="flex:1;width:100%;overflow:hidden;min-height:0;"><img src="assets/sketches/sketch-04.jpg" alt="Gym detail view sketch" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div class="sketch-label" style="padding:0.4rem 0.6rem;width:100%;box-sizing:border-box;background:#161616;border-top:1px solid #272727;color:#666;flex-shrink:0;">Gym Detail View</div>
+      </div>
+      <div class="sketch-slot" style="padding:0;justify-content:flex-start;gap:0;overflow:hidden;border-style:solid;border-color:#2a2a2a;">
+        <div style="flex:1;width:100%;overflow:hidden;min-height:0;"><img src="assets/sketches/sketch-05.jpg" alt="Community feed sketch" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div class="sketch-label" style="padding:0.4rem 0.6rem;width:100%;box-sizing:border-box;background:#161616;border-top:1px solid #272727;color:#666;flex-shrink:0;">Community Feed</div>
+      </div>
+      <div class="sketch-slot" style="padding:0;justify-content:flex-start;gap:0;overflow:hidden;border-style:solid;border-color:#2a2a2a;">
+        <div style="flex:1;width:100%;overflow:hidden;min-height:0;"><img src="assets/sketches/sketch-06.jpg" alt="Data and statistics sketch" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div class="sketch-label" style="padding:0.4rem 0.6rem;width:100%;box-sizing:border-box;background:#161616;border-top:1px solid #272727;color:#666;flex-shrink:0;">Data &amp; Statistics</div>
+      </div>
+      <div class="sketch-slot" style="padding:0;justify-content:flex-start;gap:0;overflow:hidden;border-style:solid;border-color:#2a2a2a;">
+        <div style="flex:1;width:100%;overflow:hidden;min-height:0;"><img src="assets/sketches/sketch-07.jpg" alt="Notifications screen sketch" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div class="sketch-label" style="padding:0.4rem 0.6rem;width:100%;box-sizing:border-box;background:#161616;border-top:1px solid #272727;color:#666;flex-shrink:0;">Notifications</div>
+      </div>
+      <div class="sketch-slot" style="padding:0;justify-content:flex-start;gap:0;overflow:hidden;border-style:solid;border-color:#2a2a2a;">
+        <div style="flex:1;width:100%;overflow:hidden;min-height:0;"><img src="assets/sketches/sketch-08.jpg" alt="Badge unlock celebration sketch" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+        <div class="sketch-label" style="padding:0.4rem 0.6rem;width:100%;box-sizing:border-box;background:#161616;border-top:1px solid #272727;color:#666;flex-shrink:0;">Badge Unlock</div>
+      </div>
     </div>
 
     <!-- Design Alternatives -->
     <div class="subsection-label">Design Alternatives — Key Decisions</div>
     <div class="alt-section">
+
+      <!-- HCI / Input Decision -->
+      <div class="alt-block">
+        <div class="alt-block-title">HCI Decision</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1.2rem;">
+          <span style="font-family:'Space Mono',monospace;font-size:0.58rem;color:#3a3a3a;background:#161616;border:1px solid #252525;border-radius:2px;padding:0.2rem 0.55rem;text-decoration:line-through;">Manual Form Entry</span>
+          <span style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--summit);background:rgba(232,80,10,0.08);border:1px solid rgba(232,80,10,0.3);border-radius:2px;padding:0.2rem 0.55rem;">✓ AI Voice Assistant</span>
+          <span style="font-family:'Space Mono',monospace;font-size:0.58rem;color:#6ab;background:rgba(100,160,180,0.08);border:1px solid rgba(100,160,180,0.25);border-radius:2px;padding:0.2rem 0.55rem;">+ BLE Heart Rate (Demo)</span>
+        </div>
+        <p style="font-size:0.82rem;color:#aaa;line-height:1.8;margin:0;">
+          Manual form entry is easy to implement but unsuitable mid-climb when hands are occupied. We chose an AI voice assistant — powered by STT and DeepSeek LLM — as the primary hands-free input method. Beyond voice, we also built a <strong style="color:var(--chalk)">BLE heart rate monitoring demo</strong> that connects to an Apple Watch or compatible wearable, streaming real-time biometric data into the session view. This demonstrates our vision for deeper hardware integration and quantified training feedback.
+        </p>
+      </div>
+
+      <!-- Platform Decision -->
       <div class="alt-block">
         <div class="alt-block-title">Platform Decision</div>
-        <table class="alt-table">
-          <tr class="rejected">
-            <td>Pure Web SPA<br><span class="badge-row"><span class="badge badge-gray">Rejected</span></span></td>
-            <td>Fast prototype; no native device APIs; poor offline capability.</td>
-          </tr>
-          <tr class="selected">
-            <td>Flutter (Mobile + Web)<br><span class="badge-row"><span class="badge badge-green">Selected</span></span></td>
-            <td>Cross-platform single codebase. Runs on Chrome for demo; compiles to iOS/Android for production.</td>
-          </tr>
-          <tr class="rejected">
-            <td>WeChat Mini Program<br><span class="badge-row"><span class="badge badge-gray">Rejected</span></span></td>
-            <td>Locked ecosystem; WeChat login required; no English language support.</td>
-          </tr>
-        </table>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1.2rem;">
+          <span style="font-family:'Space Mono',monospace;font-size:0.58rem;color:#3a3a3a;background:#161616;border:1px solid #252525;border-radius:2px;padding:0.2rem 0.55rem;text-decoration:line-through;">Pure Website</span>
+          <span style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--summit);background:rgba(232,80,10,0.08);border:1px solid rgba(232,80,10,0.3);border-radius:2px;padding:0.2rem 0.55rem;">✓ Flutter (Mobile + Web)</span>
+        </div>
+        <p style="font-size:0.82rem;color:#aaa;line-height:1.8;margin:0;">
+          The simple web version has many limited functions in actual use, lacking the function of taking photos and notifications, and considering that almost no one climbs with a laptop, we finally chose Flutter for its cross-platform capabilities.
+        </p>
       </div>
+
+      <!-- Gamification Decision -->
       <div class="alt-block">
-        <div class="alt-block-title">Voice Feature Decision</div>
-        <table class="alt-table">
-          <tr class="rejected">
-            <td>Manual Form Entry<br><span class="badge-row"><span class="badge badge-gray">Rejected as Primary</span></span></td>
-            <td>Simple to implement but too much friction mid-climb when hands are occupied.</td>
-          </tr>
-          <tr class="rejected">
-            <td>Wearable (Apple Watch)<br><span class="badge-row"><span class="badge badge-gray">Out of Scope</span></span></td>
-            <td>Ideal UX but hardware dependency; no watchOS experience in team.</td>
-          </tr>
-          <tr class="selected">
-            <td>AI Voice (STT + LLM)<br><span class="badge-row"><span class="badge badge-green">Selected</span></span></td>
-            <td>DeepSeek NLP + Web Speech API. Hands-free, works on any phone via Chrome.</td>
-          </tr>
-        </table>
+        <div class="alt-block-title">Mechanic Decision</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1.2rem;">
+          <span style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--summit);background:rgba(232,80,10,0.08);border:1px solid rgba(232,80,10,0.3);border-radius:2px;padding:0.2rem 0.55rem;">✓ Badges + XP Points</span>
+          <span style="font-family:'Space Mono',monospace;font-size:0.58rem;color:#3a3a3a;background:#161616;border:1px solid #252525;border-radius:2px;padding:0.2rem 0.55rem;text-decoration:line-through;">Random Loot Boxes</span>
+        </div>
+        <p style="font-size:0.82rem;color:#aaa;line-height:1.8;margin:0;">
+          Compared with the clear medal acquisition mechanism, although the random reward box has a sense of surprise, it may not meet the expectations of some users. Additionally, considering that our project is a sports project, there is more motivation with specific goals, so we finally choose the plan of upgrading medals and experience points.
+        </p>
       </div>
-      <div class="alt-block">
-        <div class="alt-block-title">Gamification Mechanic</div>
-        <table class="alt-table">
-          <tr class="selected">
-            <td>Badges + XP Layer<br><span class="badge-row"><span class="badge badge-green">Selected</span></span></td>
-            <td>Visual, collectible badges as primary reward. XP accumulation as secondary layer.</td>
-          </tr>
-          <tr class="rejected">
-            <td>Points + Level System Only<br><span class="badge-row"><span class="badge badge-gray">Partial</span></span></td>
-            <td>Familiar but abstract — no immediate visual payoff. Kept as secondary metric.</td>
-          </tr>
-          <tr class="rejected">
-            <td>Random Loot Boxes<br><span class="badge-row"><span class="badge badge-gray">Rejected</span></span></td>
-            <td>Engaging but manipulative dark pattern. Not appropriate for a fitness-focused app.</td>
-          </tr>
-        </table>
-      </div>
+
     </div>
 
     <!-- Figma Prototype -->
@@ -1107,7 +1204,7 @@
       <div class="figma-link-text">
         <h4>Interactive Lo-Fi Prototype</h4>
         <p>Early-stage Figma prototype covering key user flows: Onboarding → Home → Record Session → Badge Wall → Community → Profile. Click-through prototype validated with 3 users before development began.</p>
-        <a href="https://www.figma.com/community/file/1625778785963755224/low-fidelity2" target="_blank" rel="noopener noreferrer">View Figma Prototype</a>
+        <a href="https://www.figma.com/community/file/1625778785963755224/low-fidelity2" target="_blank">View Low-Fidelity Prototype →</a>
       </div>
     </div>
   </div>
@@ -1124,30 +1221,78 @@
 
     <!-- Architecture Diagram -->
     <div class="subsection-label">System Architecture</div>
-    <div class="arch-diagram">
-<pre>
- ┌─────────────────────────────────────────────────────────────────────────┐
- │                    <span class="arch-highlight">BETAUP — SYSTEM ARCHITECTURE</span>                         │
- │                                                                         │
- │  ┌──────────────────────────────────────────────────────────────────┐   │
- │  │              <span class="arch-label">Flutter Client  (Web Browser / Mobile)</span>             │   │
- │  │    Auth · Record Session · Profile · Community · Explore · Map   │   │
- │  │    Voice Assistant  (Web Speech API → DeepSeek → flutter_tts)    │   │
- │  └───────────────────────────┬──────────────────────────────────────┘   │
- │                              │  HTTPS  /  REST API  (JSON)              │
- │  ┌───────────────────────────▼──────────────────────────────────────┐   │
- │  │          <span class="arch-label">Spring Boot 3.x  Backend  (Java 21 · Port 8080)</span>          │   │
- │  │    JWT Authentication · JPA / Hibernate · Business Logic          │   │
- │  │    Achievement Engine · Notification Service · Admin Module       │   │
- │  └───────────┬────────────────────────┬───────────────────┬─────────┘   │
- │              │                        │                   │             │
- │  ┌───────────▼───────────┐  ┌─────────▼──────────┐  ┌────▼──────────┐  │
- │  │  <span class="arch-label">H2 In-Memory (Dev)</span>    │  │  <span class="arch-label">DeepSeek Chat API</span> │  │  <span class="arch-label">Geolocator</span>    │  │
- │  │  MySQL / PostgreSQL   │  │  NLP for Voice      │  │  Location     │  │
- │  │  (Production target)  │  │  Assistant (LLM)    │  │  Services     │  │
- │  └───────────────────────┘  └────────────────────┘  └───────────────┘  │
- └─────────────────────────────────────────────────────────────────────────┘
-</pre>
+    <div class="arch-visual">
+
+      <!-- Flutter Client Layer -->
+      <div class="av-layer av-flutter">
+        <div class="av-layer-badge">Flutter Client &nbsp;·&nbsp; Web Browser / Mobile (Dart 3)</div>
+        <div class="av-tags">
+          <span class="av-tag av-tag-blue">Auth &amp; Onboarding</span>
+          <span class="av-tag av-tag-blue">Session Recording</span>
+          <span class="av-tag av-tag-blue">Profile &amp; Badges</span>
+          <span class="av-tag av-tag-blue">Community Feed</span>
+          <span class="av-tag av-tag-blue">Explore &amp; Map</span>
+          <span class="av-tag av-tag-blue">Coach Panel</span>
+          <span class="av-tag av-tag-blue">Admin Dashboard</span>
+        </div>
+        <div class="av-tags">
+          <span class="av-tag av-tag-dim">🎙 Voice · Web Speech API → DeepSeek NLP → flutter_tts</span>
+          <span class="av-tag av-tag-dim">❤️ BLE Heart Rate · flutter_blue_plus</span>
+          <span class="av-tag av-tag-dim">📍 GPS · flutter_map · Geolocator</span>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div class="av-connector">
+        <div class="av-conn-line"></div>
+        <div class="av-conn-text">HTTPS &nbsp;·&nbsp; REST API &nbsp;·&nbsp; JSON &nbsp;·&nbsp; JWT Bearer Token</div>
+        <div class="av-conn-line"></div>
+        <div class="av-conn-arrow">▾</div>
+      </div>
+
+      <!-- Spring Boot Layer -->
+      <div class="av-layer av-backend">
+        <div class="av-layer-badge">Spring Boot 3.x Backend &nbsp;·&nbsp; Java 21 · Port 8080</div>
+        <div class="av-tags">
+          <span class="av-tag av-tag-orange">JWT Authentication</span>
+          <span class="av-tag av-tag-orange">Role Control · CLIMBER / COACH / ADMIN</span>
+          <span class="av-tag av-tag-orange">JPA / Hibernate</span>
+        </div>
+        <div class="av-tags">
+          <span class="av-tag av-tag-orange">Achievement Engine</span>
+          <span class="av-tag av-tag-orange">Community Module</span>
+          <span class="av-tag av-tag-orange">Coach Certification Workflow</span>
+          <span class="av-tag av-tag-orange">Admin Dashboard</span>
+          <span class="av-tag av-tag-orange">Notification Service</span>
+        </div>
+      </div>
+
+      <!-- Branch arrows -->
+      <div class="av-branch-row">
+        <div class="av-branch"><div class="av-branch-inner"><div class="av-branch-line"></div><div class="av-branch-arrow"></div></div></div>
+        <div class="av-branch"><div class="av-branch-inner"><div class="av-branch-line"></div><div class="av-branch-arrow"></div></div></div>
+        <div class="av-branch"><div class="av-branch-inner"><div class="av-branch-line"></div><div class="av-branch-arrow"></div></div></div>
+      </div>
+
+      <!-- Data / External Services -->
+      <div class="av-bottom">
+        <div class="av-data">
+          <div class="av-data-icon">🗄️</div>
+          <div class="av-data-name">H2 / MySQL</div>
+          <div class="av-data-desc">H2 in-memory for development · MySQL / PostgreSQL for production</div>
+        </div>
+        <div class="av-data">
+          <div class="av-data-icon">🤖</div>
+          <div class="av-data-name">DeepSeek Chat API</div>
+          <div class="av-data-desc">NLP engine for voice assistant — parses climbing commands into structured actions</div>
+        </div>
+        <div class="av-data">
+          <div class="av-data-icon">🌐</div>
+          <div class="av-data-name">Location + BLE</div>
+          <div class="av-data-desc">Geolocator for gym discovery · flutter_blue_plus for wearable heart rate stream</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Tech Stack -->
@@ -1163,6 +1308,7 @@
       <span class="pill pill-green">JWT Authentication</span>
       <span class="pill pill-blue">REST / JSON</span>
       <span class="pill pill-orange">Geolocator</span>
+      <span class="pill pill-blue">flutter_blue_plus (BLE)</span>
       <span class="pill pill-green">GitHub Pages</span>
     </div>
 
@@ -1197,22 +1343,14 @@
             </td>
             <td style="color:var(--summit);font-family:'Space Mono',monospace;font-size:0.72rem;">Full Stack Engineering</td>
             <td>
-              <ul class="contrib-ul">
-                <li>Designed and built the complete Spring Boot REST API — 70+ endpoints spanning Auth, Climbs, Sessions, Badges, Community, Notifications, Map, and Admin modules</li>
-                <li>Built the entire Flutter frontend — 15+ screens, custom navigation shell (MainShell), and responsive layout for web and mobile</li>
-                <li>Designed and implemented JWT authentication system with role-based access control (CLIMBER / COACH / ADMIN)</li>
-                <li>Built the gamification engine: badge unlock trigger logic, streak calculation, XP accumulation, automatic push notifications on unlock</li>
-                <li>Integrated DeepSeek Chat API with multi-turn system prompt engineering for structured JSON action extraction</li>
-                <li>Implemented full voice assistant pipeline: Web Speech API STT → DeepSeek NLP → flutter_tts TTS</li>
-                <li>Designed the panda voice assistant UI widget using custom Flutter <code>CustomPainter</code> (ears, face, eye patches, animated pulse dot)</li>
-                <li>Built the real-time notification system (new badge, follow, coach approval, community interactions)</li>
-                <li>Implemented the full community module: posts, comments, likes, follow/unfollow social graph</li>
-                <li>Built the coach certification workflow: user applies → admin reviews → approve or reject → role upgrade</li>
-                <li>Built the admin dashboard: user management, content moderation, platform statistics</li>
-                <li>Implemented location-based gym discovery with Geolocator and interactive map integration</li>
-                <li>Designed the complete database schema and JPA entity model (12+ entities, relationships, cascades)</li>
-                <li>Set up GitHub repository structure, commit conventions, and wrote deployment configuration</li>
-              </ul>
+              <div class="ctag-row">
+                <span class="ctag ctag-orange">System architecture</span>
+                <span class="ctag ctag-orange">Backend development</span>
+                <span class="ctag ctag-orange">Frontend development</span>
+                <span class="ctag ctag-orange">Database design</span>
+                <span class="ctag ctag-orange">UI/UX design</span>
+                <span class="ctag ctag-orange">Questionnaire</span>
+              </div>
             </td>
           </tr>
           <tr>
@@ -1223,7 +1361,13 @@
             </td>
             <td style="color:var(--moss);font-family:'Space Mono',monospace;font-size:0.72rem;">Research &amp; Discovery</td>
             <td>
-              <div class="placeholder-note" style="margin:0;">[Placeholder — Yang Renyu to fill in: user interview design, questionnaire creation, survey distribution, persona validation, user journey map creation, field research at climbing venue]</div>
+              <div class="ctag-row">
+                <span class="ctag ctag-green">User interviews</span>
+                <span class="ctag ctag-green">Persona &amp; journey map</span>
+                <span class="ctag ctag-green">Literature review</span>
+                <span class="ctag ctag-green">Questionnaire design</span>
+                <span class="ctag ctag-green">Poster design</span>
+              </div>
             </td>
           </tr>
           <tr>
@@ -1232,20 +1376,32 @@
               <span>陈子熹 · 2362352</span>
               <div class="contrib-role">UI / UX Design</div>
             </td>
-            <td style="color:var(--sky);font-family:'Space Mono',monospace;font-size:0.72rem;">Design &amp; Frontend</td>
+            <td style="color:var(--sky);font-family:'Space Mono',monospace;font-size:0.72rem;">Design &amp; Prototype</td>
             <td>
-              <div class="placeholder-note" style="margin:0;">[Placeholder — Chen Zixi to fill in: Figma low-fi and hi-fi prototype design, visual style guide, map/explore screen frontend implementation, database schema review and fixes]</div>
+              <div class="ctag-row">
+                <span class="ctag ctag-blue">Lo-fi &amp; hi-fi prototype</span>
+                <span class="ctag ctag-blue">Visual design system</span>
+                <span class="ctag ctag-blue">Concept sketches</span>
+                <span class="ctag ctag-blue">Frontend development</span>
+                <span class="ctag ctag-blue">Database schema review</span>
+              </div>
             </td>
           </tr>
           <tr>
             <td>
               <strong>Yang Mengxi</strong>
               <span>杨梦溪 · 2364303</span>
-              <div class="contrib-role">Evaluation</div>
+              <div class="contrib-role">Media & Research</div>
             </td>
-            <td style="color:var(--accent);font-family:'Space Mono',monospace;font-size:0.72rem;">Testing &amp; Media</td>
+            <td style="color:var(--accent);font-family:'Space Mono',monospace;font-size:0.72rem;">Media &amp; Research</td>
             <td>
-              <div class="placeholder-note" style="margin:0;">[Placeholder — Yang Mengxi to fill in: usability testing with 3 participants, SUS questionnaire design and analysis, poster design (Week 8), 2-minute demo video production]</div>
+              <div class="ctag-row">
+                <span class="ctag ctag-gold">Poster design</span>
+                <span class="ctag ctag-gold">Demo video</span>
+                <span class="ctag ctag-gold">Interviews &amp; survey</span>
+                <span class="ctag ctag-gold">Evaluation report</span>
+                <span class="ctag ctag-gold">Concept design</span>
+              </div>
             </td>
           </tr>
         </tbody>

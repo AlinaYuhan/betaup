@@ -1,133 +1,122 @@
 # BetaUp
 
-BetaUp 是一个面向攀岩者（Climber）和教练（Coach）的全栈 Web 应用。
+> **"Beta"** is climber slang for route information — tips, sequences, and moves that help others send a problem. BetaUp is where climbers share that knowledge, track every send, and level up together.
 
-当前项目采用：
+BetaUp 是一款面向攀岩者与教练的全栈训练社交应用，融合游戏化成就系统、AI 语音助手与实时社区互动，让每次训练都变成有意义的进步记录。
 
-- 后端：Java 21、Spring Boot 3、Spring Security、Spring Data JPA、MySQL、JWT、Maven
-- 前端：React、Vite、React Router、Axios、Tailwind CSS
+---
 
-## 当前已实现功能
+## ✨ 核心功能 / Key Features
 
-### 1. 用户认证与安全
+### 🧗 训练记录 / Climb Logging
+- 记录每次攀爬：线路难度、攀爬类型（Flash / Redpoint / Attempt）、训练时长
+- 语音输入——对 Panda 说"记录一个 V5 完成"即可免手操作
+- 自动生成会话总结与进度图表
 
-- 用户注册
-- 用户登录
-- 基于 JWT 的接口鉴权
-- 获取当前登录用户信息
-- 基于角色的页面与接口访问控制
-  - `CLIMBER`
-  - `COACH`
+### 🏅 游戏化成就 / Gamification
+- 20+ 成就徽章：首次完成、连续打卡、解锁新难度等
+- XP 经验值系统，徽章解锁触发庆祝动画（Confetti）
+- 个人主页徽章墙，进度一目了然
 
-### 2. Climber 功能
+### 🤖 AI 语音助手 Panda / AI Voice Assistant
+- 可拖动熊猫头像，点击激活语音界面
+- 基于 DeepSeek NLP + Web Speech API，自然语言理解攀岩指令
+- 支持：记录攀爬、查询统计、开始/结束训练、问天气等
+- TTS 语音回复，全程免触屏操作
 
-- 创建 climb log
-- 查看自己的 climb log 列表
-- 查看单条 climb log
-- 编辑 climb log
-- 删除未被 feedback 关联的 climb log
-- climb log 列表支持：
-  - 分页
-  - 排序
+### 👥 社区 / Community
+- 发布动态、上传攀爬照片/视频（最多 6 张）
+- **Beta 分享区**：发布线路 Beta（过线技巧），标记线路名称与难度，帮助其他人突破难关
+- 点赞、评论、关注其他攀岩者
+- 实时排行榜：按次数、最高级别、XP 排名
 
-### 3. Coach 功能
+### 🗺️ 探索地图 / Explore
+- 基于 GPS 定位附近岩馆
+- 岩馆地图 + 打卡签到（积累地点徽章）
+- 心率监测（蓝牙 BLE 设备连接）
 
-- 查看 climber roster
-- 按姓名或邮箱搜索 climber
-- 查看单个 climber 详情
-- 查看 climber 的 recent climbs 和 feedback 历史
-- 创建 feedback
-- 编辑自己创建的 feedback
-- 删除自己创建的 feedback
-- feedback 列表支持：
-  - 按 climber 筛选
-  - 按 rating 筛选
-  - 分页
-  - 排序
-- climber roster 支持：
-  - 分页
-  - 排序
+### 🏫 教练系统 / Coach Connect
+- 教练认证申请 → 管理员审核 → 激活教练权限
+- 教练可查看学员训练数据、发布反馈与训练计划
+- 学员可在 App 内直接接收并回复教练反馈
 
-### 4. Badge 系统
+### 🛠️ 管理后台 / Admin Dashboard
+- 用户管理与内容审核
+- 教练申请审批
+- 全站数据统计
 
-- 系统启动时自动补充默认 badge 规则
-- 根据用户行为自动授予 badge
-  - 总日志数
-  - 完成攀爬数
-  - 收到 feedback 数
-- 查看我的 badge
-- 查看 badge progress
-- Coach 可管理 badge 规则
-  - 创建规则
-  - 编辑规则
-  - 删除规则
-- badge 规则变更后会自动重新同步 climber badge 状态
+---
 
-### 5. Dashboard
+## 🏗️ 技术架构 / Tech Stack
 
-- Climber dashboard
-  - metrics
-  - breakdown
-  - recent activity
-  - chart 数据
-- Coach dashboard
-  - metrics
-  - roster breakdown
-  - recent coaching activity
-  - chart 数据
-- dashboard 支持时间范围筛选
-  - `LAST_30_DAYS`
-  - `LAST_90_DAYS`
-  - `LAST_180_DAYS`
-  - `ALL_TIME`
-- dashboard 支持导出 CSV
+```
+┌────────────────────────────────────────────────┐
+│         Flutter Client (Web / Mobile)           │
+│  Auth · Record · Profile · Community · Explore  │
+│  Voice Assistant (Web Speech API + flutter_tts) │
+└──────────────────┬─────────────────────────────┘
+                   │ HTTPS REST API (JSON)
+┌──────────────────▼─────────────────────────────┐
+│      Spring Boot 3.x Backend (Port 8080)        │
+│  JWT Auth · JPA/Hibernate · Achievement Engine  │
+└──────────┬──────────────┬───────────────────────┘
+           │              │
+    ┌──────▼──────┐  ┌────▼────────────┐
+    │  H2 / MySQL │  │  DeepSeek API   │
+    └─────────────┘  └─────────────────┘
+```
 
-### 6. 前端页面与交互
+| 层 | 技术 |
+|----|------|
+| 移动/Web 前端 | Flutter 3.x · Dart |
+| 后端 API | Spring Boot 3.2 · Java 21 |
+| 数据库 | H2 In-Memory (Dev) · MySQL (Prod) |
+| 认证 | JWT (Bearer Token) · 角色权限 CLIMBER / COACH / ADMIN |
+| AI 语音 | DeepSeek Chat API · Web Speech API · flutter_tts |
+| 地图 | Geolocator · flutter_map |
+| 硬件 | flutter_blue_plus (BLE 心率) |
+| 图表 | fl_chart |
+| Portfolio | GitHub Pages |
 
-- 登录页
-- 注册页
-- Climber 页面
-  - Dashboard
-  - Climb Logs
-  - New Log
-  - Badges
-  - Feedback
-- Coach 页面
-  - Dashboard
-  - Climbers
-  - Climber Detail
-  - Feedback
-  - New Feedback
-  - Badge Rules
-- 所有核心页面已完成基础 UI、导航和后端联调
+---
 
-### 7. 后端基础能力
+## 🚀 本地运行 / Running Locally
 
-- 统一响应结构 `ApiResponse`
-- 全局异常处理
-- JPA 实体与关系建模
-- MySQL 持久化
-- 通用分页返回 `PageResponse`
-- 分页与排序参数统一抽象
+### 后端 Backend
 
-## 当前项目状态
+```bash
+cd backend
+./mvnw spring-boot:run
+# API 运行在 http://localhost:8080
+```
 
-目前 BetaUp 已经不是纯脚手架，已经具备可以本地运行和演示的 MVP 主链路：
+### Flutter 前端 Frontend
 
-- 注册 / 登录
-- Climber 记录训练
-- Coach 写反馈
-- Badge 自动计算
-- Dashboard 展示与导出
+```bash
+cd mobile_flutter
+flutter pub get
+flutter run -d chrome   # Web 演示
+# 或
+flutter run             # 连接 Android / iOS 设备
+```
 
-## 暂未完成
+> Flutter Web 需要 Chrome，后端默认使用 H2 内存数据库，无需额外配置 MySQL 即可启动演示。
 
-以下内容还没有做完，或者只做了基础版本：
+---
 
-- 更细粒度的权限模型（例如 Admin）
-- 更完整的 badge 规则治理
-- 更复杂的 dashboard 统计分析
-- 更完整的 CRUD 覆盖和批量操作
-- 集成测试与更系统的自动化测试
-- seed data / 初始化演示数据
-- 生产环境部署配置
+## 👥 团队 / Team — CPT208 · Group C2-6
+
+| 成员 | 角色 | 主要贡献 |
+|------|------|---------|
+| **Cao Yuhan 曹雨涵** | Lead Developer | 全栈开发：Spring Boot REST API（70+ 端点）、Flutter 全部页面（15+ 屏）、JWT 认证、游戏化引擎、AI 语音助手、社区模块、教练系统、管理后台、地图集成、数据库设计 |
+| **Yang Renyu 杨仁雨** | User Research | 用户访谈、问卷设计、Persona 建立、用户旅程地图 |
+| **Chen Zixi 陈子熹** | UI/UX Design | Figma 原型（低保真 + 高保真）、视觉风格指南、探索页前端、数据库 Schema 审查 |
+| **Yang Mengxi 杨梦溪** | Evaluation | 可用性测试、SUS 问卷、项目海报设计、演示视频制作 |
+
+---
+
+## 🔗 Links
+
+- **Portfolio**: [alinayuhan.github.io/betaup](https://alinayuhan.github.io/betaup)
+- **GitHub**: [github.com/AlinaYuhan/betaup](https://github.com/AlinaYuhan/betaup)
+- **CPT208** · University of Liverpool / XJTLU · 2025–2026
