@@ -453,8 +453,8 @@ class _AuthScreenState extends State<AuthScreen>
                 padding: const EdgeInsets.only(right: 16),
                 child: Icon(
                   _passwordVisible
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   size: 18,
                   color: _muted,
                 ),

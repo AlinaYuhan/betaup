@@ -20,6 +20,7 @@ class AppSession extends ChangeNotifier {
   bool _isInitializing = true;
   int _profileVersion = 0;
   int _voiceVersion = 0;
+  String? _nearbyGymName;
 
   bool get isInitializing => _isInitializing;
   bool get isAuthenticated =>
@@ -28,6 +29,12 @@ class AppSession extends ChangeNotifier {
   UserProfile? get user => _user;
   int get profileVersion => _profileVersion;
   int get voiceVersion => _voiceVersion;
+  String? get nearbyGymName => _nearbyGymName;
+
+  void setNearbyGym(String? name) {
+    _nearbyGymName = name;
+    // No notifyListeners — this is background context, not UI state.
+  }
 
   void bumpVoiceVersion() {
     _voiceVersion++;

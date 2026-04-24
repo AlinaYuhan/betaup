@@ -23,6 +23,7 @@ class VoiceService extends ChangeNotifier {
   VoiceState _state = VoiceState.idle;
   String? _errorMessage;
   bool _sttReady = false;
+  String _sttLocale = 'zh-CN'; // toggleable by user
   bool _processingTriggered = false;
   bool _conversationOpen = false;
   final List<ChatMessage> _messages = [];
@@ -31,6 +32,13 @@ class VoiceService extends ChangeNotifier {
 
   VoiceState get state => _state;
   String? get errorMessage => _errorMessage;
+  String get sttLocale => _sttLocale;
+
+  void toggleSttLocale() {
+    _sttLocale = _sttLocale == 'zh-CN' ? 'en-US' : 'zh-CN';
+    _sttReady = false; // force re-init with new locale
+    notifyListeners();
+  }
   bool get conversationOpen => _conversationOpen;
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   List<BadgeProgress> get pendingBadges => _pendingBadges ?? const [];
@@ -111,6 +119,13 @@ class VoiceService extends ChangeNotifier {
       return;
     }
 
+    try {
+      await _stt.stop();
+    } catch (_) {}
+    // Brief pause so any stale onStatus("done") callbacks fire while we're
+    // still in idle state and get ignored by _handleListeningDone's guard.
+    await Future.delayed(const Duration(milliseconds: 150));
+
     _interimText = null;
     _processingTriggered = false;
     _setState(VoiceState.listening);
@@ -125,6 +140,7 @@ class VoiceService extends ChangeNotifier {
       },
       listenFor: const Duration(seconds: 60),
       pauseFor: const Duration(seconds: 3),
+      localeId: _sttLocale,
     );
   }
 
@@ -184,28 +200,50 @@ class VoiceService extends ChangeNotifier {
     _messages.add(ChatMessage(text: text, isUser: true));
     notifyListeners();
 
+    String replyText;
+    VoiceAction action = const NoAction();
+    bool isFallback = false;
+
     try {
-      final historyForLlm = _messages.length > 1
-          ? _messages.sublist(0, _messages.length - 1)
+      // Only send real (non-fallback) messages as history to avoid teaching
+      // the AI to mimic short/empty responses it generated during failures.
+      final realHistory = _messages
+          .where((m) => !m.isFallback)
+          .toList();
+      final historyForLlm = realHistory.length > 1
+          ? realHistory.sublist(0, realHistory.length - 1)
           : const <ChatMessage>[];
 
       final result =
           await _deepseek.chat(text, _session, history: historyForLlm);
 
-      _messages.add(ChatMessage(text: result.reply, isUser: false));
-      notifyListeners();
-
-      _setState(VoiceState.responding);
-      await speakText(result.reply);
-      await _executeAction(result.action);
-      _setState(VoiceState.idle);
-
-      if (_conversationOpen) {
-        await Future.delayed(const Duration(milliseconds: 300));
-        await startListening();
+      replyText = result.reply.trim();
+      if (replyText.isEmpty) {
+        replyText = _sttLocale == 'zh-CN'
+            ? "好的，我明白了！"
+            : "Got it!";
+        isFallback = true;
       }
-    } catch (e) {
-      _setError(e.toString());
+      action = result.action;
+    } catch (_) {
+      replyText = _sttLocale == 'zh-CN'
+          ? "抱歉，我没有响应，你可以重新说一遍吗？"
+          : "Sorry, something went wrong. Could you say that again?";
+      isFallback = true;
+    }
+
+    // Always show the reply bubble before going back to listening.
+    _messages.add(ChatMessage(text: replyText, isUser: false, isFallback: isFallback));
+    notifyListeners();
+
+    _setState(VoiceState.responding);
+    await speakText(replyText);
+    await _executeAction(action);
+    _setState(VoiceState.idle);
+
+    if (_conversationOpen) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      await startListening();
     }
   }
 

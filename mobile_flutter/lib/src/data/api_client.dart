@@ -158,6 +158,10 @@ class ApiClient {
     return SessionSummary.fromJson(JsonMap.from(data as Map));
   }
 
+  Future<void> deleteSession(int sessionId) async {
+    await _send("DELETE", "/sessions/$sessionId");
+  }
+
   Future<List<SessionSummary>> fetchSessions(
       {int page = 0, int size = 10}) async {
     final data = await _send(

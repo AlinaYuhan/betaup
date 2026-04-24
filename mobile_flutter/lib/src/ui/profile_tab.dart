@@ -227,17 +227,16 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                 const SizedBox(height: 4),
                 Text(user.email, style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
                     _StatChip(label: "日志", value: totalLogs),
-                    const SizedBox(width: 12),
                     _StatChip(label: "完成", value: completed),
-                    const SizedBox(width: 12),
                     GestureDetector(
                       onTap: () => _openFollowList(context, isFollowers: false),
                       child: _StatChip(label: "关注", value: user.followingCount),
                     ),
-                    const SizedBox(width: 12),
                     GestureDetector(
                       onTap: () => _openFollowList(context, isFollowers: true),
                       child: _StatChip(label: "粉丝", value: user.followerCount),

@@ -24,6 +24,21 @@ extension type _SpeechSynthesisUtterance._(JSObject _) implements JSObject {
 }
 
 class VoiceSpeechBridge {
+  // Detect whether the text is primarily English or Chinese.
+  static String _detectLang(String text) {
+    if (text.isEmpty) return 'zh-CN';
+    int ascii = 0;
+    int total = 0;
+    for (final rune in text.runes) {
+      if (rune > 0x20) {
+        total++;
+        if (rune < 0x7F) ascii++;
+      }
+    }
+    if (total == 0) return 'zh-CN';
+    return (ascii / total) > 0.6 ? 'en-US' : 'zh-CN';
+  }
+
   static Future<void> speak(String text) async {
     final synth = _window.speechSynthesis;
     if (synth == null) {
@@ -32,7 +47,7 @@ class VoiceSpeechBridge {
 
     synth.cancel();
     final utterance = _SpeechSynthesisUtterance(text)
-      ..lang = 'zh-CN'
+      ..lang = _detectLang(text)
       ..rate = 0.85
       ..volume = 1.0;
 

@@ -12,6 +12,7 @@ import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,5 +57,10 @@ public class SessionController {
     @GetMapping("/{id}/climbs")
     public ResponseEntity<ApiResponse<List<ClimbLogResponse>>> getSessionClimbs(@PathVariable Long id) {
         return ResponseEntity.ok(climbService.getClimbsBySession(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteSession(@PathVariable Long id) {
+        return ResponseEntity.ok(sessionService.deleteSession(id));
     }
 }

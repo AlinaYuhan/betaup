@@ -76,8 +76,15 @@ class NoAction extends VoiceAction {
 
 /// One turn in the voice conversation.
 class ChatMessage {
-  const ChatMessage({required this.text, required this.isUser});
+  const ChatMessage({
+    required this.text,
+    required this.isUser,
+    this.isFallback = false,
+  });
 
   final String text;
   final bool isUser;
+  /// True for error/fallback messages that should NOT be sent to the AI as
+  /// conversation history (they'd teach the model to give terse responses).
+  final bool isFallback;
 }

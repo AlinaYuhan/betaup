@@ -15,4 +15,6 @@ public interface SessionService {
     ApiResponse<SessionSummaryDto> endSession(Long sessionId);
 
     ApiResponse<PageResponse<SessionSummaryDto>> getUserSessions(int page, int size);
+
+    ApiResponse<Void> deleteSession(Long sessionId);
 }

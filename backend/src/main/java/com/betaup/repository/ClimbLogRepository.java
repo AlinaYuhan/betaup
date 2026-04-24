@@ -66,4 +66,6 @@ public interface ClimbLogRepository extends JpaRepository<ClimbLog, Long> {
     List<UserCountProjection> countByUserIds(@Param("userIds") Collection<Long> userIds);
 
     List<ClimbLog> findBySessionIdIn(Collection<Long> sessionIds);
+
+    void deleteBySessionId(Long sessionId);
 }

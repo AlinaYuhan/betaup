@@ -238,6 +238,34 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
     }
   }
 
+  Future<void> _deleteSession(SessionSummary s) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("删除训练记录"),
+        content: Text("确定删除「${s.venue.isNotEmpty ? s.venue : '未指定场馆'}」的训练记录？此操作不可撤销，该次训练的所有攀爬记录也会一并删除。"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("取消")),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("删除", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await SessionScope.of(context).api.deleteSession(s.sessionId);
+      if (mounted) setState(() => _sessions.remove(s));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("删除失败：$e"), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> _initGps() async {
     try {
       _gyms = await SessionScope.of(context).api.fetchGyms();
@@ -273,6 +301,8 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
           _gpsStatus = _GpsStatus.farAway;
         }
       });
+      // Make nearby gym available to the voice assistant.
+      SessionScope.of(context).setNearbyGym(nearest?.name);
     } catch (_) {
       if (mounted) setState(() => _gpsStatus = _GpsStatus.failed);
     }
@@ -372,7 +402,12 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
   Future<void> _openClimbEditor() async {
     final saved = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-          builder: (_) => const ClimbEditorPage(existingId: null)),
+          builder: (_) => ClimbEditorPage(
+                existingId: null,
+                defaultVenue: _activeSession?.venue.isNotEmpty == true
+                    ? _activeSession!.venue
+                    : _gpsResult?.gym.name,
+              )),
     );
     if (saved == true) {
       _loadSessions();
@@ -452,7 +487,10 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
                 ],
               ),
             ),
-            ..._sessions.map((s) => _SessionCard(summary: s)),
+            ..._sessions.map((s) => _SessionCard(
+                  summary: s,
+                  onDelete: () => _deleteSession(s),
+                )),
           ],
 
           if (_sessionsLoading)
@@ -706,8 +744,9 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
 // ── Session card ─────────────────────────────────────────────────────────────
 
 class _SessionCard extends StatelessWidget {
-  const _SessionCard({required this.summary});
+  const _SessionCard({required this.summary, this.onDelete});
   final SessionSummary summary;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -726,6 +765,28 @@ class _SessionCard extends StatelessWidget {
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => SessionDetailPage(summary: summary),
         )),
+        onLongPress: onDelete == null ? null : () {
+          showModalBottomSheet(
+            context: context,
+            builder: (_) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.delete_outline, color: Colors.red),
+                    title: const Text("删除训练记录", style: TextStyle(color: Colors.red)),
+                    onTap: () { Navigator.pop(context); onDelete!(); },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.cancel_outlined),
+                    title: const Text("取消"),
+                    onTap: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
         child: Container(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(

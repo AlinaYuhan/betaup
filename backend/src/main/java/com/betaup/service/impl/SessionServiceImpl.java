@@ -106,6 +106,17 @@ public class SessionServiceImpl implements SessionService {
         return ApiResponse.success("Sessions loaded.", PageResponse.from(mapped));
     }
 
+    @Override
+    @Transactional
+    public ApiResponse<Void> deleteSession(Long sessionId) {
+        User user = currentUserService.requireAnyRole(UserRole.CLIMBER, UserRole.COACH);
+        ClimbSession session = sessionRepository.findByIdAndUserId(sessionId, user.getId())
+            .orElseThrow(() -> new ResourceNotFoundException("Session not found."));
+        climbLogRepository.deleteBySessionId(session.getId());
+        sessionRepository.delete(session);
+        return ApiResponse.success("Session deleted.", null);
+    }
+
     // ── helpers ────────────────────────────────────────────────────────────
 
     private SessionSummaryDto buildLightSummary(ClimbSession session, List<ClimbLog> logs) {

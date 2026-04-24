@@ -378,6 +378,22 @@ class _ConversationPanelState extends State<_ConversationPanel> {
                 ),
                 const Spacer(),
                 _StateChip(state: svc.state),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: svc.toggleSttLocale,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: Text(
+                      svc.sttLocale == 'zh-CN' ? '中' : 'EN',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 2),
                 IconButton(
                   icon: const Icon(Icons.close_rounded,

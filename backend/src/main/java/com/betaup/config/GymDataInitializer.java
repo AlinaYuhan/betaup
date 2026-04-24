@@ -18,7 +18,7 @@ public class GymDataInitializer implements ApplicationRunner {
     private final JdbcTemplate jdbcTemplate;
 
     // 每次修改岩馆列表后更新此数字，重启后端自动重新 seed，无需手动删数据库文件
-    private static final int EXPECTED_COUNT = 37;
+    private static final int EXPECTED_COUNT = 33;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -119,12 +119,6 @@ public class GymDataInitializer implements ApplicationRunner {
                 .phone("0512-68991234").openHours("13:00-22:00")
                 .types("boulder").bookingUrl("https://www.meituan.com/meishi/suzhou-koala")
                 .coverImageUrl("").logoUrl("").build(),
-
-            Gym.builder().name("独墅湖科教创新区攀岩馆").city("苏州")
-                .address("苏州市工业园区独墅湖科教创新区体育中心")
-                .lat(31.2810).lng(120.7135)
-                .phone("0512-62158899").openHours("08:00-20:00")
-                .types("boulder,lead").bookingUrl("").coverImageUrl("").logoUrl("").build(),
 
             // ── 北京 ──────────────────────────────────────────────────────────
             Gym.builder().name("野石攀岩·望京SOHO").city("北京")

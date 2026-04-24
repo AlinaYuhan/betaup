@@ -571,7 +571,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
             onChanged: (v) => setState(() => _isBeta = v),
             title: const Text("🧗 这是 Beta 线路"),
             subtitle: const Text("分享过线技巧，帮助其他人突破难关"),
-            activeThumbColor: const Color(0xFFFF7A18),
+            activeColor: const Color(0xFFFF7A18),
             contentPadding: EdgeInsets.zero,
           ),
           if (_isBeta) ...[
