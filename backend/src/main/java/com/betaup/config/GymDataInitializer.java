@@ -25,12 +25,19 @@ public class GymDataInitializer implements ApplicationRunner {
         if (gymRepository.count() == EXPECTED_COUNT) {
             return;
         }
-        // StatementCallback guarantees all three SQL statements run on the SAME connection,
-        // so the H2 session-level setting takes effect for the DELETE.
+
+        String disableConstraintSql = resolveDisableConstraintSql();
+        String enableConstraintSql = resolveEnableConstraintSql(disableConstraintSql);
+
+        // StatementCallback guarantees all statements run on the same connection,
+        // so session-level constraint toggles take effect for the DELETE.
         jdbcTemplate.execute((StatementCallback<Void>) stmt -> {
-            stmt.execute("SET REFERENTIAL_INTEGRITY FALSE");
-            stmt.execute("DELETE FROM gyms");
-            stmt.execute("SET REFERENTIAL_INTEGRITY TRUE");
+            stmt.execute(disableConstraintSql);
+            try {
+                stmt.execute("DELETE FROM gyms");
+            } finally {
+                stmt.execute(enableConstraintSql);
+            }
             return null;
         });
 
@@ -264,5 +271,23 @@ public class GymDataInitializer implements ApplicationRunner {
         );
 
         gymRepository.saveAll(gyms);
+    }
+
+    private String resolveDisableConstraintSql() {
+        return jdbcTemplate.execute((StatementCallback<String>) stmt -> {
+            String databaseProduct =
+                stmt.getConnection().getMetaData().getDatabaseProductName().toLowerCase();
+            if (databaseProduct.contains("mysql")) {
+                return "SET FOREIGN_KEY_CHECKS = 0";
+            }
+            return "SET REFERENTIAL_INTEGRITY FALSE";
+        });
+    }
+
+    private String resolveEnableConstraintSql(String disableConstraintSql) {
+        if ("SET FOREIGN_KEY_CHECKS = 0".equals(disableConstraintSql)) {
+            return "SET FOREIGN_KEY_CHECKS = 1";
+        }
+        return "SET REFERENTIAL_INTEGRITY TRUE";
     }
 }

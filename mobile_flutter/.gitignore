@@ -8,6 +8,7 @@ build/
 ios/Pods/
 ios/.symlinks/
 android/.gradle/
+android/key.properties
 android/app/debug
 android/app/profile
 android/app/release

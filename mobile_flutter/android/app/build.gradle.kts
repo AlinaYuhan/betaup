@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -6,6 +7,31 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use(keystoreProperties::load)
+}
+
+fun signingProperty(propertyName: String, envName: String): String? {
+    val fileValue = keystoreProperties.getProperty(propertyName)?.trim()
+    if (!fileValue.isNullOrEmpty()) {
+        return fileValue
+    }
+    val envValue = System.getenv(envName)?.trim()
+    return envValue?.takeIf { it.isNotEmpty() }
+}
+
+val releaseStoreFile = signingProperty("storeFile", "BETAUP_ANDROID_STORE_FILE")
+val releaseStorePassword = signingProperty("storePassword", "BETAUP_ANDROID_STORE_PASSWORD")
+val releaseKeyAlias = signingProperty("keyAlias", "BETAUP_ANDROID_KEY_ALIAS")
+val releaseKeyPassword = signingProperty("keyPassword", "BETAUP_ANDROID_KEY_PASSWORD")
+val hasReleaseSigning =
+    !releaseStoreFile.isNullOrEmpty() &&
+    !releaseStorePassword.isNullOrEmpty() &&
+    !releaseKeyAlias.isNullOrEmpty() &&
+    !releaseKeyPassword.isNullOrEmpty()
 
 android {
     namespace = "com.betaup.betaup_mobile"
@@ -28,11 +54,25 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig =
+                if (hasReleaseSigning) {
+                    signingConfigs.getByName("release")
+                } else {
+                    signingConfigs.getByName("debug")
+                }
         }
     }
 }
