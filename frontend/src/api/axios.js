@@ -1,7 +1,24 @@
 import axios from "axios";
 
+const PRODUCTION_API_BASE_URL = "https://backend-production-7727.up.railway.app/api";
+
+function resolveApiBaseUrl() {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+
+  if (typeof window !== "undefined") {
+    const { hostname } = window.location;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://localhost:8080/api";
+    }
+  }
+
+  return PRODUCTION_API_BASE_URL;
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api",
+  baseURL: resolveApiBaseUrl(),
   timeout: 10000,
 });
 

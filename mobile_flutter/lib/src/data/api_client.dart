@@ -426,6 +426,26 @@ class ApiClient {
     return (data as num).toInt();
   }
 
+  Future<({String reply, JsonMap? action})> voiceChat({
+    required List<JsonMap> messages,
+  }) async {
+    final data = await _send(
+      "POST",
+      "/voice/chat",
+      body: {"messages": messages},
+    );
+
+    final json = JsonMap.from(data as Map);
+    final action = json["action"] is Map
+        ? JsonMap.from(json["action"] as Map)
+        : null;
+
+    return (
+      reply: (json["reply"] as String? ?? "").trim(),
+      action: action,
+    );
+  }
+
   Future<void> markAllNotificationsRead() async {
     await _send("POST", "/notifications/mark-all-read");
   }

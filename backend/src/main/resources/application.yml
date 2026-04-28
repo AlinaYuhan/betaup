@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   profiles:
@@ -27,6 +27,8 @@ springdoc:
     path: /v3/api-docs
 
 app:
+  cors:
+    allowed-origin-patterns: ${BETAUP_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
   jwt:
     secret: ${BETAUP_JWT_SECRET:betaUpRoundOneSecretKeyChangeMe1234567890}
     expiration-ms: ${BETAUP_JWT_EXPIRATION_MS:86400000}
@@ -37,3 +39,7 @@ app:
     js-security-code: ${AMAP_JS_SECURITY_CODE:}
     web-service-key: ${AMAP_WEB_SERVICE_KEY:}
     geocode-url: ${AMAP_GEOCODE_URL:https://restapi.amap.com/v3/geocode/geo}
+  voice:
+    deepseek-api-key: ${BETAUP_DEEPSEEK_API_KEY:}
+    deepseek-endpoint: ${BETAUP_DEEPSEEK_ENDPOINT:https://api.deepseek.com/v1/chat/completions}
+    deepseek-model: ${BETAUP_DEEPSEEK_MODEL:deepseek-chat}
