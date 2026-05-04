@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BetaUp — CPT208 Process Portfolio · Group C2-6</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
 <style>
   /* ── Root ──────────────────────────────────────────────────────────── */
   :root {
@@ -21,6 +21,11 @@
     --text-body: #d8d1c6;
     --text-muted: #c3bcae;
     --text-dim: #9f988d;
+    --surface-elevated: #313943;
+    --surface-glass: rgba(43,49,56,0.74);
+    --shadow-soft: 0 18px 44px rgba(8, 10, 13, 0.22);
+    --shadow-strong: 0 32px 64px rgba(6, 8, 11, 0.3);
+    --page-width: 1240px;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,53 +38,95 @@
     color: var(--chalk);
     font-family: 'DM Sans', sans-serif;
     font-weight: 300;
+    line-height: 1.6;
     overflow-x: hidden;
+    min-height: 100vh;
+    position: relative;
+  }
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    inset: auto;
+    width: 26rem;
+    height: 26rem;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.16;
+    pointer-events: none;
+    z-index: -1;
+  }
+  body::before {
+    top: 8rem;
+    right: -8rem;
+    background: rgba(232,80,10,0.32);
+  }
+  body::after {
+    bottom: 10rem;
+    left: -8rem;
+    background: rgba(74,124,89,0.28);
   }
 
   /* ── Sticky Navigation ─────────────────────────────────────────────── */
   #topnav {
     position: sticky; top: 0; z-index: 200;
     display: flex; justify-content: space-between; align-items: center;
-    padding: 0.9rem 4rem;
-    background: rgba(34,40,49,0.94);
+    width: min(var(--page-width), calc(100% - 2rem));
+    margin: 1rem auto 0;
+    padding: 0.95rem 1.4rem;
+    background: rgba(34,40,49,0.82);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border-subtle);
-    transition: border-color 0.3s;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    transition: border-color 0.3s, transform 0.3s, background 0.3s;
   }
-  #topnav.scrolled { border-bottom-color: rgba(232,80,10,0.4); }
+  #topnav.scrolled {
+    border-bottom-color: rgba(232,80,10,0.4);
+    background: rgba(34,40,49,0.92);
+    transform: translateY(0.1rem);
+  }
   .nav-logo {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.3rem; letter-spacing: 0.15em;
+    font-size: 1.35rem; letter-spacing: 0.18em;
     color: var(--summit);
   }
-  .nav-links { display: flex; gap: 1.8rem; }
+  .nav-links { display: flex; gap: 1.3rem; align-items: center; }
   .nav-links a {
     font-family: 'Space Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 0.15em;
+    font-size: 0.68rem; letter-spacing: 0.14em;
     color: var(--text-dim); text-decoration: none;
     text-transform: uppercase;
-    transition: color 0.2s;
-    padding-bottom: 3px;
-    border-bottom: 1px solid transparent;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    white-space: nowrap;
   }
   .nav-links a:hover { color: var(--chalk); }
-  .nav-links a.active { color: var(--chalk); border-bottom-color: var(--summit); }
+  .nav-links a.active {
+    color: var(--chalk);
+    border-color: rgba(232,80,10,0.34);
+    background: rgba(232,80,10,0.08);
+  }
   .nav-tag {
     font-family: 'Space Mono', monospace;
-    font-size: 0.6rem; color: var(--granite);
-    letter-spacing: 0.1em;
-    border: 1px solid var(--border-subtle);
-    padding: 0.35rem 0.7rem; border-radius: 2px;
+    font-size: 0.62rem; color: var(--text-body);
+    letter-spacing: 0.12em;
+    border: 1px solid rgba(232,80,10,0.26);
+    background: rgba(232,80,10,0.08);
+    padding: 0.4rem 0.8rem; border-radius: 999px;
   }
 
   /* ── Hero ──────────────────────────────────────────────────────────── */
   .hero {
-    min-height: 100vh;
+    min-height: calc(100vh - 1rem);
     display: grid;
     grid-template-rows: 1fr auto;
     position: relative;
     overflow: hidden;
+    padding: 2rem 4rem 2.5rem;
   }
   .hero-bg {
     position: absolute; inset: 0; z-index: 0;
@@ -98,41 +145,227 @@
   }
   .hero-center {
     position: relative; z-index: 10;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    text-align: center; padding: 4rem 4rem 2rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
+    gap: 3rem;
+    align-items: center;
+    width: min(var(--page-width), 100%);
+    margin: 0 auto;
+    padding: 5rem 0 2rem;
+  }
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    max-width: 42rem;
   }
   .hero-eyebrow {
     font-family: 'Space Mono', monospace;
-    font-size: 0.65rem; letter-spacing: 0.3em;
+    font-size: 0.68rem; letter-spacing: 0.26em;
     color: var(--summit); text-transform: uppercase;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.3rem;
     opacity: 0; animation: fadeUp 0.8s ease 0.2s forwards;
   }
   .hero-title {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(5rem, 14vw, 11rem);
-    letter-spacing: 0.03em; line-height: 0.9;
-    color: var(--chalk); margin-bottom: 0.2em;
+    font-size: clamp(5rem, 12vw, 10rem);
+    letter-spacing: 0.02em; line-height: 0.88;
+    color: var(--chalk); margin-bottom: 0.18em;
     opacity: 0; animation: fadeUp 0.8s ease 0.4s forwards;
   }
   .hero-title span { color: var(--summit); }
   .hero-subtitle {
     font-size: clamp(1rem, 2.5vw, 1.4rem);
     font-weight: 400; color: var(--sky);
-    letter-spacing: 0.05em; margin-bottom: 2rem;
+    letter-spacing: 0.04em; margin-bottom: 1.4rem;
+    max-width: 28ch;
     opacity: 0; animation: fadeUp 0.8s ease 0.6s forwards;
   }
   .hero-tagline {
     font-family: 'Space Mono', monospace;
     font-size: 0.72rem; color: var(--text-muted);
-    letter-spacing: 0.2em;
+    letter-spacing: 0.16em;
     opacity: 0; animation: fadeUp 0.8s ease 0.8s forwards;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1s forwards;
+  }
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transition: transform 0.25s, border-color 0.25s, background 0.25s;
+  }
+  .hero-cta:hover { transform: translateY(-2px); }
+  .hero-cta.primary {
+    color: var(--chalk);
+    background: linear-gradient(135deg, rgba(232,80,10,0.92), rgba(240,165,0,0.82));
+    box-shadow: 0 14px 28px rgba(232,80,10,0.22);
+  }
+  .hero-cta.secondary {
+    color: var(--sky);
+    border: 1px solid rgba(200,223,232,0.24);
+    background: rgba(255,255,255,0.03);
+  }
+  .hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+    width: min(100%, 42rem);
+    margin-top: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1.15s forwards;
+  }
+  .hero-metric {
+    padding: 1rem 1.05rem;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: var(--shadow-soft);
+  }
+  .hero-metric-value {
+    display: block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+    color: var(--chalk);
+  }
+  .hero-metric-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .hero-panel {
+    position: relative;
+    padding: 1.75rem;
+    border-radius: 28px;
+    background:
+      linear-gradient(180deg, rgba(54,62,72,0.88) 0%, rgba(37,44,52,0.9) 100%);
+    border: 1px solid rgba(200,223,232,0.12);
+    box-shadow: var(--shadow-strong);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.95s forwards;
+  }
+  .hero-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at top right, rgba(232,80,10,0.18), transparent 34%),
+      linear-gradient(135deg, rgba(255,255,255,0.02), transparent 46%);
+    pointer-events: none;
+  }
+  .hero-panel > * { position: relative; z-index: 1; }
+  .hero-panel-kicker {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--summit);
+    margin-bottom: 0.9rem;
+  }
+  .hero-panel-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 0.95;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.8rem;
+  }
+  .hero-panel-copy {
+    font-size: 0.94rem;
+    color: var(--text-body);
+    line-height: 1.8;
+  }
+  .hero-panel-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-top: 1.35rem;
+  }
+  .hero-panel-card,
+  .hero-stack-card {
+    border-radius: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 1rem;
+  }
+  .hero-panel-card strong,
+  .hero-stack-card strong {
+    display: block;
+    color: var(--chalk);
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+  }
+  .hero-panel-card span,
+  .hero-stack-card span {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+  .hero-stack {
+    display: grid;
+    grid-template-columns: 1.3fr 0.95fr;
+    gap: 0.85rem;
+    margin-top: 0.85rem;
+  }
+  .hero-stack-card.accent {
+    background: linear-gradient(160deg, rgba(232,80,10,0.16), rgba(232,80,10,0.06));
+    border-color: rgba(232,80,10,0.22);
+  }
+  .hero-mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .hero-mini-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .hero-mini-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .hero-mini-item strong {
+    margin-bottom: 0;
+    font-size: 0.8rem;
+    font-family: 'Space Mono', monospace;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--text-body);
+  }
+  .hero-mini-item span {
+    font-size: 0.78rem;
+    color: var(--sky);
+    text-align: right;
   }
   .hero-bottom {
     position: relative; z-index: 10;
-    display: flex; justify-content: center;
-    padding-bottom: 3rem;
+    display: flex; justify-content: flex-start;
+    width: min(var(--page-width), 100%);
+    margin: 0 auto;
+    padding-bottom: 1rem;
   }
   .scroll-hint {
     font-family: 'Space Mono', monospace;
@@ -147,10 +380,10 @@
   }
 
   /* ── Section Basics ─────────────────────────────────────────────────── */
-  section { padding: 6rem 4rem; }
+  section { padding: 6rem 4rem; position: relative; }
   .section-label {
     font-family: 'Space Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 0.35em;
+    font-size: 0.66rem; letter-spacing: 0.28em;
     color: var(--summit); text-transform: uppercase;
     margin-bottom: 1rem;
     display: flex; align-items: center; gap: 1rem;
@@ -161,17 +394,23 @@
   .section-title {
     font-family: 'Bebas Neue', sans-serif;
     font-size: clamp(2.5rem, 6vw, 4.5rem);
+    letter-spacing: 0.03em;
     line-height: 1; margin-bottom: 1rem;
   }
   .section-intro {
-    font-size: 1rem; color: var(--text-body); line-height: 1.8;
-    max-width: 720px; margin-bottom: 3rem;
+    font-size: 1.02rem; color: var(--text-body); line-height: 1.9;
+    max-width: 42rem; margin-bottom: 3rem;
   }
-  .content-section { max-width: 1200px; margin: 0 auto; }
+  .content-section,
+  .process-section,
+  .team-section,
+  .links-section,
+  .research-section { max-width: var(--page-width); margin: 0 auto; }
   .divider {
     border: none; height: 1px;
     background: linear-gradient(to right, transparent, #373c44, transparent);
-    margin: 0 4rem;
+    margin: 0 auto;
+    width: min(calc(100% - 8rem), var(--page-width));
   }
   .subsection-label {
     font-family: 'Space Mono', monospace; font-size: 0.62rem;
@@ -183,39 +422,59 @@
   /* ── About Section ──────────────────────────────────────────────────── */
   .about {
     display: grid; grid-template-columns: 1fr 1fr;
-    gap: 6rem; align-items: start;
-    max-width: 1200px; margin: 0 auto;
+    gap: 4rem; align-items: start;
+    max-width: var(--page-width); margin: 0 auto;
   }
-  .about-text p { font-size: 1.05rem; line-height: 1.8; color: var(--text-body); margin-bottom: 1.5rem; }
+  .about-text p { font-size: 1.04rem; line-height: 1.85; color: var(--text-body); margin-bottom: 1.5rem; }
   .about-text p strong { color: var(--chalk); font-weight: 500; }
   .about-meta { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
   .meta-item {
     display: flex; flex-direction: column;
     border-left: 2px solid var(--summit); padding-left: 1rem;
   }
-  .meta-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--text-dim); text-transform: uppercase; }
+  .meta-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; color: var(--text-dim); text-transform: uppercase; }
   .meta-value { font-size: 0.95rem; color: var(--chalk); margin-top: 0.25rem; }
   .pill-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
-  .pill { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; padding: 0.35rem 0.8rem; border-radius: 2px; text-transform: uppercase; }
+  .pill { font-family: 'Space Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; padding: 0.42rem 0.85rem; border-radius: 999px; text-transform: uppercase; }
   .pill-green { background: rgba(74,124,89,0.2); color: var(--moss); border: 1px solid rgba(74,124,89,0.4); }
   .pill-orange { background: rgba(232,80,10,0.15); color: var(--summit); border: 1px solid rgba(232,80,10,0.4); }
   .pill-blue { background: rgba(200,223,232,0.1); color: var(--sky); border: 1px solid rgba(200,223,232,0.3); }
   .pill-gold { background: rgba(240,165,0,0.1); color: var(--accent); border: 1px solid rgba(240,165,0,0.3); }
-  .about-right { display: flex; flex-direction: column; gap: 1.5rem; }
+  .about-right { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
   .feature-card {
-    background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 4px;
-    padding: 1.5rem; position: relative; overflow: hidden;
-    transition: border-color 0.3s, transform 0.3s;
+    background: linear-gradient(180deg, rgba(53,60,68,0.95), rgba(40,46,53,0.92));
+    border: 1px solid rgba(200,223,232,0.1);
+    border-radius: 22px;
+    padding: 1.4rem; position: relative; overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    box-shadow: var(--shadow-soft);
+    min-height: 12.5rem;
   }
-  .feature-card:hover { border-color: var(--summit); transform: translateX(4px); }
+  .feature-card:hover {
+    border-color: rgba(232,80,10,0.4);
+    transform: translateY(-6px);
+    box-shadow: 0 24px 46px rgba(0,0,0,0.24);
+  }
   .feature-card::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
-    background: var(--summit); transform: scaleY(0); transition: transform 0.3s; transform-origin: bottom;
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at top right, rgba(232,80,10,0.16), transparent 35%);
+    opacity: 0;
+    transition: opacity 0.3s;
   }
-  .feature-card:hover::before { transform: scaleY(1); }
-  .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
-  .feature-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; color: var(--chalk); margin-bottom: 0.5rem; }
-  .feature-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    background: rgba(232,80,10,0.1);
+    border: 1px solid rgba(232,80,10,0.18);
+  }
+  .feature-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.18rem; letter-spacing: 0.06em; color: var(--chalk); margin-bottom: 0.55rem; }
+  .feature-desc { font-size: 0.87rem; color: var(--text-muted); line-height: 1.75; }
 
   /* ── Process Timeline ───────────────────────────────────────────────── */
   .process-section { max-width: 1200px; margin: 0 auto; }
@@ -270,15 +529,22 @@
   .member-github:hover { border-bottom-color: var(--sky); }
 
   /* ── Literature Review Tables ──────────────────────────────────────── */
-  .review-table-wrapper { margin-top: 1.5rem; overflow-x: auto; border-radius: 4px; border: 1px solid #242424; }
-  .table-caption { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0; padding: 0.8rem 1.25rem; background: #252b33; border-bottom: 1px solid var(--border-subtle); }
+  .review-table-wrapper {
+    margin-top: 1.5rem;
+    overflow-x: auto;
+    border-radius: 22px;
+    border: 1px solid rgba(200,223,232,0.1);
+    background: linear-gradient(180deg, rgba(43,49,56,0.98), rgba(34,40,49,0.96));
+    box-shadow: var(--shadow-soft);
+  }
+  .table-caption { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0; padding: 1rem 1.4rem; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border-subtle); }
   .review-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  .review-table th { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: var(--text-dim); text-transform: uppercase; padding: 0.9rem 1.25rem; background: #282f37; border-bottom: 1px solid var(--border-subtle); text-align: left; }
+  .review-table th { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.12em; color: var(--text-dim); text-transform: uppercase; padding: 1rem 1.4rem; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border-subtle); text-align: left; }
   .review-table th:first-child { width: 24%; }
-  .review-table td { padding: 1.25rem; border-bottom: 1px solid #22262b; vertical-align: top; line-height: 1.7; color: var(--text-body); }
+  .review-table td { padding: 1.35rem 1.4rem; border-bottom: 1px solid #22262b; vertical-align: top; line-height: 1.75; color: var(--text-body); }
   .review-table td:first-child { color: var(--chalk); }
   .review-table tr:last-child td { border-bottom: none; }
-  .review-table tr:hover td { background: rgba(255,255,255,0.018); }
+  .review-table tr:hover td { background: rgba(255,255,255,0.022); }
   .review-table td ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
   .review-table td ul li { margin-bottom: 0.3rem; }
   .cite-venue { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--summit); display: block; margin-top: 0.35rem; }
@@ -289,11 +555,12 @@
   /* ── Persona Cards ──────────────────────────────────────────────────── */
   .persona-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; }
   .persona-card {
-    background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 4px;
+    background: linear-gradient(180deg, rgba(53,60,68,0.92), rgba(39,45,52,0.94)); border: 1px solid rgba(200,223,232,0.1); border-radius: 22px;
     padding: 2rem; display: flex; gap: 1.5rem; align-items: flex-start;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    box-shadow: var(--shadow-soft);
   }
-  .persona-card:hover { border-color: var(--summit); }
+  .persona-card:hover { border-color: rgba(232,80,10,0.36); transform: translateY(-4px); box-shadow: 0 24px 46px rgba(0,0,0,0.22); }
   .persona-avatar {
     width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%;
     background: linear-gradient(135deg, #2a3a2a, #1a2530);
@@ -323,7 +590,13 @@
   /* ── Must-Have Feature Cards ────────────────────────────────────────── */
   .must-have-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1.5rem; }
   .must-have-card { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 2rem; position: relative; overflow: hidden; transition: border-color 0.3s, transform 0.3s; }
-  .must-have-card:hover { border-color: var(--summit); transform: translateY(-4px); }
+  .must-have-card {
+    background: linear-gradient(180deg, rgba(53,60,68,0.95), rgba(39,45,52,0.92));
+    border: 1px solid rgba(200,223,232,0.1);
+    border-radius: 22px;
+    box-shadow: var(--shadow-soft);
+  }
+  .must-have-card:hover { border-color: rgba(232,80,10,0.36); transform: translateY(-6px); }
   .must-have-number { font-family: 'Bebas Neue', sans-serif; font-size: 6rem; color: rgba(232,80,10,0.06); position: absolute; top: -1rem; right: 0.5rem; line-height: 1; pointer-events: none; }
   .must-have-icon { font-size: 2rem; margin-bottom: 0.75rem; }
   .must-have-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem; letter-spacing: 0.04em; color: var(--chalk); margin-bottom: 0.75rem; }
@@ -436,6 +709,15 @@
   /* ── AI Reflection ──────────────────────────────────────────────────── */
   .reflection-content { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem; }
   .ai-tool-block { background: #262c33; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 2rem; }
+  .ai-tool-block,
+  .ethics-block,
+  .ref-list,
+  .arch-visual,
+  .research-card,
+  .link-card,
+  .member-card {
+    box-shadow: var(--shadow-soft);
+  }
   .ai-tool-header { display: flex; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
   .ai-tool-badge { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; padding: 0.3rem 0.7rem; border-radius: 2px; white-space: nowrap; flex-shrink: 0; background: rgba(240,165,0,0.1); color: var(--accent); border: 1px solid rgba(240,165,0,0.3); }
   .ai-tool-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--chalk); letter-spacing: 0.04em; }
@@ -457,20 +739,134 @@
   /* ── Links Section ──────────────────────────────────────────────────── */
   .links-section { max-width: 1200px; margin: 0 auto; }
   .links-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
-  .link-card { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 2rem; display: flex; flex-direction: column; gap: 0.75rem; text-decoration: none; transition: border-color 0.3s, transform 0.3s; cursor: pointer; }
-  .link-card:hover { border-color: var(--summit); transform: translateY(-4px); }
-  .link-icon { font-size: 1.8rem; }
-  .link-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; color: var(--chalk); }
-  .link-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
-  .link-url { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--summit); margin-top: auto; }
+  .link-card {
+    background: linear-gradient(180deg, rgba(53,60,68,0.92), rgba(39,45,52,0.94));
+    border: 1px solid rgba(200,223,232,0.1);
+    border-radius: 22px;
+    padding: 1.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    text-decoration: none;
+    transition: border-color 0.3s, transform 0.3s;
+    cursor: pointer;
+  }
+  .link-card:hover { border-color: rgba(232,80,10,0.36); transform: translateY(-6px); }
+  .link-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-size: 1.25rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .link-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.16rem; letter-spacing: 0.06em; color: var(--chalk); }
+  .link-desc { font-size: 0.84rem; color: var(--text-muted); line-height: 1.7; }
+  .link-url { font-family: 'Space Mono', monospace; font-size: 0.66rem; color: var(--summit); margin-top: auto; letter-spacing: 0.05em; }
 
   /* ── Research Card ──────────────────────────────────────────────────── */
   .research-section { max-width: 1200px; margin: 0 auto; }
   .research-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem; }
-  .research-card { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 2rem; transition: border-color 0.3s; }
-  .research-card:hover { border-color: #444; }
-  .research-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 1rem; }
-  .research-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; }
+  .research-card { background: linear-gradient(180deg, rgba(53,60,68,0.92), rgba(39,45,52,0.94)); border: 1px solid rgba(200,223,232,0.1); border-radius: 22px; padding: 2rem; transition: border-color 0.3s, transform 0.3s; }
+  .research-card:hover { border-color: rgba(232,80,10,0.28); transform: translateY(-4px); }
+  .research-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.14rem; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 1rem; }
+  .research-card p { font-size: 0.87rem; color: var(--text-muted); line-height: 1.78; }
+
+  /* ── Unified Callouts ──────────────────────────────────────────────── */
+  .story-card,
+  .insight-banner,
+  .survey-callout,
+  .journey-story {
+    max-width: 860px;
+    border-radius: 22px;
+    padding: 2rem;
+    background: linear-gradient(180deg, rgba(43,49,56,0.96), rgba(35,41,48,0.94));
+    border: 1px solid rgba(200,223,232,0.1);
+    box-shadow: var(--shadow-soft);
+  }
+  .story-card p,
+  .survey-callout ul,
+  .journey-story p {
+    font-size: 0.92rem;
+    color: var(--text-body);
+    line-height: 1.9;
+  }
+  .story-card p + p { margin-top: 1.2rem; }
+  .insight-banner {
+    margin-top: 2rem;
+    background: linear-gradient(160deg, rgba(232,80,10,0.12), rgba(232,80,10,0.04));
+    border-color: rgba(232,80,10,0.24);
+    border-left: 3px solid var(--summit);
+  }
+  .callout-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.15em;
+    color: var(--summit);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+  .insight-banner p {
+    font-size: 0.89rem;
+    color: var(--text-body);
+    line-height: 1.85;
+  }
+  .survey-callout {
+    margin-bottom: 2rem;
+    background: linear-gradient(180deg, rgba(43,49,56,0.96), rgba(33,39,46,0.94));
+  }
+  .survey-callout ul {
+    padding-left: 1.2rem;
+    margin: 0;
+    line-height: 2;
+  }
+  .media-triptych {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  .media-panel-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--granite);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .media-panel-frame,
+  .journey-image {
+    overflow: hidden;
+    border-radius: 20px;
+    border: 1px solid rgba(200,223,232,0.1);
+    background: rgba(255,255,255,0.98);
+    box-shadow: var(--shadow-soft);
+  }
+  .media-panel-frame {
+    height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .media-panel-frame img,
+  .journey-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .journey-block { margin-bottom: 3rem; }
+  .journey-story { margin-bottom: 1.4rem; }
+  .journey-kicker {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.15em;
+    color: var(--moss);
+    text-transform: uppercase;
+    margin-bottom: 0.9rem;
+  }
 
   /* ── Footer ─────────────────────────────────────────────────────────── */
   footer { padding: 3rem 4rem; border-top: 1px solid #222; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 2rem; }
@@ -565,17 +961,36 @@
 
   /* ── Responsive ─────────────────────────────────────────────────────── */
   @media (max-width: 900px) {
-    #topnav { padding: 0.9rem 1.5rem; }
-    .nav-links { display: none; }
+    #topnav {
+      width: calc(100% - 1rem);
+      padding: 0.9rem 1rem;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+    }
+    .nav-links {
+      order: 3;
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
+    }
+    .hero {
+      padding: 1.25rem 1.5rem 2rem;
+    }
     section { padding: 4rem 2rem; }
     .divider { margin: 0 2rem; }
     .about { grid-template-columns: 1fr; gap: 3rem; }
+    .about-right { grid-template-columns: 1fr 1fr; }
+    .hero-center { grid-template-columns: 1fr; padding: 4rem 0 2rem; }
+    .hero-metrics,
+    .hero-panel-grid,
+    .hero-stack { grid-template-columns: 1fr; }
     .team-grid { grid-template-columns: 1fr 1fr; }
     .timeline { grid-template-columns: 1fr 1fr; }
     .persona-grid { grid-template-columns: 1fr; }
     .journey-map { grid-template-columns: 1fr 1fr; }
     .journey-map::before { display: none; }
     .must-have-grid { grid-template-columns: 1fr; }
+    .media-triptych { grid-template-columns: 1fr; }
     .interview-grid { grid-template-columns: repeat(3, 1fr); }
     .sketch-grid { grid-template-columns: repeat(2, 1fr); }
     .alt-section { grid-template-columns: 1fr; }
@@ -588,7 +1003,12 @@
     .footer-right { text-align: left; }
   }
   @media (max-width: 500px) {
-    .hero-center { padding: 2rem; }
+    .hero-center { padding: 2.75rem 0 1.5rem; }
+    .hero-copy { align-items: center; text-align: center; }
+    .hero-subtitle { max-width: 100%; }
+    .hero-bottom { justify-content: center; }
+    .about-right { grid-template-columns: 1fr; }
+    .hero-metrics { grid-template-columns: 1fr; }
     .team-grid { grid-template-columns: 1fr; }
     .timeline { grid-template-columns: 1fr; }
     .timeline::before { display: none; }
@@ -626,10 +1046,80 @@
   </svg>
 
   <div class="hero-center">
-    <div class="hero-eyebrow">Human-Centric Computing · Active Lifestyles · Process Portfolio</div>
-    <h1 class="hero-title">BETA<br><span>UP</span></h1>
-    <p class="hero-subtitle">Gamified systems for climbers &amp; coaches</p>
-    <p class="hero-tagline">XJTLU · CPT208 · GROUP C2-6 · SEMESTER 2 · 2025–2026</p>
+    <div class="hero-copy">
+      <div class="hero-eyebrow">Human-Centric Computing · Active Lifestyles · Process Portfolio</div>
+      <h1 class="hero-title">BETA<br><span>UP</span></h1>
+      <p class="hero-subtitle">A climbing companion that turns progress, coaching, and community into one cohesive experience.</p>
+      <p class="hero-tagline">XJTLU · CPT208 · GROUP C2-6 · SEMESTER 2 · 2025–2026</p>
+      <div class="hero-actions">
+        <a class="hero-cta primary" href="#about">Explore the Project</a>
+        <a class="hero-cta secondary" href="#system">See the System</a>
+      </div>
+      <div class="hero-metrics">
+        <div class="hero-metric">
+          <span class="hero-metric-value">8+</span>
+          <span class="hero-metric-label">working features across logging, community, and coaching</span>
+        </div>
+        <div class="hero-metric">
+          <span class="hero-metric-value">3</span>
+          <span class="hero-metric-label">good-to-have features delivered beyond the brief</span>
+        </div>
+        <div class="hero-metric">
+          <span class="hero-metric-value">1</span>
+          <span class="hero-metric-label">unified product story instead of scattered climbing tools</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      <div class="hero-panel-kicker">Product Snapshot</div>
+      <h2 class="hero-panel-title">One app for the whole climbing loop.</h2>
+      <p class="hero-panel-copy">
+        BetaUp connects session logging, coach feedback, badges, gym discovery, and social motivation in a single product flow so climbers do not need to juggle notes apps, chat groups, and route databases.
+      </p>
+
+      <div class="hero-panel-grid">
+        <div class="hero-panel-card">
+          <strong>Hands-Free Logging</strong>
+          <span>Voice-first session capture designed for tired, chalk-covered climbers.</span>
+        </div>
+        <div class="hero-panel-card">
+          <strong>Coach Workflow</strong>
+          <span>Certified coaches review athlete progress and leave structured feedback.</span>
+        </div>
+        <div class="hero-panel-card">
+          <strong>Social Progress</strong>
+          <span>Badges, posts, comments, and leaderboards turn effort into visible momentum.</span>
+        </div>
+        <div class="hero-panel-card">
+          <strong>Context-Aware Training</strong>
+          <span>Check-ins, gym discovery, and BLE heart-rate demos push beyond simple tracking.</span>
+        </div>
+      </div>
+
+      <div class="hero-stack">
+        <div class="hero-stack-card accent">
+          <strong>Core Experience</strong>
+          <span>Open the app, speak your climb, unlock progress, get feedback, and come back because the product feels rewarding.</span>
+        </div>
+        <div class="hero-stack-card">
+          <div class="hero-mini-list">
+            <div class="hero-mini-item">
+              <strong>Badge system</strong>
+              <span>live</span>
+            </div>
+            <div class="hero-mini-item">
+              <strong>Voice assistant</strong>
+              <span>live</span>
+            </div>
+            <div class="hero-mini-item">
+              <strong>Coach panel</strong>
+              <span>live</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="hero-bottom">
@@ -759,14 +1249,14 @@
 
     <!-- Motivation Statement -->
     <div class="subsection-label">The Why — Motivation Statement</div>
-    <div style="background:#1a1a1a;border:1px solid #242424;border-radius:4px;padding:2.5rem;max-width:860px;">
-      <p style="font-size:0.92rem;color:#bbb;line-height:1.9;margin-bottom:1.2rem;">
+    <div class="story-card">
+      <p>
         We chose rock climbing as our research focus because climbing uniquely combines <strong style="color:var(--chalk)">physical challenge, technical skill, and social interaction</strong>. Unlike running or general fitness, climbing demands route-reading, movement planning, and mental composure — creating richer user needs around session logging, technique analysis, progress feedback, and community connection.
       </p>
-      <p style="font-size:0.92rem;color:#bbb;line-height:1.9;margin-bottom:1.2rem;">
+      <p>
         Since climbing's Olympic debut at <strong style="color:var(--chalk)">Tokyo 2020</strong>, the sport has attracted a growing wave of younger participants. Yet the digital ecosystem still largely prioritises utility over experience — existing apps focus on training records or route databases, while <strong style="color:var(--chalk)">fun, engagement, and playfulness remain underserved</strong>.
       </p>
-      <p style="font-size:0.92rem;color:#bbb;line-height:1.9;">
+      <p>
         Several team members are regular gym climbers at XJTLU's campus wall. We found ourselves juggling multiple apps, spreadsheets, and WeChat group chats for what should be one coherent experience — log a send, celebrate progress, get coach feedback, and find routes nearby. <strong style="color:var(--chalk)">BetaUp was built from that frustration</strong>, filling the gap between pure utility and genuinely playful daily engagement.
       </p>
     </div>
@@ -970,9 +1460,9 @@
     </div>
 
     <!-- Key Insight Callout -->
-    <div style="background:rgba(232,80,10,0.06);border:1px solid rgba(232,80,10,0.2);border-left:3px solid var(--summit);border-radius:4px;padding:1.5rem 2rem;margin-top:2rem;max-width:860px;">
-      <div style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;color:var(--summit);text-transform:uppercase;margin-bottom:0.6rem;">Key Insight</div>
-      <p style="font-size:0.87rem;color:#bbb;line-height:1.8;margin:0;">
+    <div class="insight-banner">
+      <div class="callout-label">Key Insight</div>
+      <p>
         All four products skew heavily towards <strong style="color:var(--chalk)">utility</strong> — they help users climb better, find routes, or manage training data. None delivers a <strong style="color:var(--chalk)">persistent, intrinsically enjoyable daily experience</strong>. The common pattern: engagement either depends on external events (challenges, competitions) or collapses once the immediate task is done. BetaUp targets this gap directly — placing gamification, social playfulness, and voice-first interaction at the core so every session feels like an achievement worth opening the app for.
       </p>
     </div>
@@ -1026,20 +1516,28 @@
     <!-- Journey Map -->
     <div class="subsection-label">User Journey Map</div>
 
-    <div style="margin-bottom: 3rem;">
-      <div style="font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--moss);text-transform:uppercase;margin-bottom:0.8rem;">Primary User — Alex Chen · Amateur Boulderer (V4–V5)</div>
-      <p style="font-size:0.87rem;color:#bbb;line-height:1.8;max-width:860px;margin-bottom:1.5rem;">
+    <div class="journey-block">
+      <div class="journey-story">
+        <div class="journey-kicker">Primary User — Alex Chen · Amateur Boulderer (V4–V5)</div>
+        <p>
         This user journey map depicts the full end-to-end usage experience of BetaUp's primary user, amateur bouldering climber Alex Chen. Following 5 core experience stages including pre-session awareness, function consideration, platform operation, daily service use and long-term user retention, the record systematically sorts out Alex's practical operation behaviours, real training demands, emotional changes and existing pain points in daily climbing log management. It clearly shows the bottlenecks in traditional climbing record modes, such as cumbersome manual typing, scattered multi-app data storage, difficult peer progress comparison and incomplete long-term growth tracking. Meanwhile, it correspondingly matches targeted platform optimisation opportunities, verifying how BetaUp solves real user distress throughout the whole climbing cycle, and constructing a smooth, low-friction whole-process training experience for individual climbers.
-      </p>
-      <img src="assets/photos/journey-map-alex.png" alt="Alex Chen User Journey Map" style="width:100%;border-radius:6px;border:1px solid #1e1e1e;">
+        </p>
+      </div>
+      <div class="journey-image">
+        <img src="assets/photos/journey-map-alex.png" alt="Alex Chen User Journey Map">
+      </div>
     </div>
 
-    <div style="margin-bottom: 2rem;">
-      <div style="font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--moss);text-transform:uppercase;margin-bottom:0.8rem;">Secondary User — Coach Li Wei · Part-Time IFSC Level 1 Coach</div>
-      <p style="font-size:0.87rem;color:#bbb;line-height:1.8;max-width:860px;margin-bottom:1.5rem;">
+    <div class="journey-block">
+      <div class="journey-story">
+        <div class="journey-kicker">Secondary User — Coach Li Wei · Part-Time IFSC Level 1 Coach</div>
+        <p>
         This journey map sorts out the complete business workflow of BetaUp's secondary user, part-time professional climbing coach Li Wei. In accordance with the full cycle from daily management distress awareness, platform function understanding, account permission onboarding, routine teaching service execution to long-term tool stickiness cultivation, it analyses the coach's actual working behaviours, professional management needs, emotional fluctuations and industry pain points under the dual pressure of daily job and part-time teaching. The content reflects the widespread shortcomings of traditional coach-student management methods, including scattered student data, inefficient manual statistics, delayed remote feedback and lack of standardised milestone certification. Combined with matching platform functional opportunities, it demonstrates how BetaUp builds a closed, efficient professional teaching management system, realising digital, lightweight and systematic student progress management for climbing coaches.
-      </p>
-      <img src="assets/photos/journey-map-coach.png" alt="Coach Li Wei User Journey Map" style="width:100%;border-radius:6px;border:1px solid #1e1e1e;">
+        </p>
+      </div>
+      <div class="journey-image">
+        <img src="assets/photos/journey-map-coach.png" alt="Coach Li Wei User Journey Map">
+      </div>
     </div>
 
     <!-- Must-Have Features -->
@@ -1078,9 +1576,9 @@
     <div class="subsection-label">User Research Evidence</div>
 
     <!-- Questionnaire key stats -->
-    <div style="background:#1a1a1a;border:1px solid #242424;border-radius:4px;padding:2rem;margin-bottom:2rem;max-width:860px;">
-      <div style="font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;color:var(--moss);text-transform:uppercase;margin-bottom:1rem;">Questionnaire · 12 Valid Responses · Suzhou Climbing Community</div>
-      <ul style="font-size:0.87rem;color:#bbb;line-height:2.1;padding-left:1.2rem;margin:0;">
+    <div class="survey-callout">
+      <div class="journey-kicker">Questionnaire · 12 Valid Responses · Suzhou Climbing Community</div>
+      <ul>
         <li><strong style="color:var(--chalk)">75%</strong> of participants train indoors regularly (bouldering)</li>
         <li>Top desired features: <strong style="color:var(--chalk)">track climbs &amp; progress charts (75%)</strong>, gym map &amp; check-in (66.67%), gym info &amp; booking (66.67%)</li>
         <li>Biggest frustration: <strong style="color:var(--chalk)">cannot find route beta (66.67%)</strong>, no motivation to climb alone (58.33%), unsure of suitable routes (41.67%)</li>
@@ -1089,23 +1587,23 @@
     </div>
 
     <!-- Survey charts -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:3rem;">
+    <div class="media-triptych">
       <div>
-        <div style="font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--granite);text-transform:uppercase;margin-bottom:0.6rem;">Primary Climbing Location</div>
-        <div style="height:240px;border-radius:4px;border:1px solid #1e1e1e;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
-          <img src="assets/photos/survey-location.jpg" alt="Survey: Primary Climbing Location" style="width:100%;height:100%;object-fit:contain;">
+        <div class="media-panel-label">Primary Climbing Location</div>
+        <div class="media-panel-frame">
+          <img src="assets/photos/survey-location.jpg" alt="Survey: Primary Climbing Location">
         </div>
       </div>
       <div>
-        <div style="font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--granite);text-transform:uppercase;margin-bottom:0.6rem;">Most Desired Features</div>
-        <div style="height:240px;border-radius:4px;border:1px solid #1e1e1e;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
-          <img src="assets/photos/survey-features.jpg" alt="Survey: Most Desired App Features" style="width:100%;height:100%;object-fit:contain;">
+        <div class="media-panel-label">Most Desired Features</div>
+        <div class="media-panel-frame">
+          <img src="assets/photos/survey-features.jpg" alt="Survey: Most Desired App Features">
         </div>
       </div>
       <div>
-        <div style="font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--granite);text-transform:uppercase;margin-bottom:0.6rem;">Most Frustrating Issues</div>
-        <div style="height:240px;border-radius:4px;border:1px solid #1e1e1e;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;">
-          <img src="assets/photos/survey-frustrations.jpg" alt="Survey: Most Frustrating Issues" style="width:100%;height:100%;object-fit:contain;">
+        <div class="media-panel-label">Most Frustrating Issues</div>
+        <div class="media-panel-frame">
+          <img src="assets/photos/survey-frustrations.jpg" alt="Survey: Most Frustrating Issues">
         </div>
       </div>
     </div>
@@ -1411,7 +1909,7 @@
             <td>
               <strong>Yang Mengxi</strong>
               <span>杨梦溪 · 2364303</span>
-              <div class="contrib-role">Media & Research</div>
+              <div class="contrib-role">Media &amp; Research</div>
             </td>
             <td style="color:var(--accent);font-family:'Space Mono',monospace;font-size:0.72rem;">Media &amp; Research</td>
             <td>
