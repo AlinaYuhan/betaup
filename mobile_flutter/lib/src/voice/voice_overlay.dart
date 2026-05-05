@@ -31,8 +31,7 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
   void initState() {
     super.initState();
     _breathCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1600))
-      ..repeat(reverse: true);
+        vsync: this, duration: const Duration(milliseconds: 1600));
     _rippleCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1800));
     widget.service.addListener(_onServiceChange);
@@ -49,9 +48,11 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
   void _onServiceChange() {
     final s = widget.service.state;
 
-    if (s == VoiceState.listening) {
-      if (!_rippleCtrl.isAnimating) _rippleCtrl.repeat();
+    if (s == VoiceState.listening || s == VoiceState.responding) {
+      if (!_breathCtrl.isAnimating) _breathCtrl.repeat(reverse: true);
+      if (s == VoiceState.listening && !_rippleCtrl.isAnimating) _rippleCtrl.repeat();
     } else {
+      _breathCtrl.stop();
       _rippleCtrl.stop();
       _rippleCtrl.reset();
     }
@@ -120,15 +121,17 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
           Positioned(
             right: _right,
             bottom: _bottom,
-            child: GestureDetector(
-              onTap: _onPandaTap,
-              onPanUpdate: (d) {
-                setState(() {
-                  _right = (_right - d.delta.dx).clamp(0.0, size.width - 96);
-                  _bottom = (_bottom - d.delta.dy).clamp(0.0, size.height - 96);
-                });
-              },
-              child: _buildPanda(),
+            child: RepaintBoundary(
+              child: GestureDetector(
+                onTap: _onPandaTap,
+                onPanUpdate: (d) {
+                  setState(() {
+                    _right = (_right - d.delta.dx).clamp(0.0, size.width - 96);
+                    _bottom = (_bottom - d.delta.dy).clamp(0.0, size.height - 96);
+                  });
+                },
+                child: _buildPanda(),
+              ),
             ),
           ),
         ],

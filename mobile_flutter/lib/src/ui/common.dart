@@ -6,6 +6,25 @@ import 'package:intl/intl.dart';
 
 import '../data/models.dart';
 
+/// Deterministic avatar color from a username — each person gets a consistent unique color.
+Color avatarColor(String name) {
+  const palette = [
+    Color(0xFFFF7A18), // orange
+    Color(0xFF4ADE80), // green
+    Color(0xFF60A5FA), // blue
+    Color(0xFFE879F9), // pink
+    Color(0xFFFFD700), // gold
+    Color(0xFF34D399), // teal
+    Color(0xFFF43F5E), // rose
+    Color(0xFF818CF8), // indigo
+    Color(0xFFFB923C), // amber
+    Color(0xFF2DD4BF), // cyan
+  ];
+  if (name.isEmpty) return palette[0];
+  final idx = name.codeUnits.fold(0, (s, c) => s + c) % palette.length;
+  return palette[idx];
+}
+
 const _backgroundGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,

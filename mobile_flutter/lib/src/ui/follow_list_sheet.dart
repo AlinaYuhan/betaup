@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/api_client.dart';
 import '../data/models.dart';
+import 'common.dart';
 import 'user_profile_sheet.dart';
 
 /// Bottom sheet showing a user's follower list or following list.
@@ -92,7 +93,7 @@ class _FollowListSheetState extends State<FollowListSheet> {
                           final u = _users[i];
                           return ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: Colors.orange,
+                              backgroundColor: avatarColor(u.name),
                               child: Text(
                                 u.name.isNotEmpty ? u.name[0].toUpperCase() : "?",
                                 style: const TextStyle(

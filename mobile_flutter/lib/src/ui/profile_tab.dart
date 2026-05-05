@@ -173,7 +173,7 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
         children: [
           CircleAvatar(
             radius: 32,
-            backgroundColor: Colors.orange,
+            backgroundColor: avatarColor(user.name),
             child: Text(
               user.name.isNotEmpty ? user.name[0].toUpperCase() : "?",
               style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),

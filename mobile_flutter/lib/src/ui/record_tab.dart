@@ -392,94 +392,94 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
       color: const Color(0xFFFF7A18),
       backgroundColor: const Color(0xFF1A2535),
       onRefresh: _init,
-      child: Stack(
-        children: [
-          // Ambient glow behind hero area
-          Positioned(
-            top: -60,
-            right: -40,
-            child: Container(
-              width: 280,
-              height: 280,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFFFF7A18).withValues(alpha: 0.12),
-                    Colors.transparent,
-                  ],
+      child: ColoredBox(
+        color: const Color(0xFF09111F),
+        child: Stack(
+          children: [
+            // Ambient glow behind hero area
+            Positioned(
+              top: -60,
+              right: -40,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFFF7A18).withValues(alpha: 0.12),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        children: [
-          // ── Photo hero (stats + GPS + Go Climb combined) ──────────────
-          _buildPhotoHero(_monthSessions),
+            ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              children: [
+                _buildPhotoHero(_monthSessions),
 
-          // ── Session history ───────────────────────────────────────────
-          if (!_sessionsLoading && _sessions.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 12),
-              child: Row(
-                children: [
-                  const Text(
-                    "RECENT SESSIONS",
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.5,
+                if (!_sessionsLoading && _sessions.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 32, 20, 12),
+                    child: Row(
+                      children: [
+                        const Text(
+                          "RECENT SESSIONS",
+                          style: TextStyle(
+                            fontFamily: 'Oswald',
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          "${_sessions.length}×",
+                          style: const TextStyle(
+                            fontFamily: 'Barlow Condensed',
+                            color: Color(0xFF6B8299),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    "${_sessions.length}×",
-                    style: const TextStyle(
-                      fontFamily: 'Barlow Condensed',
-                      color: Color(0xFF6B8299),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  ..._sessions.map((s) => _SessionCard(
+                        summary: s,
+                        onDelete: () => _deleteSession(s),
+                      )),
                 ],
-              ),
+
+                if (_sessionsLoading)
+                  const Padding(
+                    padding: EdgeInsets.all(40),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                          color: Color(0xFFFF7A18), strokeWidth: 2),
+                    ),
+                  ),
+
+                if (!_sessionsLoading && _sessions.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 48, 24, 0),
+                    child: Center(
+                      child: Text(
+                        "No sessions yet.\nTap a button above to start your first climb!",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey.shade600, height: 1.9),
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 120),
+              ],
             ),
-            ..._sessions.map((s) => _SessionCard(
-                  summary: s,
-                  onDelete: () => _deleteSession(s),
-                )),
           ],
-
-          if (_sessionsLoading)
-            const Padding(
-              padding: EdgeInsets.all(40),
-              child: Center(
-                child: CircularProgressIndicator(
-                    color: Color(0xFFFF7A18), strokeWidth: 2),
-              ),
-            ),
-
-          if (!_sessionsLoading && _sessions.isEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 48, 24, 0),
-              child: Center(
-                child: Text(
-                  "No sessions yet.\nTap a button above to start your first climb!",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.grey.shade600, height: 1.9),
-                ),
-              ),
-            ),
-
-          const SizedBox(height: 120),
-        ],
-      ),
-        ],
+        ),
       ),
     );
   }
@@ -514,21 +514,26 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
 
     if (_activeSession != null) {
       // ── Active session: photo + timer overlay ─────────────────────
-      return SizedBox(
-        height: 380,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
+      return ClipRect(
+        child: SizedBox(
+          height: 380,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
             Image.asset('assets/images/climb_hero.jpg', fit: BoxFit.cover),
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0x33000000), Color(0xDD09111F)],
+                  colors: [Color(0x00000000), Color(0xFF09111F)],
                   stops: [0.0, 1.0],
                 ),
               ),
+            ),
+            Positioned(
+              bottom: 0, left: 0, right: 0,
+              child: Container(height: 4, color: const Color(0xFF09111F)),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -591,29 +596,37 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
                 ],
               ),
             ),
-          ],
+            ],
+          ),
         ),
       );
     }
 
     // ── No active session: photo + stats + Go Climb ───────────────
-    return SizedBox(
-      height: 460,
+    return RepaintBoundary(
+      child: ClipRect(
+        child: SizedBox(
+          height: 460,
       child: Stack(
         fit: StackFit.expand,
         children: [
           // Photo
           Image.asset('assets/images/climb_hero.jpg', fit: BoxFit.cover),
-          // Gradient overlay — transparent top, dark at bottom
+          // Gradient overlay — gradual fade, fully opaque only at the very bottom
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0x22000000), Color(0xF009111F)],
-                stops: [0.0, 0.75],
+                colors: [Color(0x00000000), Color(0xFF09111F)],
+                stops: [0.0, 1.0],
               ),
             ),
+          ),
+          // Solid strip to seal the bottom edge regardless of sub-pixel rendering
+          Positioned(
+            bottom: 0, left: 0, right: 0,
+            child: Container(height: 4, color: const Color(0xFF09111F)),
           ),
           // Content
           Padding(
@@ -716,6 +729,8 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

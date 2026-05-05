@@ -305,7 +305,7 @@ class _PostCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: Colors.orange,
+                    backgroundColor: avatarColor(post.authorName),
                     child: Text(
                       post.authorName.isNotEmpty
                           ? post.authorName[0].toUpperCase()
@@ -931,8 +931,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   radius: isReply ? 14 : 20,
-                                  backgroundColor:
-                                      isReply ? Colors.grey : Colors.orange,
+                                  backgroundColor: avatarColor(c.authorName),
                                   child: Text(
                                     c.authorName.isNotEmpty
                                         ? c.authorName[0].toUpperCase()
