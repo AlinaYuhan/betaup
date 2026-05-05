@@ -251,15 +251,19 @@
   }
   .product-preview {
     position: relative;
-    width: min(100%, 21rem);
+    display: grid;
+    grid-template-columns: minmax(19rem, 21rem) minmax(13rem, 0.62fr);
+    gap: 1.15rem;
+    align-items: center;
     justify-self: end;
     opacity: 0;
     animation: fadeUp 0.8s ease 0.95s forwards;
   }
   .phone-mockup {
     position: relative;
-    width: 100%;
+    width: min(100%, 21rem);
     aspect-ratio: 331 / 646;
+    justify-self: end;
     border-radius: 2.15rem;
     padding: 0.55rem;
     background: #171d24;
@@ -387,6 +391,29 @@
     font-size: 0.7rem;
     padding-top: 0.95rem;
     padding-bottom: 0.95rem;
+  }
+  .preview-notes {
+    display: grid;
+    gap: 0.75rem;
+    align-self: center;
+  }
+  .preview-note {
+    padding: 1rem;
+    border-radius: 8px;
+    background: rgba(34,40,49,0.78);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: var(--shadow-soft);
+  }
+  .preview-note strong {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.95rem;
+  }
+  .preview-note span {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.55;
   }
   .hero-bottom {
     position: relative; z-index: 10;
@@ -1158,7 +1185,7 @@
     .about { grid-template-columns: 1fr; gap: 3rem; }
     .about-right { grid-template-columns: 1fr 1fr; }
     .hero-center { grid-template-columns: 1fr; padding: 4rem 0 2rem; }
-    .product-preview { justify-self: center; width: min(100%, 21rem); }
+    .product-preview { grid-template-columns: 1fr; justify-self: center; width: min(100%, 21rem); }
     .phone-mockup { width: 100%; }
     .hero-metrics,
     .review-grid,
@@ -1310,6 +1337,20 @@
             <span>Coach</span>
             <span>Community</span>
           </div>
+        </div>
+      </div>
+      <div class="preview-notes">
+        <div class="preview-note">
+          <strong>Hands-free session logging</strong>
+          <span>Voice input handles the moment when typing is most annoying: right after a climb.</span>
+        </div>
+        <div class="preview-note">
+          <strong>Visible motivation loop</strong>
+          <span>Badges, check-ins, coach feedback, and posts turn progress into something users can see.</span>
+        </div>
+        <div class="preview-note">
+          <strong>Coach and climber in one flow</strong>
+          <span>The same data supports personal reflection and structured coaching.</span>
         </div>
       </div>
     </div>
