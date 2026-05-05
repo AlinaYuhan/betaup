@@ -251,29 +251,26 @@
   }
   .product-preview {
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(15rem, 0.8fr) minmax(13rem, 0.62fr);
-    gap: 1rem;
-    align-items: end;
+    width: min(100%, 21rem);
+    justify-self: end;
     opacity: 0;
     animation: fadeUp 0.8s ease 0.95s forwards;
   }
   .phone-mockup {
     position: relative;
-    width: min(100%, 23rem);
-    aspect-ratio: 9 / 18.8;
-    justify-self: end;
-    border-radius: 2rem;
-    padding: 0.75rem;
-    background: linear-gradient(180deg, #1b2027, #0f1318);
-    border: 1px solid rgba(255,255,255,0.16);
-    box-shadow: var(--shadow-strong);
+    width: 100%;
+    aspect-ratio: 331 / 646;
+    border-radius: 2.15rem;
+    padding: 0.55rem;
+    background: #171d24;
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 32px 70px rgba(0,0,0,0.42);
   }
   .phone-screen {
     height: 100%;
-    border-radius: 1.45rem;
+    border-radius: 1.72rem;
     overflow: hidden;
-    background: #f6f0e8;
+    background: #f7f0e8;
     color: #222831;
     display: flex;
     flex-direction: column;
@@ -283,26 +280,26 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem;
+    padding: 1.1rem 1rem 0.95rem;
   }
   .app-brand {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.48rem;
     color: var(--summit);
   }
   .app-avatar {
-    width: 2rem;
-    height: 2rem;
+    width: 2.15rem;
+    height: 2.15rem;
     border-radius: 50%;
     background: #222831;
   }
   .app-hero-card {
     margin: 0 1rem;
-    padding: 1.1rem;
+    padding: 1rem;
     border-radius: 8px;
     color: var(--chalk);
     background: linear-gradient(rgba(34,40,49,0.2), rgba(34,40,49,0.74)), url('assets/photos/fieldwork-gym2.jpg') center/cover;
-    min-height: 9.5rem;
+    min-height: 9.55rem;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -310,7 +307,7 @@
   .app-chip {
     width: max-content;
     margin-bottom: 0.5rem;
-    padding: 0.28rem 0.55rem;
+    padding: 0.3rem 0.62rem;
     border-radius: 999px;
     background: var(--summit);
     color: var(--chalk);
@@ -318,7 +315,7 @@
     font-weight: 700;
   }
   .app-hero-title {
-    font-size: 1.35rem;
+    font-size: 1.38rem;
     font-weight: 800;
     line-height: 1.12;
   }
@@ -326,7 +323,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 0.55rem;
-    padding: 0.85rem 1rem;
+    padding: 0.9rem 1rem;
   }
   .app-stat {
     padding: 0.7rem;
@@ -387,30 +384,9 @@
     margin-top: auto;
     border-top: 1px solid rgba(34,40,49,0.08);
     color: #756f67;
-    font-size: 0.72rem;
-  }
-  .preview-notes {
-    display: grid;
-    gap: 0.75rem;
-    align-self: center;
-  }
-  .preview-note {
-    padding: 1rem;
-    border-radius: 8px;
-    background: rgba(34,40,49,0.78);
-    border: 1px solid rgba(255,255,255,0.12);
-    box-shadow: var(--shadow-soft);
-  }
-  .preview-note strong {
-    display: block;
-    margin-bottom: 0.3rem;
-    font-size: 0.95rem;
-  }
-  .preview-note span {
-    display: block;
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    line-height: 1.55;
+    font-size: 0.7rem;
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
   }
   .hero-bottom {
     position: relative; z-index: 10;
@@ -1182,8 +1158,8 @@
     .about { grid-template-columns: 1fr; gap: 3rem; }
     .about-right { grid-template-columns: 1fr 1fr; }
     .hero-center { grid-template-columns: 1fr; padding: 4rem 0 2rem; }
-    .product-preview { grid-template-columns: 1fr; }
-    .phone-mockup { justify-self: center; width: min(100%, 21rem); }
+    .product-preview { justify-self: center; width: min(100%, 21rem); }
+    .phone-mockup { width: 100%; }
     .hero-metrics,
     .review-grid,
     .review-columns { grid-template-columns: 1fr; }
@@ -1334,20 +1310,6 @@
             <span>Coach</span>
             <span>Community</span>
           </div>
-        </div>
-      </div>
-      <div class="preview-notes">
-        <div class="preview-note">
-          <strong>Hands-free session logging</strong>
-          <span>Voice input handles the moment when typing is most annoying: right after a climb.</span>
-        </div>
-        <div class="preview-note">
-          <strong>Visible motivation loop</strong>
-          <span>Badges, check-ins, coach feedback, and posts turn progress into something users can see.</span>
-        </div>
-        <div class="preview-note">
-          <strong>Coach and climber in one flow</strong>
-          <span>The same data supports personal reflection and structured coaching.</span>
         </div>
       </div>
     </div>
