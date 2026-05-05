@@ -20,9 +20,9 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
   double _right = 16;
   double _bottom = 160;
 
-  // _breathCtrl: always running, drives the idle glow-ring painter
+  // _breathCtrl: runs only while listening/responding, drives the glow-ring painter
   late final AnimationController _breathCtrl;
-  // _rippleCtrl: only runs while listening, drives particle-ring painter
+  // _rippleCtrl: runs only while listening, drives the particle-ring painter
   late final AnimationController _rippleCtrl;
 
   VoiceState _prevState = VoiceState.idle;

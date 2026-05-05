@@ -124,7 +124,7 @@ class _SessionPageState extends State<SessionPage> {
       if (mounted) {
         setState(() => _ending = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("结束失败：$e")),
+          SnackBar(content: Text("Failed to end session: $e")),
         );
       }
     }
@@ -135,20 +135,21 @@ class _SessionPageState extends State<SessionPage> {
     final venue = widget.session.venue.isNotEmpty ? widget.session.venue : "Unknown Venue";
     final startStr = DateFormat("HH:mm").format(widget.session.startTime);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF09111F),
-      appBar: AppBar(
+    return GlowBackground(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => Navigator.of(context).pop(false),
-          tooltip: "Back (session still running)",
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            onPressed: () => Navigator.of(context).pop(false),
+            tooltip: "Back (session still running)",
+          ),
+          title: Text(venue, style: const TextStyle(fontSize: 16)),
+          centerTitle: true,
         ),
-        title: Text(venue, style: const TextStyle(fontSize: 16)),
-        centerTitle: true,
-      ),
-      body: Padding(
+        body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
@@ -246,6 +247,7 @@ class _SessionPageState extends State<SessionPage> {
           ],
         ),
       ),
+    ),
     );
   }
 }
@@ -278,44 +280,40 @@ class _WatchConnectButton extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: connecting ? null : onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (connecting)
-                  const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 1.5,
-                      color: Color(0xFFFF4D6D),
-                    ),
-                  )
-                else
-                  const Icon(Icons.watch_rounded, size: 16, color: Color(0xFFFF4D6D)),
-                const SizedBox(width: 8),
-                Text(
-                  connecting ? "Searching..." : "Connect Apple Watch",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: connecting ? Colors.grey.shade400 : Colors.grey.shade300,
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return GestureDetector(
+      onTap: connecting ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
         ),
-      ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (connecting)
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  color: Color(0xFFFF4D6D),
+                ),
+              )
+            else
+              const Icon(Icons.watch_rounded, size: 16, color: Color(0xFFFF4D6D)),
+            const SizedBox(width: 8),
+            Text(
+              connecting ? "Searching..." : "Connect Apple Watch",
+              style: TextStyle(
+                fontSize: 13,
+                color: connecting ? Colors.grey.shade400 : Colors.grey.shade300,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

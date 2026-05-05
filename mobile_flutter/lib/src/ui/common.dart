@@ -25,6 +25,35 @@ Color avatarColor(String name) {
   return palette[idx];
 }
 
+/// Static dual-glow background — orange accent top-right, blue depth bottom-left.
+class GlowBackground extends StatelessWidget {
+  const GlowBackground({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xFF09111F),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const Positioned(
+            top: -40,
+            right: -60,
+            child: _GlowOrb(color: Color(0x30FF7A18), size: 320),
+          ),
+          const Positioned(
+            bottom: 60,
+            left: -60,
+            child: _GlowOrb(color: Color(0x203A7BD5), size: 280),
+          ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
 const _backgroundGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
@@ -44,6 +73,7 @@ class BetaUpScaffold extends StatelessWidget {
     this.actions = const [],
     this.floatingActionButton,
     this.bottomNavigationBar,
+    this.glowBg = false,
   });
 
   final String title;
@@ -52,9 +82,43 @@ class BetaUpScaffold extends StatelessWidget {
   final List<Widget> actions;
   final Widget? floatingActionButton;
   final Widget? bottomNavigationBar;
+  final bool glowBg;
+
+  Widget _buildScaffold(BuildContext context) => Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          titleSpacing: 20,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title),
+              if (subtitle?.trim().isNotEmpty == true)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    subtitle!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFF9AA9BE),
+                        ),
+                  ),
+                ),
+            ],
+          ),
+          actions: actions,
+        ),
+        body: SafeArea(
+          top: false,
+          child: child,
+        ),
+        floatingActionButton: floatingActionButton,
+        bottomNavigationBar: bottomNavigationBar,
+      );
 
   @override
   Widget build(BuildContext context) {
+    if (glowBg) {
+      return GlowBackground(child: _buildScaffold(context));
+    }
     return DecoratedBox(
       decoration: const BoxDecoration(gradient: _backgroundGradient),
       child: Stack(
@@ -62,48 +126,14 @@ class BetaUpScaffold extends StatelessWidget {
           const Positioned(
             top: -80,
             left: -40,
-            child: _GlowOrb(
-              color: Color(0x33FF7A18),
-              size: 240,
-            ),
+            child: _GlowOrb(color: Color(0x33FF7A18), size: 240),
           ),
           const Positioned(
             top: 120,
             right: -60,
-            child: _GlowOrb(
-              color: Color(0x337BE0FF),
-              size: 220,
-            ),
+            child: _GlowOrb(color: Color(0x337BE0FF), size: 220),
           ),
-          Scaffold(
-            backgroundColor: Colors.transparent,
-            appBar: AppBar(
-              titleSpacing: 20,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title),
-                  if (subtitle != null && subtitle!.trim().isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        subtitle!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: const Color(0xFF9AA9BE),
-                            ),
-                      ),
-                    ),
-                ],
-              ),
-              actions: actions,
-            ),
-            body: SafeArea(
-              top: false,
-              child: child,
-            ),
-            floatingActionButton: floatingActionButton,
-            bottomNavigationBar: bottomNavigationBar,
-          ),
+          _buildScaffold(context),
         ],
       ),
     );
@@ -145,6 +175,7 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: margin,
+      padding: padding,
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.white.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(28),
@@ -159,10 +190,7 @@ class GlassCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Padding(
-        padding: padding,
-        child: child,
-      ),
+      child: child,
     );
   }
 }
@@ -344,8 +372,6 @@ class EmptyCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionLabel(title),
-          const SizedBox(height: 12),
           Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(message, style: Theme.of(context).textTheme.bodyMedium),

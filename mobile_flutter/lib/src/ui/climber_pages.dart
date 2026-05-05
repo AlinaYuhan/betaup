@@ -912,6 +912,7 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
     return BetaUpScaffold(
       title: _isEditing ? "Edit Log" : "Log Climb",
       subtitle: _isEditing ? "Update existing log" : "Record this climb",
+      glowBg: true,
       child: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
