@@ -31,6 +31,13 @@ ThemeData buildAppTheme() {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
+      titleTextStyle: TextStyle(
+        fontFamily: 'Oswald',
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+        letterSpacing: 1.5,
+      ),
     ),
     cardTheme: CardThemeData(
       color: Colors.white.withValues(alpha: 0.12),

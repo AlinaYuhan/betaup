@@ -168,18 +168,18 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
           .colorScheme
           .surfaceContainerHighest
           .withValues(alpha: 0.4),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 32,
+            radius: 40,
             backgroundColor: avatarColor(user.name),
             child: Text(
               user.name.isNotEmpty ? user.name[0].toUpperCase() : "?",
-              style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 18),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,11 +206,11 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 5),
                 Text(user.email, style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Wrap(
-                  spacing: 12,
+                  spacing: 16,
                   runSpacing: 8,
                   children: [
                     _StatChip(label: "Logs", value: totalLogs),
