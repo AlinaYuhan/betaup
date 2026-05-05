@@ -53,8 +53,10 @@ public class SecurityConfig {
                     response.getWriter().write("{\"success\":false,\"message\":\"Access denied.\",\"data\":null}");
                 })
             )
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/status").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/gyms", "/api/gyms/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/maps/amap-config").permitAll()

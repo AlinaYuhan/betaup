@@ -94,7 +94,7 @@ public class CoachCertificationServiceImpl implements CoachCertificationService 
             .actorId(0L)
             .actorName("BetaUp")
             .referenceId(cert.getId())
-            .content("🎉 恭喜！你的教练认证已通过审核，你现在是认证教练了！")
+            .content("🎉 Congratulations! Your coach certification has been approved!")
             .isRead(false)
             .build());
     }

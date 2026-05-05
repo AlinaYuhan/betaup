@@ -4,8 +4,6 @@ import com.betaup.entity.Badge;
 import com.betaup.entity.BadgeCriteriaType;
 import com.betaup.repository.BadgeRepository;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -21,128 +19,132 @@ public class BadgeCatalogInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         List<Badge> defaults = List.of(
 
-            // ── 攀岩等级 LEVEL ────────────────────────────────────────────────
+            // ── Climbing Level LEVEL ──────────────────────────────────────────
             Badge.builder()
                 .badgeKey("LEVEL_FIRST_SEND")
-                .name("首次完攀")
-                .description("完成你的第一条路线！")
+                .name("First Send")
+                .description("Complete your first route!")
                 .threshold(1).criteriaType(BadgeCriteriaType.COMPLETED_CLIMBS)
                 .category("LEVEL").build(),
             Badge.builder()
                 .badgeKey("LEVEL_SEND_10")
-                .name("初级攀岩者")
-                .description("累计完成10条路线。")
+                .name("Beginner Climber")
+                .description("Complete 10 routes total.")
                 .threshold(10).criteriaType(BadgeCriteriaType.COMPLETED_CLIMBS)
                 .category("LEVEL").build(),
             Badge.builder()
                 .badgeKey("LEVEL_SEND_30")
-                .name("进阶攀岩者")
-                .description("累计完成30条路线，你的技术在稳步提升！")
+                .name("Intermediate Climber")
+                .description("Complete 30 routes — your skills are growing steadily!")
                 .threshold(30).criteriaType(BadgeCriteriaType.COMPLETED_CLIMBS)
                 .category("LEVEL").build(),
             Badge.builder()
                 .badgeKey("LEVEL_SEND_100")
-                .name("百条成就")
-                .description("累计完成100条路线，你是真正的攀岩高手！")
+                .name("Century Climber")
+                .description("Complete 100 routes — you're a true climbing master!")
                 .threshold(100).criteriaType(BadgeCriteriaType.COMPLETED_CLIMBS)
                 .category("LEVEL").build(),
 
-            // ── 训练挑战 CHALLENGE ────────────────────────────────────────────
+            // ── Training Challenge CHALLENGE ──────────────────────────────────
             Badge.builder()
                 .badgeKey("FIRST_LOG")
-                .name("初次记录")
-                .description("记录你的第一条攀岩日志。")
+                .name("First Log")
+                .description("Record your first climb log.")
                 .threshold(1).criteriaType(BadgeCriteriaType.TOTAL_LOGS)
                 .category("CHALLENGE").build(),
             Badge.builder()
                 .badgeKey("LOG_50")
-                .name("勤奋记录者")
-                .description("累计记录50条攀岩日志。")
+                .name("Dedicated Logger")
+                .description("Log 50 climbs total.")
                 .threshold(50).criteriaType(BadgeCriteriaType.TOTAL_LOGS)
                 .category("CHALLENGE").build(),
             Badge.builder()
                 .badgeKey("FIRST_FLASH")
-                .name("初次闪耀")
-                .description("首次 Flash 任意路线！")
+                .name("First Flash")
+                .description("Flash any route on your first attempt!")
                 .threshold(1).criteriaType(BadgeCriteriaType.FLASH_CLIMBS)
                 .category("CHALLENGE").build(),
             Badge.builder()
                 .badgeKey("FLASH_10")
-                .name("闪电侠")
-                .description("累计 Flash 10条路线，眼到手到！")
+                .name("Flash Master")
+                .description("Flash 10 routes — sight reading pro!")
                 .threshold(10).criteriaType(BadgeCriteriaType.FLASH_CLIMBS)
                 .category("CHALLENGE").build(),
             Badge.builder()
                 .badgeKey("COACH_LOOP")
-                .name("Coach 认证")
-                .description("收到3条教练反馈，持续进步！")
+                .name("Coach Certified")
+                .description("Receive 3 pieces of coach feedback — keep improving!")
                 .threshold(3).criteriaType(BadgeCriteriaType.FEEDBACK_RECEIVED)
                 .category("CHALLENGE").build(),
 
-            // ── 探险打卡 VENUE ────────────────────────────────────────────────
+            // ── Explore VENUE ─────────────────────────────────────────────────
             Badge.builder()
                 .badgeKey("FIRST_CHECKIN")
-                .name("初次到馆")
-                .description("完成你的第一次岩馆打卡！")
+                .name("First Check-In")
+                .description("Check in to a climbing gym for the first time!")
                 .threshold(1).criteriaType(BadgeCriteriaType.GYM_CHECKINS)
                 .category("VENUE").build(),
             Badge.builder()
                 .badgeKey("CHECKIN_10")
-                .name("攀岩达人")
-                .description("累计打卡10次。")
+                .name("Regular Climber")
+                .description("Check in 10 times total.")
                 .threshold(10).criteriaType(BadgeCriteriaType.GYM_CHECKINS)
                 .category("VENUE").build(),
             Badge.builder()
                 .badgeKey("CHECKIN_50")
-                .name("攀岩狂人")
-                .description("累计打卡50次，你是真正的攀岩达人！")
+                .name("Gym Rat")
+                .description("Check in 50 times — you live at the wall!")
                 .threshold(50).criteriaType(BadgeCriteriaType.GYM_CHECKINS)
                 .category("VENUE").build(),
             Badge.builder()
                 .badgeKey("EXPLORER_3")
-                .name("城市探索者")
-                .description("探索3家不同的攀岩馆。")
+                .name("City Explorer")
+                .description("Visit 3 different climbing gyms.")
                 .threshold(3).criteriaType(BadgeCriteriaType.UNIQUE_GYMS)
                 .category("VENUE").build(),
             Badge.builder()
                 .badgeKey("EXPLORER_10")
-                .name("攀岩地图")
-                .description("探索10家不同的攀岩馆，集齐全国地图！")
+                .name("Wall Traveller")
+                .description("Visit 10 different climbing gyms across the city!")
                 .threshold(10).criteriaType(BadgeCriteriaType.UNIQUE_GYMS)
                 .category("VENUE").build(),
 
-            // ── 社交 SOCIAL ───────────────────────────────────────────────────
+            // ── Social SOCIAL ─────────────────────────────────────────────────
             Badge.builder()
                 .badgeKey("FIRST_POST")
-                .name("初次发声")
-                .description("发布你的第一条动态！")
+                .name("First Post")
+                .description("Share your first post with the community!")
                 .threshold(1).criteriaType(BadgeCriteriaType.POSTS_CREATED)
                 .category("SOCIAL").build(),
             Badge.builder()
                 .badgeKey("POST_10")
-                .name("社区活跃者")
-                .description("累计发布10条动态。")
+                .name("Community Active")
+                .description("Publish 10 posts total.")
                 .threshold(10).criteriaType(BadgeCriteriaType.POSTS_CREATED)
                 .category("SOCIAL").build(),
             Badge.builder()
                 .badgeKey("LIKED_10")
-                .name("人气攀岩者")
-                .description("你的动态累计获得10个点赞！")
+                .name("Popular Climber")
+                .description("Receive 10 likes on your posts!")
                 .threshold(10).criteriaType(BadgeCriteriaType.LIKES_RECEIVED)
                 .category("SOCIAL").build(),
             Badge.builder()
                 .badgeKey("COMMENT_10")
-                .name("热心评论员")
-                .description("累计评论10次。")
+                .name("Engaged Commenter")
+                .description("Leave 10 comments on others' posts.")
                 .threshold(10).criteriaType(BadgeCriteriaType.COMMENTS_MADE)
                 .category("SOCIAL").build()
         );
 
-        Set<String> existing = badgeRepository.findAll().stream()
-            .map(Badge::getBadgeKey)
-            .collect(Collectors.toSet());
-        defaults.stream()
-            .filter(b -> !existing.contains(b.getBadgeKey()))
-            .forEach(badgeRepository::save);
+        defaults.forEach(def ->
+            badgeRepository.findByBadgeKey(def.getBadgeKey()).ifPresentOrElse(
+                existing -> {
+                    existing.setName(def.getName());
+                    existing.setDescription(def.getDescription());
+                    badgeRepository.save(existing);
+                },
+                () -> badgeRepository.save(def)
+            )
+        );
     }
 }
