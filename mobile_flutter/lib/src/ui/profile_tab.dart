@@ -543,7 +543,7 @@ class _CertificationSectionState extends State<_CertificationSection> {
           Icon(Icons.hourglass_top_rounded, size: 16, color: Colors.amber),
           SizedBox(width: 8),
           Expanded(
-            child: Text("教练认证申请审核中，请耐心等待",
+            child: Text("Coach certification application under review",
                 style: TextStyle(fontSize: 13)),
           ),
         ],
@@ -556,20 +556,20 @@ class _CertificationSectionState extends State<_CertificationSection> {
             children: [
               Icon(Icons.cancel_outlined, size: 16, color: Colors.red),
               SizedBox(width: 8),
-              Text("教练认证申请被拒绝",
+              Text("Coach certification rejected",
                   style: TextStyle(fontSize: 13, color: Colors.red)),
             ],
           ),
           if (_status!.rejectReason?.isNotEmpty == true) ...[
             const SizedBox(height: 4),
-            Text("原因：${_status!.rejectReason}",
+            Text("Reason: ${_status!.rejectReason}",
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
           ],
           const SizedBox(height: 10),
           TextButton.icon(
             onPressed: _openApplySheet,
             icon: const Icon(Icons.refresh_rounded, size: 16),
-            label: const Text("重新申请"),
+            label: const Text("Re-apply"),
             style: TextButton.styleFrom(
                 foregroundColor: Colors.orange,
                 padding: EdgeInsets.zero,
@@ -581,7 +581,7 @@ class _CertificationSectionState extends State<_CertificationSection> {
       content = Row(
         children: [
           const Expanded(
-            child: Text("成为认证教练，在社区中展示「教练」标识",
+            child: Text("Become a certified coach and display the Coach badge in the community",
                 style: TextStyle(fontSize: 13)),
           ),
           const SizedBox(width: 12),
@@ -591,7 +591,7 @@ class _CertificationSectionState extends State<_CertificationSection> {
                 foregroundColor: Colors.orange,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
-            child: const Text("申请认证",
+            child: const Text("Apply",
                 style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],

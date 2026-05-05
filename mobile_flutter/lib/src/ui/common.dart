@@ -775,7 +775,7 @@ class _BadgeUnlockDialogState extends State<_BadgeUnlockDialog> {
               Text("🎉", style: TextStyle(fontSize: 42)),
               SizedBox(height: 8),
               Text(
-                "解锁新徽章！",
+                "New Badge Unlocked!",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(0xFFFFD700),
@@ -807,7 +807,7 @@ class _BadgeUnlockDialogState extends State<_BadgeUnlockDialog> {
                     horizontal: 36, vertical: 12),
               ),
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("太棒了！",
+              child: const Text("Awesome!",
                   style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],

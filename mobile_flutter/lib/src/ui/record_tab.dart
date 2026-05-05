@@ -18,12 +18,23 @@ import 'session_page.dart';
 
 Color _gradeColor(String? grade) {
   if (grade == null) return const Color(0xFF6B8299);
-  final n = int.tryParse(grade.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-  if (n <= 2) return const Color(0xFF4ADE80);
-  if (n <= 4) return const Color(0xFF60A5FA);
-  if (n <= 6) return const Color(0xFFFF7A18);
-  if (n <= 8) return const Color(0xFFE879F9);
-  return const Color(0xFFF43F5E);
+  final n = int.tryParse(grade.replaceAll(RegExp(r'[^0-9]'), '')) ?? -1;
+  return switch (n) {
+    -1 => const Color(0xFF4ADE80), // VB
+    0  => const Color(0xFF4ADE80), // V0
+    1  => const Color(0xFF34D399), // V1 — emerald
+    2  => const Color(0xFF06B6D4), // V2 — cyan
+    3  => const Color(0xFF60A5FA), // V3 — blue
+    4  => const Color(0xFF818CF8), // V4 — indigo
+    5  => const Color(0xFFFF7A18), // V5 — orange
+    6  => const Color(0xFFEAB308), // V6 — amber
+    7  => const Color(0xFFE879F9), // V7 — pink
+    8  => const Color(0xFFC026D3), // V8 — purple
+    9  => const Color(0xFFF43F5E), // V9 — rose
+    10 => const Color(0xFFEF4444), // V10 — red
+    11 => const Color(0xFFB91C1C), // V11 — dark red
+    _  => const Color(0xFF7F1D1D), // V12+ — maroon
+  };
 }
 
 // ── Main tab shell ──────────────────────────────────────────────────────────
@@ -1382,7 +1393,7 @@ class _StatsBody extends StatelessWidget {
           if (stats.gradeDistribution.isNotEmpty) ...[
             const _SectionTitle("GRADE DISTRIBUTION"),
             const SizedBox(height: 12),
-            _GradeDistributionBars(grades: stats.gradeDistribution),
+            _GradeDistributionPie(grades: stats.gradeDistribution),
             const SizedBox(height: 28),
           ],
 
@@ -1648,96 +1659,160 @@ class _FrequencyChart extends StatelessWidget {
   }
 }
 
-class _GradeDistributionBars extends StatelessWidget {
-  const _GradeDistributionBars({required this.grades});
+class _GradeDistributionPie extends StatelessWidget {
+  const _GradeDistributionPie({required this.grades});
   final List<GradeStat> grades;
 
   @override
   Widget build(BuildContext context) {
-    final maxCount =
-        grades.map((g) => g.total).fold(1, (a, b) => a > b ? a : b);
+    final total = grades.fold(0, (s, g) => s + g.total);
+    if (total == 0) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
       decoration: BoxDecoration(
         color: const Color(0xFF111D2E),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
-      child: Column(
-        children: grades.asMap().entries.map((entry) {
-          final g = entry.value;
-          final fraction = g.total / maxCount;
-          final gradeCol = _gradeColor(g.difficulty);
-          final isLast = entry.key == grades.length - 1;
-          return Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 36,
-                  child: Text(
-                    g.difficulty,
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      color: gradeCol,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Donut chart
+          SizedBox(
+            width: 130,
+            height: 130,
+            child: CustomPaint(
+              painter: _DonutPainter(grades: grades, total: total),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$total',
+                      style: const TextStyle(
+                        fontFamily: 'Oswald',
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                    Text(
+                      'SENDS',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.38),
+                        fontSize: 9,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: Stack(
+              ),
+            ),
+          ),
+          const SizedBox(width: 20),
+          // Legend
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: grades.map((g) {
+                final pct = (g.total / total * 100).round();
+                final color = _gradeColor(g.difficulty);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 11),
+                  child: Row(
                     children: [
                       Container(
+                        width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: gradeCol.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(5),
+                          color: color,
+                          borderRadius: BorderRadius.circular(3),
                         ),
                       ),
-                      FractionallySizedBox(
-                        widthFactor: fraction.clamp(0.04, 1.0),
-                        child: Container(
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: gradeCol,
-                            borderRadius: BorderRadius.circular(5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: gradeCol.withValues(alpha: 0.40),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                      const SizedBox(width: 8),
+                      Text(
+                        g.difficulty,
+                        style: TextStyle(
+                          fontFamily: 'Oswald',
+                          color: color,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${g.total}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      SizedBox(
+                        width: 34,
+                        child: Text(
+                          '$pct%',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.32),
+                            fontSize: 11,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 28,
-                  child: Text(
-                    "${g.total}",
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      fontFamily: 'Barlow Condensed',
-                      color: gradeCol.withValues(alpha: 0.80),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+                );
+              }).toList(),
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }
+}
+
+class _DonutPainter extends CustomPainter {
+  const _DonutPainter({required this.grades, required this.total});
+  final List<GradeStat> grades;
+  final int total;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 6;
+    const strokeWidth = 20.0;
+    const gapAngle = 0.04; // radians of gap between slices
+
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.butt;
+
+    // Background track
+    canvas.drawCircle(
+      center, radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..color = Colors.white.withValues(alpha: 0.05),
+    );
+
+    double startAngle = -pi / 2;
+    for (final g in grades) {
+      final sweep = (g.total / total) * 2 * pi - gapAngle;
+      paint.color = _gradeColor(g.difficulty);
+      canvas.drawArc(rect, startAngle + gapAngle / 2, sweep.clamp(0.01, 2 * pi), false, paint);
+      startAngle += sweep + gapAngle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DonutPainter old) =>
+      old.grades != grades || old.total != total;
 }
 
 class _ResultBreakdown extends StatelessWidget {
