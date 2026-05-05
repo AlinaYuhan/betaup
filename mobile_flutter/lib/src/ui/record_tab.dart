@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +15,16 @@ import '../session/app_session.dart';
 import 'climber_pages.dart';
 import 'common.dart';
 import 'session_page.dart';
+
+Color _gradeColor(String? grade) {
+  if (grade == null) return const Color(0xFF6B8299);
+  final n = int.tryParse(grade.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+  if (n <= 2) return const Color(0xFF4ADE80);
+  if (n <= 4) return const Color(0xFF60A5FA);
+  if (n <= 6) return const Color(0xFFFF7A18);
+  if (n <= 8) return const Color(0xFFE879F9);
+  return const Color(0xFFF43F5E);
+}
 
 // ── Main tab shell ──────────────────────────────────────────────────────────
 
@@ -78,22 +89,14 @@ class _RecordTabState extends State<RecordTab>
       appBar: AppBar(
         backgroundColor: const Color(0xFF09111F),
         elevation: 0,
-        title: const Text(
-          "记录",
-          style: TextStyle(
-              color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+        toolbarHeight: 0,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFFFF7A18),
-          labelColor: const Color(0xFFFF7A18),
-          unselectedLabelColor: Colors.white38,
-          labelStyle:
-              const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          indicatorWeight: 2.5,
           tabs: const [
-            Tab(icon: Icon(Icons.fitness_center_rounded), text: "训练"),
-            Tab(icon: Icon(Icons.auto_graph_rounded), text: "进步"),
-            Tab(icon: Icon(Icons.workspace_premium_rounded), text: "徽章"),
+            Tab(text: "TRAIN"),
+            Tab(text: "PROGRESS"),
+            Tab(text: "BADGES"),
           ],
         ),
       ),
@@ -146,10 +149,9 @@ class _TrainingHomeTab extends StatefulWidget {
 
 class _TrainingHomeTabState extends State<_TrainingHomeTab> {
   ClimbSession? _activeSession;
-  Timer? _ticker;
-  Duration _elapsed = Duration.zero;
 
   List<SessionSummary> _sessions = [];
+  List<SessionSummary> _monthSessions = [];
   bool _sessionsLoading = true;
 
   _GpsStatus _gpsStatus = _GpsStatus.loading;
@@ -190,7 +192,6 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
   @override
   void dispose() {
     _appSession?.removeListener(_onSessionChange);
-    _ticker?.cancel();
     super.dispose();
   }
 
@@ -206,31 +207,21 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
     try {
       final s = await SessionScope.of(context).api.fetchActiveSession();
       if (!mounted) return;
-      setState(() {
-        _activeSession = s;
-        if (s != null) _startTicker(s.startTime);
-      });
+      setState(() => _activeSession = s);
     } catch (_) {}
-  }
-
-  void _startTicker(DateTime startTime) {
-    _ticker?.cancel();
-    _elapsed = DateTime.now().difference(startTime);
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
-        setState(() => _elapsed = DateTime.now().difference(startTime));
-      }
-    });
   }
 
   Future<void> _loadSessions() async {
     setState(() => _sessionsLoading = true);
     try {
-      final list =
-          await SessionScope.of(context).api.fetchSessions(size: 10);
+      final list = await SessionScope.of(context).api.fetchSessions(size: 10);
       if (!mounted) return;
+      final now = DateTime.now();
       setState(() {
         _sessions = list;
+        _monthSessions = list
+            .where((s) => s.startTime.year == now.year && s.startTime.month == now.month)
+            .toList();
         _sessionsLoading = false;
       });
     } catch (_) {
@@ -324,53 +315,10 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
 
     final venue = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Go Climb"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (_gpsStatus == _GpsStatus.failed || _gpsStatus == _GpsStatus.loading)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    const Icon(Icons.location_off_rounded,
-                        size: 14, color: Colors.white38),
-                    const SizedBox(width: 6),
-                    Text(
-                      _gpsStatus == _GpsStatus.loading
-                          ? "定位中，请手动填写场馆"
-                          : "定位不可用，请手动填写",
-                      style: const TextStyle(
-                          color: Colors.white38, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            TextField(
-              controller: venueCtrl,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: "场馆名称（选填）",
-                hintText: "例：Campus Wall",
-                border: OutlineInputBorder(),
-              ),
-              onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(null),
-              child: const Text("取消")),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(venueCtrl.text.trim()),
-            style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFFF7A18)),
-            child: const Text("开始"),
-          ),
-        ],
+      barrierColor: Colors.black.withValues(alpha: 0.55),
+      builder: (ctx) => _GlassDialog(
+        gpsStatus: _gpsStatus,
+        venueCtrl: venueCtrl,
       ),
     );
 
@@ -387,7 +335,6 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
       setState(() {
         _activeSession = session;
         _starting = false;
-        _startTicker(session.startTime);
       });
       _openSessionPage(session);
     } catch (e) {
@@ -419,7 +366,6 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
     final popped = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => SessionPage(session: session)),
     );
-    _ticker?.cancel();
     await _checkActiveSession();
     if (popped == true) {
       _loadSessions();
@@ -429,60 +375,64 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
-  String get _elapsedLabel {
-    final h = _elapsed.inHours;
-    final m = _elapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = _elapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return h > 0 ? "$h:$m:$s" : "$m:$s";
-  }
-
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final monthSessions = _sessions
-        .where((s) =>
-            s.startTime.year == now.year && s.startTime.month == now.month)
-        .toList();
-    final totalDuration = monthSessions.fold(Duration.zero, (sum, s) {
-      if (s.endTime != null) return sum + s.endTime!.difference(s.startTime);
-      return sum + Duration(minutes: s.durationMinutes);
-    });
-
     return RefreshIndicator(
       color: const Color(0xFFFF7A18),
       backgroundColor: const Color(0xFF1A2535),
       onRefresh: _init,
-      child: ListView(
+      child: Stack(
+        children: [
+          // Ambient glow behind hero area
+          Positioned(
+            top: -60,
+            right: -40,
+            child: Container(
+              width: 280,
+              height: 280,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFFFF7A18).withValues(alpha: 0.12),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.zero,
         children: [
-          // ── Month stats ──────────────────────────────────────────────
-          _buildStatsStrip(monthSessions.length, totalDuration),
-
-          // ── GPS card ─────────────────────────────────────────────────
-          _buildGpsCard(),
-
-          // ── Hero (Go Climb / active session) ─────────────────────────
-          _buildHeroSection(),
+          // ── Photo hero (stats + GPS + Go Climb combined) ──────────────
+          _buildPhotoHero(_monthSessions),
 
           // ── Session history ───────────────────────────────────────────
           if (!_sessionsLoading && _sessions.isNotEmpty) ...[
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 36, 24, 12),
+              padding: const EdgeInsets.fromLTRB(20, 32, 20, 12),
               child: Row(
                 children: [
                   const Text(
-                    "最近训练",
+                    "RECENT SESSIONS",
                     style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold),
+                      fontFamily: 'Oswald',
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.5,
+                    ),
                   ),
                   const Spacer(),
                   Text(
-                    "共 ${_sessions.length} 次",
-                    style: TextStyle(
-                        color: Colors.grey.shade600, fontSize: 13),
+                    "${_sessions.length}×",
+                    style: const TextStyle(
+                      fontFamily: 'Barlow Condensed',
+                      color: Color(0xFF6B8299),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -518,222 +468,241 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
           const SizedBox(height: 120),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatsStrip(int count, Duration total) {
-    final durationStr = count == 0 ? "—" : formatDuration(total);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-      child: Row(
-        children: [
-          _StatPill(label: "本月训练", value: "$count 次"),
-          const SizedBox(width: 12),
-          _StatPill(label: "累计时长", value: durationStr),
         ],
       ),
     );
   }
 
-  Widget _buildGpsCard() {
-    final IconData icon;
-    final Color iconColor;
-    final String text;
+  Widget _buildPhotoHero(List<SessionSummary> monthSessions) {
+    final bestGrade = monthSessions
+        .where((s) => s.hardestSend != null)
+        .map((s) => s.hardestSend!)
+        .fold<String?>(null, (best, g) {
+      if (best == null) return g;
+      final a = int.tryParse(g.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+      final b = int.tryParse(best.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+      return a > b ? g : best;
+    });
+    final totalFlash = monthSessions.fold(0, (s, e) => s + e.flashes);
+    final totalSend  = monthSessions.fold(0, (s, e) => s + e.sends);
 
+    // GPS label
+    final String gpsLabel;
     switch (_gpsStatus) {
-      case _GpsStatus.loading:
-        icon = Icons.location_searching_rounded;
-        iconColor = Colors.white38;
-        text = "正在定位...";
       case _GpsStatus.found:
-        icon = Icons.location_on_rounded;
-        iconColor = const Color(0xFF5ED9A6);
-        text =
-            "${_gpsResult!.gym.name}  ·  ${_gpsResult!.distanceMeters.round()}m";
+        gpsLabel = '${_gpsResult!.gym.name}  ·  ${_gpsResult!.distanceMeters.round()}m away';
       case _GpsStatus.farAway:
-        icon = Icons.location_on_rounded;
-        iconColor = Colors.white38;
-        text = _gpsResult != null
-            ? "最近：${_gpsResult!.gym.name}（${(_gpsResult!.distanceMeters / 1000).toStringAsFixed(1)}km）"
-            : "附近未找到岩馆";
+        gpsLabel = _gpsResult != null
+            ? 'Nearest: ${_gpsResult!.gym.name}  ·  ${(_gpsResult!.distanceMeters / 1000).toStringAsFixed(1)}km'
+            : 'No nearby gym found';
+      case _GpsStatus.loading:
+        gpsLabel = 'Locating...';
       case _GpsStatus.failed:
-        icon = Icons.location_off_rounded;
-        iconColor = Colors.white38;
-        text = "定位不可用，开始时手动输入场馆";
+        gpsLabel = 'Location unavailable';
     }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        ),
-        child: Row(
-          children: [
-            if (_gpsStatus == _GpsStatus.loading)
-              const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white38),
-              )
-            else
-              Icon(icon, color: iconColor, size: 18),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(text,
-                  style: TextStyle(color: iconColor, fontSize: 13)),
-            ),
-            if (_gpsStatus != _GpsStatus.loading)
-              GestureDetector(
-                onTap: _detectNearby,
-                child: const Icon(Icons.refresh_rounded,
-                    size: 17, color: Colors.white38),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeroSection() {
     if (_activeSession != null) {
-      // ── Active session ─────────────────────────────────────────────
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
-        child: Column(
+      // ── Active session: photo + timer overlay ─────────────────────
+      return SizedBox(
+        height: 380,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
+            Image.asset('assets/images/climb_hero.jpg', fit: BoxFit.cover),
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                    color: Colors.orange.withValues(alpha: 0.25)),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x33000000), Color(0xDD09111F)],
+                  stops: [0.0, 1.0],
+                ),
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.orange),
-                      ),
-                      const SizedBox(width: 7),
-                      const Text("训练进行中",
-                          style: TextStyle(
-                              color: Colors.orange,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500)),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _activeSession!.venue.isNotEmpty
-                        ? _activeSession!.venue
-                        : "未知场馆",
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
-                  ),
+                  Row(children: [
+                    Container(
+                      width: 7, height: 7,
+                      decoration: const BoxDecoration(
+                          shape: BoxShape.circle, color: Color(0xFFFF7A18)),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('SESSION IN PROGRESS',
+                        style: TextStyle(fontFamily: 'Oswald', fontSize: 11,
+                            letterSpacing: 2, color: Color(0xFFFF7A18))),
+                  ]),
                   const SizedBox(height: 6),
                   Text(
-                    _elapsedLabel,
-                    style: const TextStyle(
-                        color: Colors.orange,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w200,
-                        letterSpacing: 3),
+                    _activeSession!.venue.isNotEmpty ? _activeSession!.venue : 'Unknown Gym',
+                    style: const TextStyle(fontFamily: 'Oswald', fontSize: 22,
+                        fontWeight: FontWeight.w600, color: Colors.white),
                   ),
+                  _ElapsedTimer(startTime: _activeSession!.startTime),
+                  const SizedBox(height: 16),
+                  Row(children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _openSessionPage(_activeSession!),
+                        child: Container(
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF7A18),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Center(child: Text('CONTINUE',
+                              style: TextStyle(fontFamily: 'Oswald',
+                                  fontSize: 16, fontWeight: FontWeight.w700,
+                                  letterSpacing: 2, color: Colors.white))),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: _openClimbEditor,
+                      child: Container(
+                        height: 52, width: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Center(child: Text('LOG',
+                            style: TextStyle(fontFamily: 'Oswald',
+                                fontSize: 14, fontWeight: FontWeight.w600,
+                                color: Colors.white))),
+                      ),
+                    ),
+                  ]),
                 ],
               ),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () => _openSessionPage(_activeSession!),
-                    icon: const Icon(Icons.timer_outlined),
-                    label: const Text("继续训练",
-                        style: TextStyle(fontSize: 16)),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF7A18),
-                      minimumSize: const Size.fromHeight(56),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                FilledButton.icon(
-                  onPressed: _openClimbEditor,
-                  icon: const Icon(Icons.add_rounded, size: 20),
-                  label: const Text("记录"),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
-                    minimumSize: const Size(90, 56),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18)),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
       );
     }
 
-    // ── No active session: Go Climb button ────────────────────────────
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
-      child: Column(
+    // ── No active session: photo + stats + Go Climb ───────────────
+    return SizedBox(
+      height: 460,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: _starting ? null : _startSession,
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFFF7A18),
-                minimumSize: const Size.fromHeight(68),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24)),
-                elevation: 6,
-                shadowColor:
-                    const Color(0xFFFF7A18).withValues(alpha: 0.45),
+          // Photo
+          Image.asset('assets/images/climb_hero.jpg', fit: BoxFit.cover),
+          // Gradient overlay — transparent top, dark at bottom
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x22000000), Color(0xF009111F)],
+                stops: [0.0, 0.75],
               ),
-              child: _starting
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2.5, color: Colors.white))
-                  : const Text(
-                      "Go Climb",
-                      style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.5,
-                          color: Colors.white),
-                    ),
             ),
           ),
-          const SizedBox(height: 10),
-          TextButton.icon(
-            onPressed: _openClimbEditor,
-            icon: const Icon(Icons.add_rounded, size: 16),
-            label: const Text("单条记录"),
-            style: TextButton.styleFrom(foregroundColor: Colors.white30),
+          // Content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // Stats row
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'BEST THIS MONTH',
+                          style: TextStyle(
+                            fontFamily: 'Oswald',
+                            fontSize: 10,
+                            letterSpacing: 1.8,
+                            color: Colors.white.withValues(alpha: 0.55),
+                          ),
+                        ),
+                        Text(
+                          bestGrade ?? '—',
+                          style: const TextStyle(
+                            fontFamily: 'Barlow Condensed',
+                            fontSize: 72,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            height: 0.9,
+                          ),
+                        ),
+                        Text(
+                          '${monthSessions.length} sessions this month',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.55),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        _PhotoStat(totalFlash, 'FLASH', const Color(0xFFFFD700)),
+                        const SizedBox(height: 8),
+                        _PhotoStat(totalSend, 'SEND', const Color(0xFF4ADE80)),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // GPS row
+                Row(children: [
+                  if (_gpsStatus == _GpsStatus.loading)
+                    const SizedBox(width: 14, height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white38))
+                  else
+                    Icon(
+                      _gpsStatus == _GpsStatus.found
+                          ? Icons.location_on_rounded
+                          : Icons.location_off_rounded,
+                      size: 14,
+                      color: _gpsStatus == _GpsStatus.found
+                          ? const Color(0xFF4ADE80)
+                          : Colors.white38,
+                    ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(gpsLabel,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _gpsStatus == _GpsStatus.found
+                              ? const Color(0xFF4ADE80)
+                              : Colors.white38,
+                        )),
+                  ),
+                  if (_gpsStatus != _GpsStatus.loading)
+                    GestureDetector(
+                      onTap: _detectNearby,
+                      child: const Icon(Icons.refresh_rounded, size: 15, color: Colors.white24),
+                    ),
+                ]),
+                const SizedBox(height: 16),
+                // Go Climb button
+                _PulseGoClimbButton(onPressed: _startSession, loading: _starting),
+                const SizedBox(height: 10),
+                TextButton.icon(
+                  onPressed: _openClimbEditor,
+                  icon: const Icon(Icons.add_rounded, size: 14),
+                  label: const Text('Log single climb'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white38,
+                    textStyle: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -750,171 +719,503 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final venue =
-        summary.venue.isNotEmpty ? summary.venue : "未知场馆";
-    final dateStr = DateFormat("M月d日 HH:mm").format(summary.startTime);
+    final venue = summary.venue.isNotEmpty ? summary.venue : "未知场馆";
+    final dateStr = DateFormat("MMM d").format(summary.startTime).toUpperCase();
+    final timeStr = DateFormat("HH:mm").format(summary.startTime);
     final sessionDuration = summary.endTime != null
         ? summary.endTime!.difference(summary.startTime)
         : Duration(minutes: summary.durationMinutes);
     final durationStr = formatDuration(sessionDuration);
+    final gradeCol = _gradeColor(summary.hardestSend);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+      child: GestureDetector(
+        onLongPress: onDelete == null
+            ? null
+            : () => showModalBottomSheet(
+                  context: context,
+                  builder: (_) => SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.delete_outline,
+                              color: Color(0xFFF87171)),
+                          title: const Text("删除训练记录",
+                              style: TextStyle(color: Color(0xFFF87171))),
+                          onTap: () {
+                            Navigator.pop(context);
+                            onDelete!();
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.cancel_outlined),
+                          title: const Text("取消"),
+                          onTap: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => SessionDetailPage(summary: summary),
         )),
-        onLongPress: onDelete == null ? null : () {
-          showModalBottomSheet(
-            context: context,
-            builder: (_) => SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF111D2E),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: gradeCol.withValues(alpha: 0.20)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.20),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.delete_outline, color: Colors.red),
-                    title: const Text("删除训练记录", style: TextStyle(color: Colors.red)),
-                    onTap: () { Navigator.pop(context); onDelete!(); },
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          venue,
+                          style: const TextStyle(
+                            fontFamily: 'Oswald',
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "$dateStr  ·  $timeStr  ·  $durationStr  ·  ${summary.totalLogs} 条",
+                          style: const TextStyle(
+                            color: Color(0xFF3A5070),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.cancel_outlined),
-                    title: const Text("取消"),
-                    onTap: () => Navigator.pop(context),
-                  ),
+                  if (summary.hardestSend != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: gradeCol.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: gradeCol.withValues(alpha: 0.30)),
+                      ),
+                      child: Text(
+                        summary.hardestSend!,
+                        style: TextStyle(
+                          fontFamily: 'Barlow Condensed',
+                          color: gradeCol,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                 ],
               ),
-            ),
-          );
-        },
-        child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border:
-              Border.all(color: Colors.white.withValues(alpha: 0.07)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _ResultChip("Flash", summary.flashes, const Color(0xFFFFD700)),
+                  const SizedBox(width: 8),
+                  _ResultChip("Send", summary.sends, const Color(0xFF4ADE80)),
+                  const SizedBox(width: 8),
+                  _ResultChip("Attempt", summary.attempts, const Color(0xFF60A5FA)),
+                ],
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(venue,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600)),
-                ),
-                if (summary.hardestSend != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0x26FF7A18),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      "最高 ${summary.hardestSend}",
-                      style: const TextStyle(
-                          color: Color(0xFFFF7A18), fontSize: 11),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Icon(Icons.calendar_today_rounded,
-                    size: 12, color: Colors.grey.shade600),
-                const SizedBox(width: 4),
-                Text(dateStr,
-                    style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: 12)),
-                const SizedBox(width: 12),
-                Icon(Icons.timer_outlined,
-                    size: 12, color: Colors.grey.shade600),
-                const SizedBox(width: 4),
-                Text(durationStr,
-                    style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: 12)),
-                const SizedBox(width: 12),
-                Icon(Icons.terrain_rounded,
-                    size: 12, color: Colors.grey.shade600),
-                const SizedBox(width: 4),
-                Text("${summary.totalLogs} 条",
-                    style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: 12)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                _Chip("⚡ ${summary.flashes}", const Color(0xFFFFD700)),
-                const SizedBox(width: 8),
-                _Chip("✅ ${summary.sends}", const Color(0xFF5ED9A6)),
-                const SizedBox(width: 8),
-                _Chip("💪 ${summary.attempts}", const Color(0xFFFFB26D)),
-              ],
-            ),
-          ],
-        ),
-      ),
       ),
     );
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip(this.text, this.color);
-  final String text;
+class _ResultChip extends StatelessWidget {
+  const _ResultChip(this.label, this.count, this.color);
+  final String label;
+  final int count;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
+    final active = count > 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
+        color: color.withValues(alpha: active ? 0.10 : 0.04),
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(text,
-          style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.bold)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: active ? color : const Color(0xFF3A5070),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            "$count",
+            style: TextStyle(
+              fontFamily: 'Barlow Condensed',
+              color: active ? color : const Color(0xFF3A5070),
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _StatPill extends StatelessWidget {
-  const _StatPill({required this.label, required this.value});
+class _PhotoStat extends StatelessWidget {
+  const _PhotoStat(this.count, this.label, this.color);
+  final int count;
   final String label;
-  final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          '$count',
+          style: TextStyle(
+            fontFamily: 'Barlow Condensed',
+            fontSize: 36,
+            fontWeight: FontWeight.w800,
+            color: count > 0 ? color : Colors.white24,
+            height: 1.0,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Oswald',
+            fontSize: 10,
+            letterSpacing: 1.5,
+            color: count > 0 ? color.withValues(alpha: 0.7) : Colors.white24,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PulseGoClimbButton extends StatelessWidget {
+  const _PulseGoClimbButton({required this.onPressed, required this.loading});
+  final VoidCallback onPressed;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: GestureDetector(
+        onTap: loading ? null : onPressed,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Outer orange glow ring
+            Container(
+              width: 132,
+              height: 132,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFFF7A18).withValues(alpha: 0.45),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF7A18).withValues(alpha: 0.20),
+                    blurRadius: 20,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+            ClipOval(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+            child: Container(
+              width: 124,
+              height: 124,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.28),
+                    Colors.white.withValues(alpha: 0.10),
+                  ],
+                ),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.45),
+                  width: 1.0,
+                ),
+              ),
+              child: loading
+                  ? const Center(
+                      child: SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.terrain_rounded,
+                            color: Colors.white.withValues(alpha: 0.90),
+                            size: 34),
+                        const SizedBox(height: 4),
+                        Text(
+                          "GO",
+                          style: TextStyle(
+                            fontFamily: 'Oswald',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 4,
+                            color: Colors.white.withValues(alpha: 0.65),
+                          ),
+                        ),
+                        const Text(
+                          "CLIMB",
+                          style: TextStyle(
+                            fontFamily: 'Oswald',
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+          ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style:
-                  TextStyle(color: Colors.grey.shade600, fontSize: 11)),
-          const SizedBox(height: 3),
-          Text(value,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold)),
-        ],
+    );
+  }
+}
+
+// ── Glass Dialog ─────────────────────────────────────────────────────────────
+
+class _GlassDialog extends StatelessWidget {
+  const _GlassDialog({required this.gpsStatus, required this.venueCtrl});
+  final _GpsStatus gpsStatus;
+  final TextEditingController venueCtrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final showGpsWarning =
+        gpsStatus == _GpsStatus.failed || gpsStatus == _GpsStatus.loading;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.18),
+                    Colors.white.withValues(alpha: 0.08),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.25),
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+              child: Material(
+                color: Colors.transparent,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title
+                    const Text(
+                      'GO CLIMB',
+                      style: TextStyle(
+                        fontFamily: 'Oswald',
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Where are you climbing today?',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.55),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // GPS warning
+                    if (showGpsWarning)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.location_off_rounded,
+                                size: 13,
+                                color: Colors.white.withValues(alpha: 0.45)),
+                            const SizedBox(width: 6),
+                            Text(
+                              gpsStatus == _GpsStatus.loading
+                                  ? 'Locating… enter venue manually'
+                                  : 'Location unavailable',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.white.withValues(alpha: 0.45),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    // Venue input
+                    TextField(
+                      controller: venueCtrl,
+                      autofocus: true,
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      decoration: InputDecoration(
+                        hintText: 'e.g. Campus Wall',
+                        hintStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.35),
+                            fontSize: 14),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.10),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.20)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.20)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                              color: Color(0xFFFF7A18), width: 1.5),
+                        ),
+                      ),
+                      onSubmitted: (v) =>
+                          Navigator.of(context).pop(v.trim()),
+                    ),
+                    const SizedBox(height: 20),
+                    // Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Navigator.of(context).pop(null),
+                            child: Container(
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                    color:
+                                        Colors.white.withValues(alpha: 0.20)),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'CANCEL',
+                                  style: TextStyle(
+                                    fontFamily: 'Oswald',
+                                    fontSize: 13,
+                                    letterSpacing: 1.5,
+                                    color: Colors.white60,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: GestureDetector(
+                            onTap: () => Navigator.of(context)
+                                .pop(venueCtrl.text.trim()),
+                            child: Container(
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFF7A18),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFFF7A18)
+                                        .withValues(alpha: 0.40),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'START SESSION',
+                                  style: TextStyle(
+                                    fontFamily: 'Oswald',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.5,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1032,43 +1333,172 @@ class _StatsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = stats.summary;
+    final topGradeColor = _gradeColor(s.topGrade);
     return ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         children: [
-          // ── Summary pills ──────────────────────────────────────────────
+          // ── 2×2 big stat cards ─────────────────────────────────────────
           Row(
             children: [
-              _SummaryPill("攀爬次数", "${s.totalClimbs}"),
+              _BigStatCard(
+                value: '${s.totalClimbs}',
+                label: 'CLIMBS',
+                color: const Color(0xFF60A5FA),
+              ),
               const SizedBox(width: 10),
-              _SummaryPill("Flash 率", "${s.flashRatePct}%"),
-              const SizedBox(width: 10),
-              _SummaryPill("最高等级", s.topGrade ?? "—"),
-              const SizedBox(width: 10),
-              _SummaryPill("训练场次", "${s.totalSessions}"),
+              _BigStatCard(
+                value: '${s.flashRatePct}%',
+                label: 'FLASH RATE',
+                color: const Color(0xFFFFD700),
+              ),
             ],
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _BigStatCard(
+                value: s.topGrade ?? '—',
+                label: 'BEST GRADE',
+                color: topGradeColor,
+                highlight: true,
+              ),
+              const SizedBox(width: 10),
+              _BigStatCard(
+                value: '${s.totalSessions}',
+                label: 'SESSIONS',
+                color: const Color(0xFF4ADE80),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
 
           // ── Frequency bar chart ────────────────────────────────────────
-          const _SectionTitle("攀爬频率"),
+          const _SectionTitle("FREQUENCY"),
           const SizedBox(height: 12),
           _FrequencyChart(buckets: stats.buckets),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // ── Grade distribution ─────────────────────────────────────────
           if (stats.gradeDistribution.isNotEmpty) ...[
-            const _SectionTitle("等级分布"),
+            const _SectionTitle("GRADE DISTRIBUTION"),
             const SizedBox(height: 12),
             _GradeDistributionBars(grades: stats.gradeDistribution),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
           ],
 
           // ── Result breakdown ───────────────────────────────────────────
-          const _SectionTitle("结果概览"),
+          const _SectionTitle("RESULT BREAKDOWN"),
           const SizedBox(height: 12),
           _ResultBreakdown(summary: s),
         ],
       );
+  }
+}
+
+class _BigStatCard extends StatelessWidget {
+  const _BigStatCard({
+    required this.value,
+    required this.label,
+    required this.color,
+    this.highlight = false,
+  });
+  final String value;
+  final String label;
+  final Color color;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+        decoration: BoxDecoration(
+          color: highlight
+              ? color.withValues(alpha: 0.09)
+              : const Color(0xFF111D2E),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: highlight
+                ? color.withValues(alpha: 0.30)
+                : Colors.white.withValues(alpha: 0.07),
+          ),
+          boxShadow: highlight
+              ? [BoxShadow(color: color.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, 4))]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontFamily: 'Barlow Condensed',
+                fontSize: 56,
+                fontWeight: FontWeight.w800,
+                color: highlight ? color : Colors.white,
+                height: 0.95,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Oswald',
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 1.5,
+                color: color.withValues(alpha: 0.60),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ElapsedTimer extends StatefulWidget {
+  const _ElapsedTimer({required this.startTime});
+  final DateTime startTime;
+
+  @override
+  State<_ElapsedTimer> createState() => _ElapsedTimerState();
+}
+
+class _ElapsedTimerState extends State<_ElapsedTimer> {
+  late Duration _elapsed;
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _elapsed = DateTime.now().difference(widget.startTime);
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _elapsed = DateTime.now().difference(widget.startTime));
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final h = _elapsed.inHours;
+    final m = _elapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = _elapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return Text(
+      h > 0 ? '$h:$m:$s' : '$m:$s',
+      style: const TextStyle(
+        fontFamily: 'Barlow Condensed',
+        fontSize: 56,
+        fontWeight: FontWeight.w800,
+        color: Colors.white,
+        height: 1.0,
+      ),
+    );
   }
 }
 
@@ -1081,43 +1511,11 @@ class _SectionTitle extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5),
-    );
-  }
-}
-
-class _SummaryPill extends StatelessWidget {
-  const _SummaryPill(this.label, this.value);
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(14),
-          border:
-              Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        ),
-        child: Column(
-          children: [
-            Text(value,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(label,
-                style: TextStyle(
-                    color: Colors.grey.shade500, fontSize: 11)),
-          ],
-        ),
+        fontFamily: 'Oswald',
+        color: Color(0xFF6B8299),
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 2.0,
       ),
     );
   }
@@ -1130,91 +1528,117 @@ class _FrequencyChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (buckets.isEmpty) {
-      return const SizedBox(
-          height: 100,
-          child: Center(
-              child: Text("暂无数据",
-                  style: TextStyle(color: Colors.white38))));
+      return Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: const Color(0xFF111D2E),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+        ),
+        child: const Center(
+          child: Text("暂无数据",
+              style: TextStyle(
+                  fontFamily: 'Oswald',
+                  color: Color(0xFF3A5070),
+                  fontSize: 13,
+                  letterSpacing: 1.5)),
+        ),
+      );
     }
 
-    final maxY = buckets
-            .map((b) => b.climbCount)
-            .fold(0, (a, b) => a > b ? a : b)
-            .toDouble()
-            .clamp(1.0, double.infinity);
+    final maxCount = buckets
+        .map((b) => b.climbCount)
+        .fold(0, (a, b) => a > b ? a : b);
+    final maxY = maxCount.toDouble().clamp(1.0, double.infinity);
 
     final groups = buckets.asMap().entries.map((e) {
+      final isPeak = e.value.climbCount == maxCount && maxCount > 0;
       return BarChartGroupData(
         x: e.key,
         barRods: [
           BarChartRodData(
             toY: e.value.climbCount.toDouble(),
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
-              colors: [Color(0xFFFF7A18), Color(0xFF7BE0FF)],
+              colors: [
+                const Color(0xFFFF7A18).withValues(alpha: isPeak ? 1.0 : 0.45),
+                const Color(0xFFFFB26D).withValues(alpha: isPeak ? 0.9 : 0.30),
+              ],
             ),
-            width: 14,
-            borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(6)),
+            width: 16,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+            backDrawRodData: BackgroundBarChartRodData(
+              show: true,
+              toY: maxY * 1.5,
+              color: Colors.white.withValues(alpha: 0.04),
+            ),
           ),
         ],
       );
     }).toList();
 
-    return SizedBox(
-      height: 180,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: maxY * 1.25,
-          barGroups: groups,
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            getDrawingHorizontalLine: (_) => FlLine(
-              color: Colors.white.withValues(alpha: 0.07),
-              strokeWidth: 1,
-            ),
-          ),
-          borderData: FlBorderData(show: false),
-          titlesData: FlTitlesData(
-            topTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false)),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 28,
-                getTitlesWidget: (value, _) => Text(
-                  "${value.toInt()}",
-                  style: const TextStyle(
-                      color: Colors.white38, fontSize: 10),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 20, 12, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111D2E),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+      ),
+      child: SizedBox(
+        height: 210,
+        child: BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceAround,
+            maxY: maxY * 1.5,
+            barGroups: groups,
+            gridData: const FlGridData(show: false),
+            borderData: FlBorderData(show: false),
+            barTouchData: BarTouchData(enabled: false),
+            titlesData: FlTitlesData(
+              topTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 24,
+                  getTitlesWidget: (value, _) {
+                    final idx = value.toInt();
+                    if (idx < 0 || idx >= buckets.length) return const SizedBox.shrink();
+                    final count = buckets[idx].climbCount;
+                    if (count == 0) return const SizedBox.shrink();
+                    final isPeak = count == maxCount;
+                    return Text(
+                      "$count",
+                      style: TextStyle(
+                        fontFamily: 'Barlow Condensed',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isPeak ? const Color(0xFFFF7A18) : const Color(0xFF3A5070),
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 26,
-                getTitlesWidget: (value, _) {
-                  final idx = value.toInt();
-                  if (idx < 0 || idx >= buckets.length) {
-                    return const SizedBox.shrink();
-                  }
-                  final label = buckets[idx].label;
-                  // Show abbreviated label: keep last 4 chars max
-                  final short = label.length > 5
-                      ? label.substring(label.length - 5)
-                      : label;
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(short,
-                        style: const TextStyle(
-                            color: Colors.white38, fontSize: 9)),
-                  );
-                },
+              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 26,
+                  getTitlesWidget: (value, _) {
+                    final idx = value.toInt();
+                    if (idx < 0 || idx >= buckets.length) return const SizedBox.shrink();
+                    final label = buckets[idx].label;
+                    final short = label.length > 5 ? label.substring(label.length - 5) : label;
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(short,
+                          style: const TextStyle(
+                              fontFamily: 'Barlow Condensed',
+                              color: Color(0xFF3A5070),
+                              fontSize: 10)),
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -1233,59 +1657,85 @@ class _GradeDistributionBars extends StatelessWidget {
     final maxCount =
         grades.map((g) => g.total).fold(1, (a, b) => a > b ? a : b);
 
-    return Column(
-      children: grades.map((g) {
-        final fraction = g.total / maxCount;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 40,
-                child: Text(g.difficulty,
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 12)),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Container(
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.07),
-                        borderRadius: BorderRadius.circular(7),
-                      ),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111D2E),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+      ),
+      child: Column(
+        children: grades.asMap().entries.map((entry) {
+          final g = entry.value;
+          final fraction = g.total / maxCount;
+          final gradeCol = _gradeColor(g.difficulty);
+          final isLast = entry.key == grades.length - 1;
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 36,
+                  child: Text(
+                    g.difficulty,
+                    style: TextStyle(
+                      fontFamily: 'Oswald',
+                      color: gradeCol,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
-                    FractionallySizedBox(
-                      widthFactor: fraction.clamp(0.04, 1.0),
-                      child: Container(
-                        height: 14,
+                  ),
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: 10,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFFFF7A18),
-                              Color(0xFF7BE0FF)
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(7),
+                          color: gradeCol.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(5),
                         ),
                       ),
-                    ),
-                  ],
+                      FractionallySizedBox(
+                        widthFactor: fraction.clamp(0.04, 1.0),
+                        child: Container(
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: gradeCol,
+                            borderRadius: BorderRadius.circular(5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: gradeCol.withValues(alpha: 0.40),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 24,
-                child: Text("${g.total}",
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 28,
+                  child: Text(
+                    "${g.total}",
                     textAlign: TextAlign.right,
-                    style: const TextStyle(
-                        color: Colors.white54, fontSize: 11)),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+                    style: TextStyle(
+                      fontFamily: 'Barlow Condensed',
+                      color: gradeCol.withValues(alpha: 0.80),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -1296,73 +1746,87 @@ class _ResultBreakdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = summary.totalClimbs == 0 ? 1 : summary.totalClimbs;
-    return Column(
+    return Row(
       children: [
-        _ResultRow("⚡ Flash", summary.totalFlashes, total,
-            const Color(0xFFFFD700)),
-        const SizedBox(height: 10),
-        _ResultRow("✅ 完成 (Send)", summary.totalSends, total,
-            const Color(0xFF5ED9A6)),
-        const SizedBox(height: 10),
-        _ResultRow("💪 尝试 (Attempt)", summary.totalAttempts, total,
-            const Color(0xFFFFB26D)),
+        _ResultMiniCard(
+          value: '${summary.totalFlashes}',
+          label: 'FLASH',
+          sublabel: '⚡',
+          color: const Color(0xFFFFD700),
+        ),
+        const SizedBox(width: 10),
+        _ResultMiniCard(
+          value: '${summary.totalSends}',
+          label: 'SEND',
+          sublabel: '✓',
+          color: const Color(0xFF5ED9A6),
+        ),
+        const SizedBox(width: 10),
+        _ResultMiniCard(
+          value: '${summary.totalAttempts}',
+          label: 'ATTEMPT',
+          sublabel: '◎',
+          color: const Color(0xFFFF7A18),
+        ),
       ],
     );
   }
 }
 
-class _ResultRow extends StatelessWidget {
-  const _ResultRow(this.label, this.count, this.total, this.color);
+class _ResultMiniCard extends StatelessWidget {
+  const _ResultMiniCard({
+    required this.value,
+    required this.label,
+    required this.sublabel,
+    required this.color,
+  });
+  final String value;
   final String label;
-  final int count;
-  final int total;
+  final String sublabel;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final fraction = count / total;
-    return Row(
-      children: [
-        SizedBox(
-          width: 120,
-          child: Text(label,
-              style: const TextStyle(color: Colors.white70, fontSize: 13)),
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.20)),
         ),
-        Expanded(
-          child: Stack(
-            children: [
-              Container(
-                height: 10,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.07),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-              FractionallySizedBox(
-                widthFactor: fraction.clamp(0.0, 1.0),
-                child: Container(
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 28,
-          child: Text("$count",
-              textAlign: TextAlign.right,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              sublabel,
+              style: const TextStyle(fontSize: 16, height: 1),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
               style: TextStyle(
-                  color: color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold)),
+                fontFamily: 'Barlow Condensed',
+                fontSize: 44,
+                fontWeight: FontWeight.w800,
+                color: color,
+                height: 0.9,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Oswald',
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.5,
+                color: color.withValues(alpha: 0.60),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -1487,7 +1951,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
           if (_hasHr)
             _HrSection(sessionId: s.sessionId, duration: dur)
           else
-            _NoHrCard(),
+            const _NoHrCard(),
           const SizedBox(height: 24),
           const Text("训练记录",
               style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
@@ -1587,6 +2051,7 @@ class _HrSection extends StatelessWidget {
 }
 
 class _NoHrCard extends StatelessWidget {
+  const _NoHrCard();
   @override
   Widget build(BuildContext context) {
     return Container(

@@ -42,38 +42,19 @@ class ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateMi
     final isCoach = user.isCoachCertified;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("我的"),
-            if (user.isCoachCertified) ...[
-              const SizedBox(width: 8),
-              const CoachChip(),
-            ],
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: "退出登录",
-            onPressed: widget.onLogout,
-          ),
-        ],
-      ),
       body: Column(
         children: [
-          // Profile header
-          _ProfileHeader(user: user, isCoach: isCoach),
+          _ProfileHeader(user: user, isCoach: isCoach, onLogout: widget.onLogout),
           // Certification status (only for non-admin, non-coach users or those pending)
           if (user.role != UserRole.admin)
             _CertificationSection(user: user),
           // Tabs: 徽章榜 / 打卡榜
           TabBar(
             controller: _tabController,
+            indicatorWeight: 2.5,
             tabs: const [
-              Tab(icon: Icon(Icons.workspace_premium), text: "徽章榜"),
-              Tab(icon: Icon(Icons.location_on), text: "打卡榜"),
+              Tab(text: "BADGES"),
+              Tab(text: "CHECK-INS"),
             ],
           ),
           Expanded(
@@ -96,9 +77,10 @@ class ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateMi
 }
 
 class _ProfileHeader extends StatefulWidget {
-  const _ProfileHeader({required this.user, required this.isCoach});
+  const _ProfileHeader({required this.user, required this.isCoach, required this.onLogout});
   final UserProfile user;
   final bool isCoach;
+  final VoidCallback onLogout;
 
   @override
   State<_ProfileHeader> createState() => _ProfileHeaderState();
@@ -245,6 +227,13 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, size: 18, color: Color(0xFF3A5070)),
+            tooltip: "退出登录",
+            onPressed: widget.onLogout,
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(),
           ),
         ],
       ),

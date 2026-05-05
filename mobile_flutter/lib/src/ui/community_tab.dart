@@ -64,20 +64,30 @@ class _CommunityTabState extends State<CommunityTab>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("社区"),
+        toolbarHeight: 0,
         bottom: TabBar(
           controller: _tabController,
+          indicatorWeight: 2.5,
           tabs: const [
-            Tab(text: "全部动态"),
-            Tab(text: "找搭子"),
-            Tab(text: "Beta 线路"),
+            Tab(text: "ALL"),
+            Tab(text: "PARTNER"),
+            Tab(text: "BETA"),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreatePost,
-        icon: const Icon(Icons.edit_rounded),
-        label: const Text("发动态"),
+      floatingActionButton: Padding(
+        // extendBody:true in MainShell makes the FAB sit behind the nav bar — offset manually.
+        padding: const EdgeInsets.only(bottom: 72),
+        child: FloatingActionButton.extended(
+          onPressed: _showCreatePost,
+          backgroundColor: const Color(0xFFFF7A18),
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.edit_rounded, size: 18),
+          label: const Text(
+            "发动态",
+            style: TextStyle(fontFamily: 'Oswald', fontSize: 14, letterSpacing: 0.5),
+          ),
+        ),
       ),
       body: TabBarView(
         controller: _tabController,
