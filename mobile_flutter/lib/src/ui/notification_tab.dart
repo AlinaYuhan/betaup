@@ -102,11 +102,11 @@ class NotificationTabState extends State<NotificationTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("通知"),
+        title: const Text("Notifications"),
         actions: [
           IconButton(
             icon: const Icon(Icons.done_all),
-            tooltip: "全部标为已读",
+            tooltip: "Mark all as read",
             onPressed: () async {
               final session = SessionScope.of(context);
               await session.api.markAllNotificationsRead();
@@ -131,7 +131,7 @@ class NotificationTabState extends State<NotificationTab> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
-              ? const Center(child: Text("暂无通知"))
+              ? const Center(child: Text("No notifications"))
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.separated(

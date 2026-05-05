@@ -213,15 +213,15 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                   spacing: 12,
                   runSpacing: 8,
                   children: [
-                    _StatChip(label: "日志", value: totalLogs),
-                    _StatChip(label: "完成", value: completed),
+                    _StatChip(label: "Logs", value: totalLogs),
+                    _StatChip(label: "Sends", value: completed),
                     GestureDetector(
                       onTap: () => _openFollowList(context, isFollowers: false),
-                      child: _StatChip(label: "关注", value: user.followingCount),
+                      child: _StatChip(label: "Following", value: user.followingCount),
                     ),
                     GestureDetector(
                       onTap: () => _openFollowList(context, isFollowers: true),
-                      child: _StatChip(label: "粉丝", value: user.followerCount),
+                      child: _StatChip(label: "Followers", value: user.followerCount),
                     ),
                   ],
                 ),
@@ -302,7 +302,7 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
           children: [
             Text(_error!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: _load, child: const Text("重试")),
+            ElevatedButton(onPressed: _load, child: const Text("Retry")),
           ],
         ),
       );
@@ -314,7 +314,7 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
     final currentUserId = SessionScope.of(context).user?.id;
 
     if (entries.isEmpty) {
-      return const Center(child: Text("暂无数据，快去攀岩吧！🧗"));
+      return const Center(child: Text("No data yet. Go climb! 🧗"));
     }
 
     return RefreshIndicator(
@@ -345,7 +345,7 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
             ),
             trailing: Chip(
               label: Text(
-                "${entry.score} ${widget.type == 'badges' ? '徽章' : '打卡'}",
+                "${entry.score} ${widget.type == 'badges' ? 'badges' : 'check-ins'}",
                 style: TextStyle(
                   color: isMe ? Colors.white : null,
                   fontWeight: FontWeight.bold,
@@ -424,16 +424,16 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text("编辑资料", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text("Edit Profile", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: "昵称", border: OutlineInputBorder())),
+          TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: "Name", border: OutlineInputBorder())),
           const SizedBox(height: 12),
-          TextField(controller: _cityCtrl, decoration: const InputDecoration(labelText: "所在城市", border: OutlineInputBorder())),
+          TextField(controller: _cityCtrl, decoration: const InputDecoration(labelText: "City", border: OutlineInputBorder())),
           const SizedBox(height: 12),
-          TextField(controller: _bioCtrl, maxLines: 3, decoration: const InputDecoration(labelText: "个人简介", border: OutlineInputBorder())),
+          TextField(controller: _bioCtrl, maxLines: 3, decoration: const InputDecoration(labelText: "Bio", border: OutlineInputBorder())),
           if (_errorMsg != null) ...[
             const SizedBox(height: 8),
-            Text("保存失败：$_errorMsg", style: const TextStyle(color: Colors.red, fontSize: 13)),
+            Text("Failed to save: $_errorMsg", style: const TextStyle(color: Colors.red, fontSize: 13)),
           ],
           const SizedBox(height: 16),
           SizedBox(
@@ -447,7 +447,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
               ),
               child: _saving
                   ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                  : const Text("保存"),
+                  : const Text("Save"),
             ),
           ),
         ],

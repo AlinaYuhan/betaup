@@ -58,16 +58,16 @@ class _MainShellState extends State<MainShell> {
     final shouldLogout = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text("退出登录？"),
-            content: const Text("确认退出当前账号吗？"),
+            title: const Text("Log Out?"),
+            content: const Text("Sign out of your account?"),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("取消"),
+                child: const Text("Cancel"),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("退出"),
+                child: const Text("Log Out"),
               ),
             ],
           ),

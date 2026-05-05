@@ -233,13 +233,13 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("删除训练记录"),
-        content: Text("确定删除「${s.venue.isNotEmpty ? s.venue : '未指定场馆'}」的训练记录？此操作不可撤销，该次训练的所有攀爬记录也会一并删除。"),
+        title: const Text("Delete Session"),
+        content: Text("Delete \"${s.venue.isNotEmpty ? s.venue : 'this session'}\"? All climb records will also be removed."),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("取消")),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancel")),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text("删除", style: TextStyle(color: Colors.red)),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -251,7 +251,7 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("删除失败：$e"), backgroundColor: Colors.red),
+          SnackBar(content: Text("Failed to delete: $e"), backgroundColor: Colors.red),
         );
       }
     }
@@ -341,7 +341,7 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
       if (mounted) {
         setState(() => _starting = false);
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("启动失败：$e")));
+            .showSnackBar(SnackBar(content: Text("Failed to start: $e")));
       }
     }
   }
@@ -457,7 +457,7 @@ class _TrainingHomeTabState extends State<_TrainingHomeTab> {
               padding: const EdgeInsets.fromLTRB(24, 48, 24, 0),
               child: Center(
                 child: Text(
-                  "还没有训练记录\n点击上方按钮开始第一次攀岩吧！",
+                  "No sessions yet.\nTap a button above to start your first climb!",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: Colors.grey.shade600, height: 1.9),
@@ -719,7 +719,7 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final venue = summary.venue.isNotEmpty ? summary.venue : "未知场馆";
+    final venue = summary.venue.isNotEmpty ? summary.venue : "Unknown Venue";
     final dateStr = DateFormat("MMM d").format(summary.startTime).toUpperCase();
     final timeStr = DateFormat("HH:mm").format(summary.startTime);
     final sessionDuration = summary.endTime != null
@@ -742,7 +742,7 @@ class _SessionCard extends StatelessWidget {
                         ListTile(
                           leading: const Icon(Icons.delete_outline,
                               color: Color(0xFFF87171)),
-                          title: const Text("删除训练记录",
+                          title: const Text("Delete Session",
                               style: TextStyle(color: Color(0xFFF87171))),
                           onTap: () {
                             Navigator.pop(context);
@@ -751,7 +751,7 @@ class _SessionCard extends StatelessWidget {
                         ),
                         ListTile(
                           leading: const Icon(Icons.cancel_outlined),
-                          title: const Text("取消"),
+                          title: const Text("Cancel"),
                           onTap: () => Navigator.pop(context),
                         ),
                       ],
@@ -797,7 +797,7 @@ class _SessionCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "$dateStr  ·  $timeStr  ·  $durationStr  ·  ${summary.totalLogs} 条",
+                          "$dateStr  ·  $timeStr  ·  $durationStr  ·  ${summary.totalLogs} logs",
                           style: const TextStyle(
                             color: Color(0xFF3A5070),
                             fontSize: 12,
@@ -1268,9 +1268,9 @@ class StatsTabState extends State<StatsTab> {
           child: Row(
             children: [
               for (final entry in const [
-                ("WEEK", "近 8 周"),
-                ("MONTH", "近 6 月"),
-                ("ALL", "全部"),
+                ("WEEK", "8 Weeks"),
+                ("MONTH", "6 Months"),
+                ("ALL", "All Time"),
               ])
                 Expanded(
                   child: Padding(
@@ -1305,13 +1305,13 @@ class StatsTabState extends State<StatsTab> {
                   Text(_error!, textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.red, fontSize: 13)),
                   const SizedBox(height: 16),
-                  ElevatedButton(onPressed: _load, child: const Text("重试")),
+                  ElevatedButton(onPressed: _load, child: const Text("Retry")),
                 ],
               ),
             ),
           )
         else if (_stats == null)
-          const Expanded(child: Center(child: Text("暂无统计数据")))
+          const Expanded(child: Center(child: Text("No stats yet")))
         else
           Expanded(
             child: RefreshIndicator(
@@ -1536,7 +1536,7 @@ class _FrequencyChart extends StatelessWidget {
           border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
         ),
         child: const Center(
-          child: Text("暂无数据",
+          child: Text("No data",
               style: TextStyle(
                   fontFamily: 'Oswald',
                   color: Color(0xFF3A5070),
@@ -1897,8 +1897,8 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
   @override
   Widget build(BuildContext context) {
     final s = widget.summary;
-    final venue = s.venue.isNotEmpty ? s.venue : "未知场馆";
-    final startStr = DateFormat("yyyy年M月d日  HH:mm").format(s.startTime);
+    final venue = s.venue.isNotEmpty ? s.venue : "Unknown Venue";
+    final startStr = DateFormat("MMM d, yyyy  HH:mm").format(s.startTime);
     final dur = s.endTime != null
         ? s.endTime!.difference(s.startTime)
         : Duration(minutes: s.durationMinutes);
@@ -1925,14 +1925,14 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _InfoRow(Icons.calendar_today_rounded, "日期", startStr),
+                _InfoRow(Icons.calendar_today_rounded, "Date", startStr),
                 const SizedBox(height: 10),
-                _InfoRow(Icons.timer_outlined, "时长", durStr),
+                _InfoRow(Icons.timer_outlined, "Duration", durStr),
                 const SizedBox(height: 10),
-                _InfoRow(Icons.location_on_outlined, "场馆", venue),
+                _InfoRow(Icons.location_on_outlined, "Venue", venue),
                 if (s.hardestSend != null) ...[
                   const SizedBox(height: 10),
-                  _InfoRow(Icons.emoji_events_rounded, "最高完成", s.hardestSend!),
+                  _InfoRow(Icons.emoji_events_rounded, "Best Send", s.hardestSend!),
                 ],
               ],
             ),
@@ -1942,9 +1942,9 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
             children: [
               Expanded(child: _StatBox("⚡ Flash", "${s.flashes}", const Color(0xFFFFD700))),
               const SizedBox(width: 10),
-              Expanded(child: _StatBox("✅ 完成", "${s.sends}", const Color(0xFF5ED9A6))),
+              Expanded(child: _StatBox("✅ Sends", "${s.sends}", const Color(0xFF5ED9A6))),
               const SizedBox(width: 10),
-              Expanded(child: _StatBox("💪 尝试", "${s.attempts}", const Color(0xFFFFB26D))),
+              Expanded(child: _StatBox("💪 Attempts", "${s.attempts}", const Color(0xFFFFB26D))),
             ],
           ),
           const SizedBox(height: 20),
@@ -1953,7 +1953,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
           else
             const _NoHrCard(),
           const SizedBox(height: 24),
-          const Text("训练记录",
+          const Text("Climbs",
               style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           if (_loading)
@@ -1966,7 +1966,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
           else if (_climbs == null || _climbs!.isEmpty)
             const Center(child: Padding(
               padding: EdgeInsets.all(32),
-              child: Text("本次训练没有记录攀岩路线", style: TextStyle(color: Colors.grey)),
+              child: Text("No climbs recorded", style: TextStyle(color: Colors.grey)),
             ))
           else
             ..._climbs!.map((c) => _ClimbTile(c)),
@@ -2006,16 +2006,16 @@ class _HrSection extends StatelessWidget {
           const Row(children: [
             Icon(Icons.favorite_rounded, color: Color(0xFFFF4D6D), size: 15),
             SizedBox(width: 6),
-            Text("心率 · Apple Watch",
+            Text("Heart Rate",
                 style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
           ]),
           const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _HrStat("均值", "$avg", "bpm"),
-              _HrStat("峰值", "$max", "bpm"),
-              _HrStat("最低", "$min", "bpm"),
+              _HrStat("Avg", "$avg", "bpm"),
+              _HrStat("Peak", "$max", "bpm"),
+              _HrStat("Min", "$min", "bpm"),
             ],
           ),
           const SizedBox(height: 14),
@@ -2064,7 +2064,7 @@ class _NoHrCard extends StatelessWidget {
       child: Row(children: [
         Icon(Icons.favorite_outline_rounded, color: Colors.grey.shade700, size: 15),
         const SizedBox(width: 8),
-        Text("本次训练未记录心率",
+        Text("No heart rate recorded",
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
       ]),
     );
@@ -2165,7 +2165,7 @@ class _ClimbTile extends StatelessWidget {
                   Text(climb.difficulty,
                       style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                   if (climb.attempts > 1)
-                    Text("  ·  ${climb.attempts}次尝试",
+                    Text("  ·  ${climb.attempts} attempts",
                         style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                   if (climb.notes.isNotEmpty)
                     Text("  ·  ${climb.notes}",
@@ -2200,8 +2200,8 @@ class _ResultBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, color) = switch (result) {
       ClimbResult.flash => ("Flash", const Color(0xFFFFD700)),
-      ClimbResult.send => ("完成", const Color(0xFF5ED9A6)),
-      ClimbResult.attempt => ("尝试", const Color(0xFFFFB26D)),
+      ClimbResult.send => ("Send", const Color(0xFF5ED9A6)),
+      ClimbResult.attempt => ("Attempt", const Color(0xFFFFB26D)),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
