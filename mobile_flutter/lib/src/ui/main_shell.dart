@@ -130,33 +130,33 @@ class _MainShellState extends State<MainShell> {
               const NavigationDestination(
                 icon: Icon(Icons.explore_outlined),
                 selectedIcon: Icon(Icons.explore),
-                label: "探索",
+                label: "Explore",
               ),
               const NavigationDestination(
                 icon: Icon(Icons.fitness_center_outlined),
                 selectedIcon: Icon(Icons.fitness_center),
-                label: "记录",
+                label: "Train",
               ),
               const NavigationDestination(
                 icon: Icon(Icons.people_outline),
                 selectedIcon: Icon(Icons.people),
-                label: "社区",
+                label: "Community",
               ),
               NavigationDestination(
                 icon: notifIcon(Icons.notifications_outlined),
                 selectedIcon: notifIcon(Icons.notifications),
-                label: "通知",
+                label: "Alerts",
               ),
               const NavigationDestination(
                 icon: Icon(Icons.person_outline),
                 selectedIcon: Icon(Icons.person),
-                label: "我的",
+                label: "Profile",
               ),
               if (isAdmin)
                 const NavigationDestination(
                   icon: Icon(Icons.admin_panel_settings_outlined),
                   selectedIcon: Icon(Icons.admin_panel_settings),
-                  label: "管理",
+                  label: "Admin",
                 ),
             ],
           ),

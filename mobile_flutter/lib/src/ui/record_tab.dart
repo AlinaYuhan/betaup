@@ -1562,8 +1562,8 @@ class _FrequencyChart extends StatelessWidget {
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
               colors: [
-                const Color(0xFFFF7A18).withValues(alpha: isPeak ? 1.0 : 0.45),
-                const Color(0xFFFFB26D).withValues(alpha: isPeak ? 0.9 : 0.30),
+                const Color(0xFFFF7A18),
+                isPeak ? const Color(0xFF7BE0FF) : const Color(0xFF7BE0FF).withValues(alpha: 0.5),
               ],
             ),
             width: 16,
