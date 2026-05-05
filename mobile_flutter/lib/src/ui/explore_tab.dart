@@ -208,11 +208,6 @@ class _ExploreTabState extends State<ExploreTab> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            "Tap a pin to open the gym detail sheet and check in.",
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: SizedBox(
@@ -434,26 +429,41 @@ class _ExploreTabState extends State<ExploreTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Explore Gyms"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.my_location),
-            tooltip: "Locate me",
-            onPressed: _locateUser,
-          ),
-        ],
-      ),
+      appBar: AppBar(toolbarHeight: 0),
       body: Stack(
         children: [
           RefreshIndicator(
             onRefresh: _loadGyms,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(0, 12, 0, 28),
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 120),
               children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 16, 8),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'EXPLORE',
+                        style: TextStyle(
+                          fontFamily: 'Oswald',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.my_location_rounded, size: 20),
+                        tooltip: 'Locate me',
+                        color: const Color(0xFF6B8299),
+                        onPressed: _locateUser,
+                      ),
+                    ],
+                  ),
+                ),
                 _buildMapCard(),
                 const Padding(
-                  padding: EdgeInsets.fromLTRB(20, 12, 20, 10),
+                  padding: EdgeInsets.fromLTRB(20, 16, 20, 10),
                   child: SectionLabel("Gym List"),
                 ),
                 _buildGymList(),

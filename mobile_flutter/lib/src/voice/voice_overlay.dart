@@ -17,33 +17,34 @@ class VoiceAssistantOverlay extends StatefulWidget {
 }
 
 class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   // Panda position — distance from right / bottom screen edges.
   double _right = 16;
   double _bottom = 160;
 
-  late final AnimationController _pulseCtrl;
-  late final Animation<double> _pulseScale;
+  late final AnimationController _breathCtrl;
+  late final AnimationController _rippleCtrl;
+  late final Animation<double> _breathScale;
 
   VoiceState _prevState = VoiceState.idle;
 
   @override
   void initState() {
     super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
+    _breathCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2500));
+    _breathScale = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _breathCtrl, curve: Curves.easeInOut),
     );
-    _pulseScale = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
+    _rippleCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
+    _breathCtrl.repeat(reverse: true);
     widget.service.addListener(_onServiceChange);
   }
 
   @override
   void dispose() {
     widget.service.removeListener(_onServiceChange);
-    _pulseCtrl.dispose();
+    _breathCtrl.dispose();
+    _rippleCtrl.dispose();
     super.dispose();
   }
 
@@ -51,11 +52,14 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
     final s = widget.service.state;
 
     if (s == VoiceState.listening) {
-      if (!_pulseCtrl.isAnimating) _pulseCtrl.repeat(reverse: true);
+      _breathCtrl.stop(); _breathCtrl.reset();
+      if (!_rippleCtrl.isAnimating) _rippleCtrl.repeat();
     } else {
-      if (_pulseCtrl.isAnimating) {
-        _pulseCtrl.stop();
-        _pulseCtrl.reset();
+      _rippleCtrl.stop(); _rippleCtrl.reset();
+      if (s == VoiceState.idle) {
+        if (!_breathCtrl.isAnimating) _breathCtrl.repeat(reverse: true);
+      } else {
+        _breathCtrl.stop(); _breathCtrl.reset();
       }
     }
 
@@ -147,20 +151,19 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
     final state = widget.service.state;
     final color = _stateColor(state);
 
+    // Shadow glow intensity varies by state
+    final glowColor = state == VoiceState.idle
+        ? const Color(0xFFFF7A18).withValues(alpha: 0.28)
+        : color.withValues(alpha: 0.60);
+    final glowBlur = state == VoiceState.idle ? 16.0 : 24.0;
+
     Widget panda = Container(
       width: 68,
       height: 68,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(
-            color: color == Colors.white
-                ? Colors.black.withValues(alpha: 0.25)
-                : color.withValues(alpha: 0.55),
-            blurRadius: 14,
-            spreadRadius: 2,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: glowColor, blurRadius: glowBlur, spreadRadius: 2),
         ],
       ),
       child: CustomPaint(
@@ -169,36 +172,59 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
       ),
     );
 
-    // Pulse when listening.
-    if (state == VoiceState.listening) {
-      panda = ScaleTransition(scale: _pulseScale, child: panda);
+    // Idle: breathing scale
+    if (state == VoiceState.idle) {
+      panda = AnimatedBuilder(
+        animation: _breathScale,
+        builder: (_, child) => Transform.scale(scale: _breathScale.value, child: child),
+        child: panda,
+      );
     }
 
-    // Spinner overlay when processing.
+    // Listening: dual phase-offset ripple rings
+    if (state == VoiceState.listening) {
+      panda = AnimatedBuilder(
+        animation: _rippleCtrl,
+        builder: (_, child) {
+          final t1 = _rippleCtrl.value;
+          final t2 = (_rippleCtrl.value + 0.5) % 1.0;
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              _RippleRing(t: t1, color: color),
+              _RippleRing(t: t2, color: color),
+              child!,
+            ],
+          );
+        },
+        child: panda,
+      );
+    }
+
+    // Processing: orange rotating arc overlay
     if (state == VoiceState.processing) {
       panda = Stack(
         alignment: Alignment.center,
         children: [
           panda,
           const SizedBox(
-            width: 64,
-            height: 64,
+            width: 82,
+            height: 82,
             child: CircularProgressIndicator(
-              strokeWidth: 3,
-              color: Colors.white,
+              strokeWidth: 2.5,
+              color: Color(0xFFFF7A18),
             ),
           ),
         ],
       );
     }
 
-    // Tooltip.
     final tip = switch (state) {
-      VoiceState.idle => "点击开始对话",
-      VoiceState.listening => "点击停止录音",
-      VoiceState.processing => "思考中...",
-      VoiceState.responding => "回复中...",
-      VoiceState.error => "点击重置",
+      VoiceState.idle       => '点击开始对话',
+      VoiceState.listening  => '点击停止录音',
+      VoiceState.processing => '思考中...',
+      VoiceState.responding => '回复中...',
+      VoiceState.error      => '点击重置',
     };
 
     return Tooltip(message: tip, child: panda);
@@ -211,6 +237,31 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
         VoiceState.responding => const Color(0xFF42A5F5),
         VoiceState.error => const Color(0xFF9E9E9E),
       };
+}
+
+// ── Ripple ring ───────────────────────────────────────────────────────────────
+
+class _RippleRing extends StatelessWidget {
+  const _RippleRing({required this.t, required this.color});
+  final double t;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = 68.0 + t * 60.0;
+    final opacity = ((1.0 - t) * 0.65).clamp(0.0, 1.0);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: color.withValues(alpha: opacity),
+          width: 2.0,
+        ),
+      ),
+    );
+  }
 }
 
 // ── Panda painter ─────────────────────────────────────────────────────────────
