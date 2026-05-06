@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 
 import '../ui/common.dart';
@@ -5,11 +7,8 @@ import 'voice_service.dart';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
-/// Full-screen transparent overlay that hosts both the chat panel and the
-/// draggable panda button.  Add this as the last child of your root [Stack].
 class VoiceAssistantOverlay extends StatefulWidget {
   const VoiceAssistantOverlay({super.key, required this.service});
-
   final VoiceService service;
 
   @override
@@ -17,49 +16,48 @@ class VoiceAssistantOverlay extends StatefulWidget {
 }
 
 class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
-    with SingleTickerProviderStateMixin {
-  // Panda position — distance from right / bottom screen edges.
-  double _right = 16;
-  double _bottom = 160;
+    with TickerProviderStateMixin {
+  double _right = 6;
+  double _bottom = 130;
 
-  late final AnimationController _pulseCtrl;
-  late final Animation<double> _pulseScale;
+  // _breathCtrl: runs only while listening/responding, drives the glow-ring painter
+  late final AnimationController _breathCtrl;
+  // _rippleCtrl: runs only while listening, drives the particle-ring painter
+  late final AnimationController _rippleCtrl;
 
   VoiceState _prevState = VoiceState.idle;
 
   @override
   void initState() {
     super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    _pulseScale = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
+    _breathCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1600));
+    _rippleCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1800));
     widget.service.addListener(_onServiceChange);
   }
 
   @override
   void dispose() {
     widget.service.removeListener(_onServiceChange);
-    _pulseCtrl.dispose();
+    _breathCtrl.dispose();
+    _rippleCtrl.dispose();
     super.dispose();
   }
 
   void _onServiceChange() {
     final s = widget.service.state;
 
-    if (s == VoiceState.listening) {
-      if (!_pulseCtrl.isAnimating) _pulseCtrl.repeat(reverse: true);
+    if (s == VoiceState.listening || s == VoiceState.responding) {
+      if (!_breathCtrl.isAnimating) _breathCtrl.repeat(reverse: true);
+      if (s == VoiceState.listening && !_rippleCtrl.isAnimating) _rippleCtrl.repeat();
     } else {
-      if (_pulseCtrl.isAnimating) {
-        _pulseCtrl.stop();
-        _pulseCtrl.reset();
-      }
+      _breathCtrl.stop();
+      _rippleCtrl.stop();
+      _rippleCtrl.reset();
     }
 
-    // Show badge unlock dialog when pending badges arrive.
+    // Badge unlock dialog
     final badges = widget.service.pendingBadges;
     if (badges.isNotEmpty) {
       widget.service.clearPendingBadges();
@@ -68,7 +66,7 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
       });
     }
 
-    // Show error as snackbar (only once on transition into error).
+    // Error snackbar (once per transition)
     if (s == VoiceState.error && _prevState != VoiceState.error) {
       final err = widget.service.errorMessage ?? "未知错误";
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -113,29 +111,27 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
       height: size.height,
       child: Stack(
         children: [
-          // ── Chat panel ────────────────────────────────────────────────────
           if (open)
             Positioned(
-              bottom: _bottom + 76,
+              bottom: _bottom + 80,
               left: 8,
               right: 8,
               child: _ConversationPanel(service: widget.service),
             ),
-
-          // ── Panda button ──────────────────────────────────────────────────
           Positioned(
             right: _right,
             bottom: _bottom,
-            child: GestureDetector(
-              onTap: _onPandaTap,
-              onPanUpdate: (d) {
-                setState(() {
-                  _right = (_right - d.delta.dx).clamp(0.0, size.width - 72);
-                  _bottom =
-                      (_bottom - d.delta.dy).clamp(0.0, size.height - 72);
-                });
-              },
-              child: _buildPanda(),
+            child: RepaintBoundary(
+              child: GestureDetector(
+                onTap: _onPandaTap,
+                onPanUpdate: (d) {
+                  setState(() {
+                    _right = (_right - d.delta.dx).clamp(0.0, size.width - 96);
+                    _bottom = (_bottom - d.delta.dy).clamp(0.0, size.height - 96);
+                  });
+                },
+                child: _buildPanda(),
+              ),
             ),
           ),
         ],
@@ -147,70 +143,188 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
     final state = widget.service.state;
     final color = _stateColor(state);
 
-    Widget panda = Container(
-      width: 68,
-      height: 68,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: color == Colors.white
-                ? Colors.black.withValues(alpha: 0.25)
-                : color.withValues(alpha: 0.55),
-            blurRadius: 14,
-            spreadRadius: 2,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    // Panda face — FIXED at 56×56, never moves or scales
+    const pandaFace = SizedBox(
+      width: 56,
+      height: 56,
       child: CustomPaint(
-        painter: _PandaPainter(ringColor: color),
-        size: const Size(68, 68),
+        painter: _PandaPainter(ringColor: Colors.white),
+        size: Size(56, 56),
       ),
     );
 
-    // Pulse when listening.
-    if (state == VoiceState.listening) {
-      panda = ScaleTransition(scale: _pulseScale, child: panda);
-    }
+    // ── Ring / halo layer — drawn via CustomPainter so the panda stays still ──
+    Widget ringLayer;
+    switch (state) {
+      case VoiceState.idle:
+        // No ring when idle — just the clean panda icon
+        ringLayer = const SizedBox(width: 96, height: 96);
 
-    // Spinner overlay when processing.
-    if (state == VoiceState.processing) {
-      panda = Stack(
-        alignment: Alignment.center,
-        children: [
-          panda,
-          const SizedBox(
-            width: 64,
-            height: 64,
+      case VoiceState.listening:
+        // Same breathing glow as idle, but in red — calm and readable
+        ringLayer = AnimatedBuilder(
+          animation: _breathCtrl,
+          builder: (_, __) => CustomPaint(
+            painter: _BreathRingPainter(
+              phase: _breathCtrl.value,
+              color: color,
+            ),
+            size: const Size(96, 96),
+          ),
+        );
+
+      case VoiceState.processing:
+        // Thin rotating arc
+        ringLayer = SizedBox(
+          width: 96,
+          height: 96,
+          child: Padding(
+            padding: const EdgeInsets.all(6),
             child: CircularProgressIndicator(
-              strokeWidth: 3,
-              color: Colors.white,
+              strokeWidth: 2,
+              color: color,
             ),
           ),
-        ],
-      );
+        );
+
+      case VoiceState.responding:
+        // Breathing glow in blue — same feel as listening
+        ringLayer = AnimatedBuilder(
+          animation: _breathCtrl,
+          builder: (_, __) => CustomPaint(
+            painter: _BreathRingPainter(
+              phase: _breathCtrl.value,
+              color: color,
+            ),
+            size: const Size(96, 96),
+          ),
+        );
+
+      case VoiceState.error:
+        // Static glow for error — no animation, clearly distinct
+        ringLayer = CustomPaint(
+          painter: _StaticGlowPainter(color: color),
+          size: const Size(96, 96),
+        );
     }
 
-    // Tooltip.
     final tip = switch (state) {
-      VoiceState.idle => "点击开始对话",
-      VoiceState.listening => "点击停止录音",
-      VoiceState.processing => "思考中...",
-      VoiceState.responding => "回复中...",
-      VoiceState.error => "点击重置",
+      VoiceState.idle       => '点击开始对话',
+      VoiceState.listening  => '点击停止录音',
+      VoiceState.processing => '思考中...',
+      VoiceState.responding => '回复中...',
+      VoiceState.error      => '点击重置',
     };
 
-    return Tooltip(message: tip, child: panda);
+    // Fixed 96×96 container — ring layer behind, panda face always centred
+    return Tooltip(
+      message: tip,
+      child: SizedBox(
+        width: 96,
+        height: 96,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            ringLayer,
+            pandaFace,
+          ],
+        ),
+      ),
+    );
   }
 
   static Color _stateColor(VoiceState state) => switch (state) {
-        VoiceState.idle => Colors.white,
-        VoiceState.listening => const Color(0xFFEF5350),
+        VoiceState.idle       => const Color(0xFFFF7A18),
+        VoiceState.listening  => const Color(0xFFEF5350),
         VoiceState.processing => const Color(0xFFFFA726),
         VoiceState.responding => const Color(0xFF42A5F5),
-        VoiceState.error => const Color(0xFF9E9E9E),
+        VoiceState.error      => const Color(0xFF9E9E9E),
       };
+}
+
+// ── Breathing glow ring (idle) ─────────────────────────────────────────────────
+// Draws a soft glowing halo whose opacity and blur radius slowly pulse.
+
+class _BreathRingPainter extends CustomPainter {
+  const _BreathRingPainter({required this.phase, required this.color});
+  final double phase; // 0 → 1 → 0 (reverse: true)
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    // Panda icon is 68×68 inside this 96×96 canvas → panda radius = 34.
+    // Start the ring right at the panda edge so there's no dead gap.
+    const baseR = 35.0;
+
+    // phase 0→1→0:  ring visibly expands then contracts
+    final expand    = phase * 11.0;           // grows up to 11 px outward
+    final brightness = 0.35 + phase * 0.65;  // faint at rest → full at peak
+
+    // Outermost diffuse halo — biggest radius, heavy blur
+    canvas.drawCircle(
+      center, baseR + expand + 5,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 9
+        ..color = color.withValues(alpha: brightness * 0.30)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 12 + expand * 0.7),
+    );
+
+    // Mid soft glow — expands with the halo
+    canvas.drawCircle(
+      center, baseR + expand,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 5
+        ..color = color.withValues(alpha: brightness * 0.55)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+    );
+
+    // Inner crisp ring — visible size change is the key cue
+    canvas.drawCircle(
+      center, baseR + expand * 0.45,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = color.withValues(alpha: brightness * 0.92),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_BreathRingPainter old) => old.phase != phase || old.color != color;
+}
+
+// ── Static glow ring (responding / error) ─────────────────────────────────────
+
+class _StaticGlowPainter extends CustomPainter {
+  const _StaticGlowPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final r = size.width / 2 - 6;
+
+    canvas.drawCircle(
+      center, r,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..color = color.withValues(alpha: 0.55)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+    );
+    canvas.drawCircle(
+      center, r - 1,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = color.withValues(alpha: 0.55),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_StaticGlowPainter old) => old.color != color;
 }
 
 // ── Panda painter ─────────────────────────────────────────────────────────────
@@ -223,84 +337,117 @@ class _PandaPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
-    final r = size.width / 2;
+    final r  = size.width / 2;
+    final center = Offset(cx, cy);
+    final rect = Rect.fromCircle(center: center, radius: r);
 
-    // ── Coloured ring background ──────────────────────────────────────────
+    // ── Glass orb base: dark navy with off-center radial gradient ────────
     canvas.drawCircle(
-      Offset(cx, cy),
-      r,
-      Paint()..color = ringColor,
+      center, r,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(-0.35, -0.45),
+          radius: 1.1,
+          colors: [Color(0xFF2C3E50), Color(0xFF0D1520)],
+        ).createShader(rect),
     );
 
-    // ── White face base ───────────────────────────────────────────────────
-    canvas.drawCircle(Offset(cx, cy), r * 0.84, Paint()..color = Colors.white);
+    // Subtle white rim
+    canvas.drawCircle(
+      center, r - 0.5,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0
+        ..color = Colors.white.withValues(alpha: 0.14),
+    );
 
-    // ── Black ears ────────────────────────────────────────────────────────
+    // ── Ears ─────────────────────────────────────────────────────────────
     final earPaint = Paint()..color = const Color(0xFF1A1A1A);
     canvas.drawCircle(Offset(cx - r * 0.44, cy - r * 0.62), r * 0.27, earPaint);
     canvas.drawCircle(Offset(cx + r * 0.44, cy - r * 0.62), r * 0.27, earPaint);
 
-    // White inner ear
     final innerEarPaint = Paint()..color = const Color(0xFFD4A0A0);
-    canvas.drawCircle(
-        Offset(cx - r * 0.44, cy - r * 0.62), r * 0.14, innerEarPaint);
-    canvas.drawCircle(
-        Offset(cx + r * 0.44, cy - r * 0.62), r * 0.14, innerEarPaint);
+    canvas.drawCircle(Offset(cx - r * 0.44, cy - r * 0.62), r * 0.14, innerEarPaint);
+    canvas.drawCircle(Offset(cx + r * 0.44, cy - r * 0.62), r * 0.14, innerEarPaint);
 
-    // White face on top of ears
-    canvas.drawCircle(Offset(cx, cy), r * 0.74, Paint()..color = Colors.white);
+    // ── Face ─────────────────────────────────────────────────────────────
+    // Slightly frosted white instead of pure white
+    canvas.drawCircle(center, r * 0.74,
+        Paint()..color = Colors.white.withValues(alpha: 0.93));
 
-    // ── Eye patches ───────────────────────────────────────────────────────
     final patchPaint = Paint()..color = const Color(0xFF1A1A1A);
-    final patch1 = Rect.fromCenter(
-      center: Offset(cx - r * 0.27, cy - r * 0.1),
-      width: r * 0.37,
-      height: r * 0.42,
-    );
-    final patch2 = Rect.fromCenter(
-      center: Offset(cx + r * 0.27, cy - r * 0.1),
-      width: r * 0.37,
-      height: r * 0.42,
-    );
     canvas.drawRRect(
-        RRect.fromRectAndRadius(patch1, Radius.circular(r * 0.14)), patchPaint);
+        RRect.fromRectAndRadius(
+            Rect.fromCenter(
+                center: Offset(cx - r * 0.27, cy - r * 0.1),
+                width: r * 0.37,
+                height: r * 0.42),
+            Radius.circular(r * 0.14)),
+        patchPaint);
     canvas.drawRRect(
-        RRect.fromRectAndRadius(patch2, Radius.circular(r * 0.14)), patchPaint);
+        RRect.fromRectAndRadius(
+            Rect.fromCenter(
+                center: Offset(cx + r * 0.27, cy - r * 0.1),
+                width: r * 0.37,
+                height: r * 0.42),
+            Radius.circular(r * 0.14)),
+        patchPaint);
 
-    // White pupils
-    final pupilPaint = Paint()..color = Colors.white;
-    canvas.drawCircle(Offset(cx - r * 0.26, cy - r * 0.08), r * 0.11, pupilPaint);
-    canvas.drawCircle(Offset(cx + r * 0.26, cy - r * 0.08), r * 0.11, pupilPaint);
+    canvas.drawCircle(
+        Offset(cx - r * 0.26, cy - r * 0.08), r * 0.11, Paint()..color = Colors.white);
+    canvas.drawCircle(
+        Offset(cx + r * 0.26, cy - r * 0.08), r * 0.11, Paint()..color = Colors.white);
+    canvas.drawCircle(Offset(cx - r * 0.25, cy - r * 0.08), r * 0.065,
+        Paint()..color = const Color(0xFF1A1A1A));
+    canvas.drawCircle(Offset(cx + r * 0.25, cy - r * 0.08), r * 0.065,
+        Paint()..color = const Color(0xFF1A1A1A));
+    canvas.drawCircle(
+        Offset(cx - r * 0.22, cy - r * 0.1), r * 0.028, Paint()..color = Colors.white);
+    canvas.drawCircle(
+        Offset(cx + r * 0.28, cy - r * 0.1), r * 0.028, Paint()..color = Colors.white);
 
-    // Black eyeballs
-    final eyePaint = Paint()..color = const Color(0xFF1A1A1A);
-    canvas.drawCircle(Offset(cx - r * 0.25, cy - r * 0.08), r * 0.065, eyePaint);
-    canvas.drawCircle(Offset(cx + r * 0.25, cy - r * 0.08), r * 0.065, eyePaint);
+    canvas.drawOval(
+        Rect.fromCenter(
+            center: Offset(cx, cy + r * 0.22), width: r * 0.22, height: r * 0.14),
+        Paint()..color = const Color(0xFF1A1A1A));
 
-    // Eye shine
-    final shinePaint = Paint()..color = Colors.white;
-    canvas.drawCircle(Offset(cx - r * 0.22, cy - r * 0.1), r * 0.028, shinePaint);
-    canvas.drawCircle(Offset(cx + r * 0.28, cy - r * 0.1), r * 0.028, shinePaint);
-
-    // ── Nose ──────────────────────────────────────────────────────────────
-    final noseRect = Rect.fromCenter(
-      center: Offset(cx, cy + r * 0.22),
-      width: r * 0.22,
-      height: r * 0.14,
-    );
-    canvas.drawOval(noseRect, Paint()..color = const Color(0xFF1A1A1A));
-
-    // ── Mouth (gentle smile) ──────────────────────────────────────────────
-    final mouthPath = Path()
-      ..moveTo(cx - r * 0.14, cy + r * 0.33)
-      ..quadraticBezierTo(cx, cy + r * 0.44, cx + r * 0.14, cy + r * 0.33);
     canvas.drawPath(
-      mouthPath,
+      Path()
+        ..moveTo(cx - r * 0.14, cy + r * 0.33)
+        ..quadraticBezierTo(cx, cy + r * 0.44, cx + r * 0.14, cy + r * 0.33),
       Paint()
         ..color = const Color(0xFF1A1A1A)
         ..style = PaintingStyle.stroke
         ..strokeWidth = r * 0.045
         ..strokeCap = StrokeCap.round,
+    );
+
+    // ── Glass gloss: large soft sheen top-left + small bright spot ───────
+    canvas.drawCircle(
+      center, r,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(-0.42, -0.50),
+          radius: 0.80,
+          colors: [
+            Colors.white.withValues(alpha: 0.22),
+            Colors.white.withValues(alpha: 0.0),
+          ],
+        ).createShader(rect),
+    );
+    // tiny bright specular dot
+    final specCenter = Offset(cx - r * 0.30, cy - r * 0.48);
+    canvas.drawCircle(
+      specCenter,
+      r * 0.16,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.38),
+            Colors.white.withValues(alpha: 0.0),
+          ],
+        ).createShader(
+            Rect.fromCircle(center: specCenter, radius: r * 0.16)),
     );
   }
 
@@ -308,7 +455,7 @@ class _PandaPainter extends CustomPainter {
   bool shouldRepaint(_PandaPainter old) => old.ringColor != ringColor;
 }
 
-// ── Conversation panel ────────────────────────────────────────────────────────
+// ── Conversation panel ─────────────────────────────────────────────────────────
 
 class _ConversationPanel extends StatefulWidget {
   const _ConversationPanel({required this.service});
@@ -351,130 +498,202 @@ class _ConversationPanelState extends State<_ConversationPanel> {
   Widget build(BuildContext context) {
     final svc = widget.service;
 
-    return Material(
-      elevation: 16,
+    return ClipRRect(
       borderRadius: BorderRadius.circular(20),
-      color: const Color(0xF5121212),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ── Header ──────────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 6, 6),
-            child: Row(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Material(
+          type: MaterialType.transparency,
+          child: Container(
+            decoration: BoxDecoration(
+              // Slightly more transparent for a floating glass feel
+              color: const Color(0xC8070B12),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const CustomPaint(
-                  painter: _PandaPainter(ringColor: Colors.white),
-                  size: Size(28, 28),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  "攀达 Panda",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                const Spacer(),
-                _StateChip(state: svc.state),
-                const SizedBox(width: 4),
-                GestureDetector(
-                  onTap: svc.toggleSttLocale,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                    ),
-                    child: Text(
-                      svc.sttLocale == 'zh-CN' ? '中' : 'EN',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                // ── Thin orange accent line at top ───────────────────────────
+                Container(
+                  height: 2,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        const Color(0xFFFF7A18).withValues(alpha: 0.70),
+                        Colors.transparent,
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 2),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded,
-                      color: Colors.white54, size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 36, minHeight: 36),
-                  onPressed: svc.closeConversation,
+
+                // ── Header ──────────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                              color: const Color(0xFFFF7A18).withValues(alpha: 0.35)),
+                          gradient: RadialGradient(
+                            colors: [
+                              const Color(0xFFFF7A18).withValues(alpha: 0.12),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                        child: const CustomPaint(
+                          painter: _PandaPainter(ringColor: Colors.white),
+                          size: Size(32, 32),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        "攀达 Panda",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Oswald',
+                          fontSize: 15,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const Spacer(),
+                      ListenableBuilder(
+                        listenable: svc,
+                        builder: (_, __) => _StateChip(state: svc.state),
+                      ),
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: svc.toggleSttLocale,
+                        child: ListenableBuilder(
+                          listenable: svc,
+                          builder: (_, __) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.06),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.10)),
+                            ),
+                            child: Text(
+                              svc.sttLocale == 'zh-CN' ? '中' : 'EN',
+                              style: const TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded,
+                            color: Colors.white30, size: 18),
+                        padding: EdgeInsets.zero,
+                        constraints:
+                            const BoxConstraints(minWidth: 36, minHeight: 36),
+                        onPressed: svc.closeConversation,
+                      ),
+                    ],
+                  ),
+                ),
+
+                Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+
+                // ── Message list ─────────────────────────────────────────────
+                ListenableBuilder(
+                  listenable: svc,
+                  builder: (context, _) {
+                    final msgs   = svc.messages;
+                    final interim = svc.interimText;
+                    final count  = msgs.length + (interim != null ? 1 : 0);
+
+                    if (count == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        child: Column(
+                          children: [
+                            Icon(Icons.mic_none_rounded,
+                                color: Colors.white.withValues(alpha: 0.12),
+                                size: 32),
+                            const SizedBox(height: 8),
+                            Text(
+                              "说点什么开始对话吧…",
+                              style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.20),
+                                  fontSize: 13),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 260),
+                      child: ListView.builder(
+                        controller: _scrollCtrl,
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                        itemCount: count,
+                        itemBuilder: (_, i) {
+                          if (i == msgs.length && interim != null) {
+                            return _ChatBubble(
+                                text: interim, isUser: true, isInterim: true);
+                          }
+                          return _ChatBubble(
+                              text: msgs[i].text, isUser: msgs[i].isUser);
+                        },
+                      ),
+                    );
+                  },
+                ),
+
+                // ── Listening waveform indicator ─────────────────────────────
+                ListenableBuilder(
+                  listenable: svc,
+                  builder: (context, _) {
+                    if (svc.state != VoiceState.listening) {
+                      return const SizedBox(height: 8);
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const _PulseDot(color: Color(0xFFEF5350)),
+                          const SizedBox(width: 6),
+                          Text(
+                            "正在聆听…",
+                            style: TextStyle(
+                              color: const Color(0xFFEF5350).withValues(alpha: 0.80),
+                              fontSize: 12,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
           ),
-
-          const Divider(height: 1, color: Color(0x22FFFFFF)),
-
-          // ── Message list ─────────────────────────────────────────────────
-          ListenableBuilder(
-            listenable: svc,
-            builder: (context, _) {
-              final msgs = svc.messages;
-              final interim = svc.interimText;
-              final itemCount = msgs.length + (interim != null ? 1 : 0);
-
-              if (itemCount == 0) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Text(
-                    "说点什么开始对话吧…",
-                    style: TextStyle(color: Colors.white38, fontSize: 13),
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              }
-
-              return ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 270),
-                child: ListView.builder(
-                  controller: _scrollCtrl,
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-                  itemCount: itemCount,
-                  itemBuilder: (_, i) {
-                    if (i == msgs.length && interim != null) {
-                      return _ChatBubble(
-                          text: interim, isUser: true, isInterim: true);
-                    }
-                    return _ChatBubble(
-                        text: msgs[i].text, isUser: msgs[i].isUser);
-                  },
-                ),
-              );
-            },
-          ),
-
-          // ── Listening indicator ──────────────────────────────────────────
-          ListenableBuilder(
-            listenable: svc,
-            builder: (context, _) {
-              if (svc.state != VoiceState.listening) return const SizedBox();
-              return const Padding(
-                padding: EdgeInsets.only(bottom: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _PulseDot(color: Color(0xFFEF5350)),
-                    SizedBox(width: 6),
-                    Text("正在聆听…",
-                        style:
-                            TextStyle(color: Color(0xFFEF5350), fontSize: 12)),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-// ── Chat bubble ───────────────────────────────────────────────────────────────
+// ── Chat bubble ────────────────────────────────────────────────────────────────
 
 class _ChatBubble extends StatelessWidget {
   const _ChatBubble({
@@ -490,43 +709,71 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         mainAxisAlignment:
             isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isUser) ...[
-            const CustomPaint(
-              painter: _PandaPainter(ringColor: Colors.white),
-              size: Size(26, 26),
+            // Small panda avatar with orange ring
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: const Color(0xFFFF7A18).withValues(alpha: 0.30)),
+              ),
+              child: const CustomPaint(
+                painter: _PandaPainter(ringColor: Colors.white),
+                size: Size(28, 28),
+              ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
           ],
           Flexible(
             child: Container(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                  const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
               decoration: BoxDecoration(
+                // User: orange gradient; assistant: glass card
+                gradient: isUser
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFFFF7A18)
+                              .withValues(alpha: isInterim ? 0.30 : 0.90),
+                          const Color(0xFFE05A00)
+                              .withValues(alpha: isInterim ? 0.22 : 0.75),
+                        ],
+                      )
+                    : null,
                 color: isUser
-                    ? const Color(0xFFBF360C).withValues(
-                        alpha: isInterim ? 0.5 : 1.0)
-                    : const Color(0xFF2E2E2E),
+                    ? null
+                    : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(isUser ? 16 : 4),
                   topRight: Radius.circular(isUser ? 4 : 16),
                   bottomLeft: const Radius.circular(16),
                   bottomRight: const Radius.circular(16),
                 ),
+                border: isUser
+                    ? null
+                    : Border.all(
+                        color: Colors.white.withValues(alpha: 0.09)),
               ),
               child: Text(
                 text,
                 style: TextStyle(
-                  color: isInterim ? Colors.white54 : Colors.white,
+                  color: isInterim
+                      ? Colors.white.withValues(alpha: 0.35)
+                      : Colors.white.withValues(alpha: 0.92),
                   fontSize: 13.5,
                   fontStyle:
                       isInterim ? FontStyle.italic : FontStyle.normal,
-                  height: 1.4,
+                  height: 1.45,
                 ),
               ),
             ),
@@ -537,7 +784,7 @@ class _ChatBubble extends StatelessWidget {
   }
 }
 
-// ── State chip ────────────────────────────────────────────────────────────────
+// ── State chip ─────────────────────────────────────────────────────────────────
 
 class _StateChip extends StatelessWidget {
   const _StateChip({required this.state});
@@ -546,18 +793,18 @@ class _StateChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (state) {
-      VoiceState.idle => ("待命", const Color(0xFF9E9E9E)),
-      VoiceState.listening => ("聆听中", const Color(0xFFEF5350)),
+      VoiceState.idle       => ("待命",  const Color(0xFF9E9E9E)),
+      VoiceState.listening  => ("聆听中", const Color(0xFFEF5350)),
       VoiceState.processing => ("思考中", const Color(0xFFFFA726)),
       VoiceState.responding => ("回复中", const Color(0xFF42A5F5)),
-      VoiceState.error => ("出错了", const Color(0xFFEF5350)),
+      VoiceState.error      => ("出错了", const Color(0xFFEF5350)),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Text(label,
           style: TextStyle(
@@ -566,7 +813,7 @@ class _StateChip extends StatelessWidget {
   }
 }
 
-// ── Pulsing dot (listening indicator) ────────────────────────────────────────
+// ── Pulsing dot (listening indicator) ─────────────────────────────────────────
 
 class _PulseDot extends StatefulWidget {
   const _PulseDot({required this.color});
@@ -587,7 +834,7 @@ class _PulseDotState extends State<_PulseDot>
     _ctrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 700))
       ..repeat(reverse: true);
-    _anim = Tween<double>(begin: 0.4, end: 1.0)
+    _anim = Tween<double>(begin: 0.3, end: 1.0)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
@@ -602,10 +849,10 @@ class _PulseDotState extends State<_PulseDot>
     return FadeTransition(
       opacity: _anim,
       child: Container(
-        width: 8,
-        height: 8,
-        decoration:
-            BoxDecoration(shape: BoxShape.circle, color: widget.color),
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(
+            shape: BoxShape.circle, color: widget.color),
       ),
     );
   }

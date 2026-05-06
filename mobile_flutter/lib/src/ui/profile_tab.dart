@@ -42,38 +42,19 @@ class ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateMi
     final isCoach = user.isCoachCertified;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("我的"),
-            if (user.isCoachCertified) ...[
-              const SizedBox(width: 8),
-              const CoachChip(),
-            ],
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: "退出登录",
-            onPressed: widget.onLogout,
-          ),
-        ],
-      ),
       body: Column(
         children: [
-          // Profile header
-          _ProfileHeader(user: user, isCoach: isCoach),
+          _ProfileHeader(user: user, isCoach: isCoach, onLogout: widget.onLogout),
           // Certification status (only for non-admin, non-coach users or those pending)
           if (user.role != UserRole.admin)
             _CertificationSection(user: user),
           // Tabs: 徽章榜 / 打卡榜
           TabBar(
             controller: _tabController,
+            indicatorWeight: 2.5,
             tabs: const [
-              Tab(icon: Icon(Icons.workspace_premium), text: "徽章榜"),
-              Tab(icon: Icon(Icons.location_on), text: "打卡榜"),
+              Tab(text: "BADGES"),
+              Tab(text: "CHECK-INS"),
             ],
           ),
           Expanded(
@@ -96,9 +77,10 @@ class ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateMi
 }
 
 class _ProfileHeader extends StatefulWidget {
-  const _ProfileHeader({required this.user, required this.isCoach});
+  const _ProfileHeader({required this.user, required this.isCoach, required this.onLogout});
   final UserProfile user;
   final bool isCoach;
+  final VoidCallback onLogout;
 
   @override
   State<_ProfileHeader> createState() => _ProfileHeaderState();
@@ -186,18 +168,18 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
           .colorScheme
           .surfaceContainerHighest
           .withValues(alpha: 0.4),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 32,
-            backgroundColor: Colors.orange,
+            radius: 40,
+            backgroundColor: avatarColor(user.name),
             child: Text(
               user.name.isNotEmpty ? user.name[0].toUpperCase() : "?",
-              style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 18),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,12 +194,12 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                       ),
                     ),
                     if (widget.isCoach) ...[
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       const CoachChip(),
                     ],
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 2),
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.grey),
+                      icon: const Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
                       onPressed: () => _showEditSheet(context),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -226,25 +208,34 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
                 ),
                 const SizedBox(height: 4),
                 Text(user.email, style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 8,
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    _StatChip(label: "日志", value: totalLogs),
-                    _StatChip(label: "完成", value: completed),
+                    _StatChip(label: "Logs", value: totalLogs),
+                    const SizedBox(width: 16),
+                    _StatChip(label: "Sends", value: completed),
+                    const SizedBox(width: 16),
                     GestureDetector(
                       onTap: () => _openFollowList(context, isFollowers: false),
-                      child: _StatChip(label: "关注", value: user.followingCount),
+                      child: _StatChip(label: "Following", value: user.followingCount),
                     ),
+                    const SizedBox(width: 16),
                     GestureDetector(
                       onTap: () => _openFollowList(context, isFollowers: true),
-                      child: _StatChip(label: "粉丝", value: user.followerCount),
+                      child: _StatChip(label: "Followers", value: user.followerCount),
                     ),
                   ],
                 ),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, size: 20, color: Color(0xFF3A5070)),
+            tooltip: "退出登录",
+            onPressed: widget.onLogout,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -313,7 +304,7 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
           children: [
             Text(_error!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: _load, child: const Text("重试")),
+            ElevatedButton(onPressed: _load, child: const Text("Retry")),
           ],
         ),
       );
@@ -325,7 +316,7 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
     final currentUserId = SessionScope.of(context).user?.id;
 
     if (entries.isEmpty) {
-      return const Center(child: Text("暂无数据，快去攀岩吧！🧗"));
+      return const Center(child: Text("No data yet. Go climb! 🧗"));
     }
 
     return RefreshIndicator(
@@ -356,7 +347,7 @@ class _LeaderboardViewState extends State<_LeaderboardView> {
             ),
             trailing: Chip(
               label: Text(
-                "${entry.score} ${widget.type == 'badges' ? '徽章' : '打卡'}",
+                "${entry.score} ${widget.type == 'badges' ? 'badges' : 'check-ins'}",
                 style: TextStyle(
                   color: isMe ? Colors.white : null,
                   fontWeight: FontWeight.bold,
@@ -435,16 +426,16 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text("编辑资料", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text("Edit Profile", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: "昵称", border: OutlineInputBorder())),
+          TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: "Name", border: OutlineInputBorder())),
           const SizedBox(height: 12),
-          TextField(controller: _cityCtrl, decoration: const InputDecoration(labelText: "所在城市", border: OutlineInputBorder())),
+          TextField(controller: _cityCtrl, decoration: const InputDecoration(labelText: "City", border: OutlineInputBorder())),
           const SizedBox(height: 12),
-          TextField(controller: _bioCtrl, maxLines: 3, decoration: const InputDecoration(labelText: "个人简介", border: OutlineInputBorder())),
+          TextField(controller: _bioCtrl, maxLines: 3, decoration: const InputDecoration(labelText: "Bio", border: OutlineInputBorder())),
           if (_errorMsg != null) ...[
             const SizedBox(height: 8),
-            Text("保存失败：$_errorMsg", style: const TextStyle(color: Colors.red, fontSize: 13)),
+            Text("Failed to save: $_errorMsg", style: const TextStyle(color: Colors.red, fontSize: 13)),
           ],
           const SizedBox(height: 16),
           SizedBox(
@@ -458,7 +449,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
               ),
               child: _saving
                   ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                  : const Text("保存"),
+                  : const Text("Save"),
             ),
           ),
         ],
@@ -554,7 +545,7 @@ class _CertificationSectionState extends State<_CertificationSection> {
           Icon(Icons.hourglass_top_rounded, size: 16, color: Colors.amber),
           SizedBox(width: 8),
           Expanded(
-            child: Text("教练认证申请审核中，请耐心等待",
+            child: Text("Coach certification application under review",
                 style: TextStyle(fontSize: 13)),
           ),
         ],
@@ -567,20 +558,20 @@ class _CertificationSectionState extends State<_CertificationSection> {
             children: [
               Icon(Icons.cancel_outlined, size: 16, color: Colors.red),
               SizedBox(width: 8),
-              Text("教练认证申请被拒绝",
+              Text("Coach certification rejected",
                   style: TextStyle(fontSize: 13, color: Colors.red)),
             ],
           ),
           if (_status!.rejectReason?.isNotEmpty == true) ...[
             const SizedBox(height: 4),
-            Text("原因：${_status!.rejectReason}",
+            Text("Reason: ${_status!.rejectReason}",
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
           ],
           const SizedBox(height: 10),
           TextButton.icon(
             onPressed: _openApplySheet,
             icon: const Icon(Icons.refresh_rounded, size: 16),
-            label: const Text("重新申请"),
+            label: const Text("Re-apply"),
             style: TextButton.styleFrom(
                 foregroundColor: Colors.orange,
                 padding: EdgeInsets.zero,
@@ -592,7 +583,7 @@ class _CertificationSectionState extends State<_CertificationSection> {
       content = Row(
         children: [
           const Expanded(
-            child: Text("成为认证教练，在社区中展示「教练」标识",
+            child: Text("Become a certified coach and display the Coach badge in the community",
                 style: TextStyle(fontSize: 13)),
           ),
           const SizedBox(width: 12),
@@ -602,7 +593,7 @@ class _CertificationSectionState extends State<_CertificationSection> {
                 foregroundColor: Colors.orange,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
-            child: const Text("申请认证",
+            child: const Text("Apply",
                 style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],

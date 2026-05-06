@@ -868,7 +868,7 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
   Future<void> _save() async {
     FocusScope.of(context).unfocus();
     if (_venueController.text.trim().isEmpty || _selectedDate == null) {
-      setState(() { _error = "请填写场馆和日期。"; });
+      setState(() { _error = "Please fill in venue and date."; });
       return;
     }
 
@@ -910,8 +910,9 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
   @override
   Widget build(BuildContext context) {
     return BetaUpScaffold(
-      title: _isEditing ? "编辑记录" : "记录攀爬",
-      subtitle: _isEditing ? "修改已有记录" : "记录这次攀爬",
+      title: _isEditing ? "Edit Log" : "Log Climb",
+      subtitle: _isEditing ? "Update existing log" : "Record this climb",
+      glowBg: true,
       child: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
@@ -923,7 +924,7 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Difficulty slider ──────────────────────────────────────
-                  const SectionLabel("难度"),
+                  const SectionLabel("Grade"),
                   const SizedBox(height: 8),
                   Center(
                     child: Text(
@@ -956,7 +957,7 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
                   const SizedBox(height: 20),
 
                   // ── Result selector ───────────────────────────────────────
-                  const SectionLabel("结果"),
+                  const SectionLabel("Result"),
                   const SizedBox(height: 10),
                   Row(
                     children: ClimbResult.values.map((r) {
@@ -994,7 +995,7 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
 
                   // ── Attempts counter (hidden for Flash) ───────────────────
                   if (_result != ClimbResult.flash) ...[
-                    const SectionLabel("尝试次数"),
+                    const SectionLabel("Attempts"),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -1020,12 +1021,12 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
                   ],
 
                   // ── Route name (optional) ──────────────────────────────────
-                  const SectionLabel("线路名（选填）"),
+                  const SectionLabel("Route name (optional)"),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _routeController,
                     decoration: const InputDecoration(
-                      hintText: "留空表示未命名路线",
+                      hintText: "Leave blank for unnamed route",
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -1035,7 +1036,7 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
                     onTap: _pickDate,
                     borderRadius: BorderRadius.circular(20),
                     child: InputDecorator(
-                      decoration: const InputDecoration(labelText: "日期"),
+                      decoration: const InputDecoration(labelText: "Date"),
                       child: Text(formatShortDate(_selectedDate)),
                     ),
                   ),
@@ -1056,8 +1057,8 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
                     controller: _notesController,
                     maxLines: 4,
                     decoration: const InputDecoration(
-                      labelText: "备注（选填）",
-                      hintText: "动作心得、Beta、下次目标…",
+                      labelText: "Notes (optional)",
+                      hintText: "Beta, moves, next goal...",
                     ),
                   ),
 
@@ -1078,7 +1079,7 @@ class _ClimbEditorPageState extends State<ClimbEditorPage> {
                   ElevatedButton.icon(
                     onPressed: _isSaving ? null : _save,
                     icon: Icon(_isSaving ? Icons.hourglass_top_rounded : Icons.save_rounded),
-                    label: Text(_isSaving ? "保存中..." : (_isEditing ? "更新记录" : "保存记录")),
+                    label: Text(_isSaving ? "Saving..." : (_isEditing ? "Update" : "Save")),
                   ),
                 ],
               ),
@@ -1106,10 +1107,10 @@ class BadgeProgressTabState extends State<BadgeProgressTab>
   late final TabController _tabCtrl;
 
   static const _tabs = [
-    ("攀岩等级", "LEVEL"),
-    ("训练挑战", "CHALLENGE"),
-    ("探险打卡", "VENUE"),
-    ("社交", "SOCIAL"),
+    ("Climbing", "LEVEL"),
+    ("Training", "CHALLENGE"),
+    ("Explore", "VENUE"),
+    ("Social", "SOCIAL"),
   ];
 
   @override
@@ -1266,7 +1267,7 @@ class _BadgeTile extends StatelessWidget {
           ),
         ] else
           const Text(
-            "已解锁 ✓",
+            "Unlocked ✓",
             style: TextStyle(color: Color(0xFF5ED9A6), fontSize: 10),
           ),
       ],

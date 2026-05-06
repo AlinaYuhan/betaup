@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../data/api_client.dart';
 import '../data/models.dart';
+import 'common.dart';
 import 'post_media.dart';
 import 'post_media_grid.dart';
 
@@ -191,7 +192,7 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
                   children: [
                     CircleAvatar(
                       radius: 18,
-                      backgroundColor: Colors.orange,
+                      backgroundColor: avatarColor(post.authorName),
                       child: Text(
                         post.authorName.isNotEmpty
                             ? post.authorName[0].toUpperCase()
@@ -281,8 +282,7 @@ class _PostDetailSheetState extends State<PostDetailSheet> {
                           child: ListTile(
                             leading: CircleAvatar(
                               radius: isReply ? 14 : 20,
-                              backgroundColor:
-                                  isReply ? Colors.grey : Colors.orange,
+                              backgroundColor: avatarColor(c.authorName),
                               child: Text(
                                 c.authorName.isNotEmpty
                                     ? c.authorName[0].toUpperCase()

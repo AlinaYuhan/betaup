@@ -64,8 +64,8 @@ enum ClimbStatus {
 
 enum ClimbResult {
   flash("FLASH", "Flash", "Flash"),
-  send("SEND", "完成", "Send"),
-  attempt("ATTEMPT", "尝试", "Attempt");
+  send("SEND", "Send", "Send"),
+  attempt("ATTEMPT", "Attempt", "Attempt");
 
   const ClimbResult(this.rawValue, this.label, this.shortLabel);
 

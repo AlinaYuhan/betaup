@@ -72,7 +72,7 @@ class _UserProfileSheetState extends State<UserProfileSheet> {
                   children: [
                     CircleAvatar(
                       radius: 36,
-                      backgroundColor: Colors.orange,
+                      backgroundColor: avatarColor(_profile!.name),
                       child: Text(
                         _profile!.name.isNotEmpty ? _profile!.name[0].toUpperCase() : "?",
                         style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.bold),

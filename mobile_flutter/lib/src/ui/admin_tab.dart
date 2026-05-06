@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../data/models.dart';
 import '../session/app_session.dart';
+import 'common.dart';
 
 class AdminTab extends StatefulWidget {
   const AdminTab({super.key});
@@ -248,7 +249,7 @@ class _ReviewCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 22,
-                  backgroundColor: Colors.orange,
+                  backgroundColor: avatarColor(review.userName),
                   child: Text(
                     review.userName.isNotEmpty
                         ? review.userName[0].toUpperCase()

@@ -23,12 +23,21 @@ ThemeData buildAppTheme() {
     colorScheme: scheme,
     scaffoldBackgroundColor: base,
     canvasColor: base,
+    fontFamily: 'DM Sans',
+    fontFamilyFallback: const ['Helvetica Neue', 'Arial', 'sans-serif'],
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       foregroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
+      titleTextStyle: TextStyle(
+        fontFamily: 'Oswald',
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+        letterSpacing: 1.5,
+      ),
     ),
     cardTheme: CardThemeData(
       color: Colors.white.withValues(alpha: 0.12),
@@ -40,20 +49,23 @@ ThemeData buildAppTheme() {
     ),
     textTheme: const TextTheme(
       displaySmall: TextStyle(
-        fontSize: 36,
+        fontFamily: 'Barlow Condensed',
+        fontSize: 48,
         fontWeight: FontWeight.w800,
-        letterSpacing: -1.1,
+        letterSpacing: -0.5,
         color: Colors.white,
       ),
       headlineMedium: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.6,
+        fontFamily: 'Barlow Condensed',
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0,
         color: Colors.white,
       ),
       titleLarge: TextStyle(
+        fontFamily: 'Oswald',
         fontSize: 20,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         color: Colors.white,
       ),
       titleMedium: TextStyle(
@@ -153,10 +165,9 @@ ThemeData buildAppTheme() {
       indicatorColor: ember,
       indicatorSize: TabBarIndicatorSize.label,
       labelColor: Colors.white,
-      unselectedLabelColor: const Color(0xFFAFBED3),
-      labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-      unselectedLabelStyle:
-          const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+      unselectedLabelColor: const Color(0xFF3A5070),
+      labelStyle: const TextStyle(fontFamily: 'Oswald', fontWeight: FontWeight.w600, fontSize: 13, letterSpacing: 1.0),
+      unselectedLabelStyle: const TextStyle(fontFamily: 'Oswald', fontWeight: FontWeight.w400, fontSize: 13, letterSpacing: 1.0),
     ),
     listTileTheme: const ListTileThemeData(
       iconColor: ember,
@@ -167,11 +178,15 @@ ThemeData buildAppTheme() {
       indicatorColor: ember.withValues(alpha: 0.22),
       labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
         (states) => TextStyle(
+          fontFamily: 'Oswald',
           color: states.contains(WidgetState.selected)
               ? Colors.white
               : const Color(0xFF93A6C2),
-          fontWeight: FontWeight.w700,
+          fontWeight: states.contains(WidgetState.selected)
+              ? FontWeight.w600
+              : FontWeight.w400,
           fontSize: 12,
+          letterSpacing: 0.3,
         ),
       ),
     ),

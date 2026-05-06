@@ -124,7 +124,7 @@ class _SessionPageState extends State<SessionPage> {
       if (mounted) {
         setState(() => _ending = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("结束失败：$e")),
+          SnackBar(content: Text("Failed to end session: $e")),
         );
       }
     }
@@ -132,23 +132,24 @@ class _SessionPageState extends State<SessionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final venue = widget.session.venue.isNotEmpty ? widget.session.venue : "未知场馆";
+    final venue = widget.session.venue.isNotEmpty ? widget.session.venue : "Unknown Venue";
     final startStr = DateFormat("HH:mm").format(widget.session.startTime);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF09111F),
-      appBar: AppBar(
+    return GlowBackground(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => Navigator.of(context).pop(false),
-          tooltip: "返回（不结束训练）",
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            onPressed: () => Navigator.of(context).pop(false),
+            tooltip: "Back (session still running)",
+          ),
+          title: Text(venue, style: const TextStyle(fontSize: 16)),
+          centerTitle: true,
         ),
-        title: Text(venue, style: const TextStyle(fontSize: 16)),
-        centerTitle: true,
-      ),
-      body: Padding(
+        body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
@@ -165,7 +166,7 @@ class _SessionPageState extends State<SessionPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              "开始于 $startStr",
+              "Started at $startStr",
               style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
             ),
 
@@ -179,18 +180,18 @@ class _SessionPageState extends State<SessionPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _StatItem(label: "已记录", value: "$_logCount 条"),
+                  _StatItem(label: "Logged", value: "$_logCount"),
                   const SizedBox(width: 40),
                   _StatItem(
-                    label: "训练时长",
+                    label: "Duration",
                     value: _elapsed.inMinutes > 0
-                        ? "${_elapsed.inMinutes}分 ${_elapsed.inSeconds.remainder(60)}秒"
-                        : "${_elapsed.inSeconds}秒",
+                        ? "${_elapsed.inMinutes}m ${_elapsed.inSeconds.remainder(60)}s"
+                        : "${_elapsed.inSeconds}s",
                   ),
                   if (_bleConnected && _currentBpm != null) ...[
                     const SizedBox(width: 40),
                     _StatItem(
-                      label: "心率",
+                      label: "Heart Rate",
                       value: "$_currentBpm",
                       valueColor: const Color(0xFFFF4D6D),
                       suffix: " bpm",
@@ -213,7 +214,7 @@ class _SessionPageState extends State<SessionPage> {
               child: FilledButton.icon(
                 onPressed: _logRoute,
                 icon: const Icon(Icons.add_rounded, size: 22),
-                label: const Text("记录一条", style: TextStyle(fontSize: 16)),
+                label: const Text("Log a Climb", style: TextStyle(fontSize: 16)),
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFFF7A18),
                   minimumSize: const Size.fromHeight(56),
@@ -233,7 +234,7 @@ class _SessionPageState extends State<SessionPage> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.stop_circle_outlined),
-                label: Text(_ending ? "结束中..." : "结束训练"),
+                label: Text(_ending ? "Ending..." : "End Session"),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.redAccent,
                   side: const BorderSide(color: Colors.redAccent),
@@ -246,6 +247,7 @@ class _SessionPageState extends State<SessionPage> {
           ],
         ),
       ),
+    ),
     );
   }
 }
@@ -271,51 +273,47 @@ class _WatchConnectButton extends StatelessWidget {
           const Icon(Icons.favorite_rounded, color: red, size: 14),
           const SizedBox(width: 6),
           Text(
-            "Apple Watch 已连接",
+            "Apple Watch Connected",
             style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
           ),
         ],
       );
     }
 
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: connecting ? null : onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (connecting)
-                  const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 1.5,
-                      color: Color(0xFFFF4D6D),
-                    ),
-                  )
-                else
-                  const Icon(Icons.watch_rounded, size: 16, color: Color(0xFFFF4D6D)),
-                const SizedBox(width: 8),
-                Text(
-                  connecting ? "搜索中..." : "连接 Apple Watch 心率",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: connecting ? Colors.grey.shade400 : Colors.grey.shade300,
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return GestureDetector(
+      onTap: connecting ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
         ),
-      ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (connecting)
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  color: Color(0xFFFF4D6D),
+                ),
+              )
+            else
+              const Icon(Icons.watch_rounded, size: 16, color: Color(0xFFFF4D6D)),
+            const SizedBox(width: 8),
+            Text(
+              connecting ? "Searching..." : "Connect Apple Watch",
+              style: TextStyle(
+                fontSize: 13,
+                color: connecting ? Colors.grey.shade400 : Colors.grey.shade300,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -406,7 +404,7 @@ class _WarReportSheet extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           const Text(
-            "训练战报",
+            "Session Report",
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
@@ -424,7 +422,7 @@ class _WarReportSheet extends StatelessWidget {
               Expanded(
                 child: _ReportCard(
                   icon: Icons.timer_outlined,
-                  label: "训练时长",
+                  label: "Duration",
                   value: durationStr,
                   color: const Color(0xFF7BE0FF),
                 ),
@@ -433,7 +431,7 @@ class _WarReportSheet extends StatelessWidget {
               Expanded(
                 child: _ReportCard(
                   icon: Icons.emoji_events_outlined,
-                  label: "最高完成",
+                  label: "Best Send",
                   value: summary.hardestSend ?? "—",
                   color: const Color(0xFFFFD700),
                 ),
@@ -455,7 +453,7 @@ class _WarReportSheet extends StatelessWidget {
               Expanded(
                 child: _ReportCard(
                   icon: Icons.check_circle_outline,
-                  label: "完成",
+                  label: "Sends",
                   value: "${summary.sends}",
                   color: const Color(0xFF5ED9A6),
                 ),
@@ -464,7 +462,7 @@ class _WarReportSheet extends StatelessWidget {
               Expanded(
                 child: _ReportCard(
                   icon: Icons.fitness_center_outlined,
-                  label: "尝试",
+                  label: "Attempts",
                   value: "${summary.attempts}",
                   color: const Color(0xFFFFB26D),
                 ),
@@ -474,7 +472,7 @@ class _WarReportSheet extends StatelessWidget {
           if (summary.gradeSummary.isNotEmpty) ...[
             const SizedBox(height: 24),
             const Text(
-              "难度分布",
+              "Grade Distribution",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             const SizedBox(height: 12),
@@ -543,7 +541,7 @@ class _WarReportSheet extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     if (attemptOnly)
-                      Text("尝试 ${stat.total}",
+                      Text("Attempt ${stat.total}",
                           style: const TextStyle(
                               fontSize: 12, color: Color(0xFFFFB26D)))
                     else ...[
@@ -573,7 +571,7 @@ class _WarReportSheet extends StatelessWidget {
               minimumSize: const Size.fromHeight(50),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
-            child: const Text("完成", style: TextStyle(fontSize: 16)),
+            child: const Text("Done", style: TextStyle(fontSize: 16)),
           ),
         ],
       ),
@@ -599,18 +597,18 @@ class _HeartRateSection extends StatelessWidget {
             const Icon(Icons.favorite_rounded, color: _red, size: 18),
             const SizedBox(width: 6),
             const Text(
-              "心率记录",
+              "Heart Rate",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             const Spacer(),
             if (hasData) ...[
               _HrBadge(
-                label: "均值",
+                label: "Avg",
                 value: "${BleHeartRateService.averageBpm(samples)} bpm",
               ),
               const SizedBox(width: 8),
               _HrBadge(
-                label: "峰值",
+                label: "Peak",
                 value: "${BleHeartRateService.maxBpm(samples)} bpm",
                 accent: true,
               ),
@@ -632,11 +630,11 @@ class _HeartRateSection extends StatelessWidget {
                   Icon(Icons.watch_outlined, color: Colors.grey.shade600, size: 22),
                   const SizedBox(height: 6),
                   Text(
-                    "本次未连接 Apple Watch",
+                    "Apple Watch not connected",
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                   ),
                   Text(
-                    "下次训练开始后点击「连接 Apple Watch 心率」",
+                    "Tap 'Connect Apple Watch' at the start of your next session",
                     style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
                   ),
                 ],

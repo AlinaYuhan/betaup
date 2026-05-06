@@ -83,7 +83,7 @@ class _CoachApplySheetState extends State<CoachApplySheet> {
             children: [
               const Expanded(
                 child: Text(
-                  "申请教练认证",
+                  "Apply for Coach Certification",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -95,7 +95,7 @@ class _CoachApplySheetState extends State<CoachApplySheet> {
           ),
           const SizedBox(height: 4),
           Text(
-            "提交您的教练资质证书和简介，管理员审核通过后将获得「教练」标识。",
+            "Submit your coaching credentials and bio. Once approved by admin, you will receive the Coach badge.",
             style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -142,7 +142,7 @@ class _CoachApplySheetState extends State<CoachApplySheet> {
                             size: 36,
                             color: Colors.grey.shade500),
                         const SizedBox(height: 8),
-                        Text("点击上传证书图片",
+                        Text("Tap to upload certificate",
                             style: TextStyle(
                                 color: Colors.grey.shade500, fontSize: 13)),
                       ],
@@ -157,8 +157,8 @@ class _CoachApplySheetState extends State<CoachApplySheet> {
             maxLines: 4,
             maxLength: 400,
             decoration: const InputDecoration(
-              labelText: "个人简介（选填）",
-              hintText: "介绍您的攀岩教学经历、资质等...",
+              labelText: "Bio (optional)",
+              hintText: "Describe your coaching experience and qualifications...",
               border: OutlineInputBorder(),
               alignLabelWithHint: true,
             ),
@@ -188,7 +188,7 @@ class _CoachApplySheetState extends State<CoachApplySheet> {
                       height: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2))
-                  : const Text("提交申请"),
+                  : const Text("Submit Application"),
             ),
           ),
         ],

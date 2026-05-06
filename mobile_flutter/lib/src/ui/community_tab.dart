@@ -64,20 +64,30 @@ class _CommunityTabState extends State<CommunityTab>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("社区"),
+        toolbarHeight: 0,
         bottom: TabBar(
           controller: _tabController,
+          indicatorWeight: 2.5,
           tabs: const [
-            Tab(text: "全部动态"),
-            Tab(text: "找搭子"),
-            Tab(text: "Beta 线路"),
+            Tab(text: "ALL"),
+            Tab(text: "PARTNER"),
+            Tab(text: "BETA"),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreatePost,
-        icon: const Icon(Icons.edit_rounded),
-        label: const Text("发动态"),
+      floatingActionButton: Padding(
+        // extendBody:true in MainShell makes the FAB sit behind the nav bar — offset manually.
+        padding: const EdgeInsets.only(bottom: 72),
+        child: FloatingActionButton.extended(
+          onPressed: _showCreatePost,
+          backgroundColor: const Color(0xFFFF7A18),
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.edit_rounded, size: 18),
+          label: const Text(
+            "POST",
+            style: TextStyle(fontFamily: 'Oswald', fontSize: 14, letterSpacing: 0.5),
+          ),
+        ),
       ),
       body: TabBarView(
         controller: _tabController,
@@ -180,15 +190,15 @@ class _FeedListState extends State<_FeedList> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("删除动态"),
-        content: const Text("确定要删除这条动态吗？"),
+        title: const Text("Delete Post"),
+        content: const Text("Delete this post?"),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text("取消")),
+              child: const Text("Cancel")),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("删除", style: TextStyle(color: Colors.red)),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -241,7 +251,7 @@ class _FeedListState extends State<_FeedList> {
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_posts.isEmpty) {
-      return const Center(child: Text("还没有动态，来发第一条吧！🧗"));
+      return const Center(child: Text("No posts yet. Be the first! 🧗"));
     }
     return RefreshIndicator(
       onRefresh: _load,
@@ -295,7 +305,7 @@ class _PostCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: Colors.orange,
+                    backgroundColor: avatarColor(post.authorName),
                     child: Text(
                       post.authorName.isNotEmpty
                           ? post.authorName[0].toUpperCase()
@@ -336,7 +346,7 @@ class _PostCard extends StatelessWidget {
                       color: const Color(0xFFFF7A18),
                     )
                   else if (post.type == PostType.findPartner)
-                    const _TagBadge(label: '找搭子', color: Colors.teal),
+                    const _TagBadge(label: 'Partner', color: Colors.teal),
                 ],
               ),
             ),
@@ -424,7 +434,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
 
   Future<void> _pickImages() async {
     if (_selectedVideo != null) {
-      setState(() => _errorMsg = "视频帖子不能添加图片");
+      setState(() => _errorMsg = "Can't add photos to a video post");
       return;
     }
 
@@ -434,7 +444,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
     final totalCount = _selectedImages.length + picked.length;
     if (totalCount > 6) {
       if (!mounted) return;
-      setState(() => _errorMsg = "最多只能选择6张图片");
+      setState(() => _errorMsg = "Maximum 6 photos allowed");
       return;
     }
 
@@ -461,7 +471,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
 
   Future<void> _pickVideo() async {
     if (_selectedImages.isNotEmpty) {
-      setState(() => _errorMsg = "图片帖子不能添加视频");
+      setState(() => _errorMsg = "Can't add video to a photo post");
       return;
     }
 
@@ -533,7 +543,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("发布动态",
+          Text("New Post",
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
@@ -544,7 +554,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
             maxLines: 4,
             maxLength: 500,
             decoration: const InputDecoration(
-              hintText: "分享你的攀岩故事、路线心得，或发起找搭子...",
+              hintText: "Share a send, training tip, or find a climbing partner...",
               border: OutlineInputBorder(),
             ),
             autofocus: true,
@@ -552,15 +562,15 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Text("类型："),
+              const Text("Type: "),
               ChoiceChip(
-                label: const Text("普通动态"),
+                label: const Text("General"),
                 selected: _type == PostType.general,
                 onSelected: (_) => setState(() => _type = PostType.general),
               ),
               const SizedBox(width: 8),
               ChoiceChip(
-                label: const Text("找搭子"),
+                label: const Text("Find Partner"),
                 selected: _type == PostType.findPartner,
                 onSelected: (_) => setState(() => _type = PostType.findPartner),
               ),
@@ -569,8 +579,8 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
           SwitchListTile(
             value: _isBeta,
             onChanged: (v) => setState(() => _isBeta = v),
-            title: const Text("🧗 这是 Beta 线路"),
-            subtitle: const Text("分享过线技巧，帮助其他人突破难关"),
+            title: const Text("🧗 Beta Route"),
+            subtitle: const Text("Share beta to help others send"),
             activeThumbColor: const Color(0xFFFF7A18),
             contentPadding: EdgeInsets.zero,
           ),
@@ -578,7 +588,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
             TextField(
               controller: _routeNameController,
               decoration: const InputDecoration(
-                labelText: "线路名称（如 Blue Slab V5）",
+                labelText: "Route name (e.g. Blue Slab V5)",
                 isDense: true,
               ),
             ),
@@ -591,7 +601,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                 child: OutlinedButton.icon(
                   onPressed: _submitting ? null : _pickImages,
                   icon: const Icon(Icons.image_outlined),
-                  label: Text("图片 (${_selectedImages.length}/6)"),
+                  label: Text("Photos (${_selectedImages.length}/6)"),
                 ),
               ),
               const SizedBox(width: 8),
@@ -599,7 +609,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                 child: OutlinedButton.icon(
                   onPressed: _submitting ? null : _pickVideo,
                   icon: const Icon(Icons.videocam_outlined),
-                  label: const Text("视频"),
+                  label: const Text("Video"),
                 ),
               ),
             ],
@@ -699,7 +709,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
           if (_errorMsg != null) ...[
             const SizedBox(height: 8),
             Text(
-              "发布失败：$_errorMsg",
+              "Failed to post: $_errorMsg",
               style: const TextStyle(color: Colors.red, fontSize: 13),
             ),
           ],
@@ -716,7 +726,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
               child: _submitting
                   ? const CircularProgressIndicator(
                       color: Colors.white, strokeWidth: 2)
-                  : const Text("发布"),
+                  : const Text("Post"),
             ),
           ),
         ],
@@ -843,29 +853,29 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           children: [
             ListTile(
               leading: const Icon(Icons.reply),
-              title: const Text("回复"),
-              onTap: () => Navigator.pop(context, "回复"),
+              title: const Text("Reply"),
+              onTap: () => Navigator.pop(context, "reply"),
             ),
             ListTile(
               leading: const Icon(Icons.copy),
-              title: const Text("复制"),
-              onTap: () => Navigator.pop(context, "复制"),
+              title: const Text("Copy"),
+              onTap: () => Navigator.pop(context, "copy"),
             ),
             if (isOwn)
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text("删除", style: TextStyle(color: Colors.red)),
-                onTap: () => Navigator.pop(context, "删除"),
+                title: const Text("Delete", style: TextStyle(color: Colors.red)),
+                onTap: () => Navigator.pop(context, "delete"),
               ),
           ],
         ),
       ),
     );
-    if (selected == "回复") {
+    if (selected == "reply") {
       _setReply(c);
-    } else if (selected == "复制") {
+    } else if (selected == "copy") {
       await Clipboard.setData(ClipboardData(text: c.content));
-    } else if (selected == "删除") {
+    } else if (selected == "delete") {
       await _deleteComment(c);
     }
   }
@@ -892,7 +902,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text("评论 (${_comments.length})",
+            child: Text("Comments (${_comments.length})",
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
@@ -903,7 +913,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             child: !_loaded
                 ? const Center(child: CircularProgressIndicator())
                 : ordered.isEmpty
-                    ? const Center(child: Text("还没有评论，来说第一句！"))
+                    ? const Center(child: Text("No comments yet."))
                     : ListView.builder(
                         controller: scrollController,
                         itemCount: ordered.length,
@@ -921,8 +931,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   radius: isReply ? 14 : 20,
-                                  backgroundColor:
-                                      isReply ? Colors.grey : Colors.orange,
+                                  backgroundColor: avatarColor(c.authorName),
                                   child: Text(
                                     c.authorName.isNotEmpty
                                         ? c.authorName[0].toUpperCase()
@@ -959,7 +968,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text("回复 ${_replyTarget!.authorName}",
+                    child: Text("Replying to ${_replyTarget!.authorName}",
                         style: const TextStyle(
                             fontSize: 12, color: Colors.orange)),
                   ),
@@ -986,8 +995,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                     focusNode: _focusNode,
                     decoration: InputDecoration(
                       hintText: _replyTarget != null
-                          ? "回复 ${_replyTarget!.authorName}..."
-                          : "写评论...",
+                          ? "Reply to ${_replyTarget!.authorName}..."
+                          : "Add a comment...",
                       isDense: true,
                       border: const OutlineInputBorder(),
                     ),

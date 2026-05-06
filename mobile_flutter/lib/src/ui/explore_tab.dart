@@ -208,15 +208,10 @@ class _ExploreTabState extends State<ExploreTab> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            "Tap a pin to open the gym detail sheet and check in.",
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: SizedBox(
-              height: 320,
+              height: 260,
               child: FlutterMap(
                 mapController: _mapController,
                 options: MapOptions(
@@ -327,38 +322,39 @@ class _ExploreTabState extends State<ExploreTab> {
               );
 
         return GlassCard(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           padding: EdgeInsets.zero,
           backgroundColor: isSelected
               ? Colors.white.withValues(alpha: 0.14)
-              : Colors.white.withValues(alpha: 0.10),
+              : Colors.white.withValues(alpha: 0.08),
           borderColor: isSelected
-              ? const Color(0x66FF7A18)
-              : Colors.white.withValues(alpha: 0.16),
+              ? const Color(0x88FF7A18)
+              : Colors.white.withValues(alpha: 0.10),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(28),
               onTap: () => _focusGym(gym),
               child: Padding(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
-                        color: const Color(0x24FF7A18),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0x44FF7A18)),
+                        color: isSelected
+                            ? const Color(0x40FF7A18)
+                            : const Color(0x18FF7A18),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.location_on_rounded,
-                        color: Colors.orange,
+                        color: isSelected ? Colors.orange : const Color(0xFFFF9A50),
+                        size: 20,
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,55 +364,43 @@ class _ExploreTabState extends State<ExploreTab> {
                               Expanded(
                                 child: Text(
                                   gym.name,
-                                  style: theme.textTheme.titleLarge?.copyWith(
+                                  style: theme.textTheme.titleMedium?.copyWith(
                                     color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (distance != null)
-                                StatusChip(
+                              if (distance != null) ...[
+                                const SizedBox(width: 6),
+                                _DistancePill(
                                   label: _formatDistance(distance),
-                                  color: distance <= _gpsFenceMeters
-                                      ? const Color(0xFF5ED9A6)
-                                      : const Color(0xFF7BE0FF),
+                                  nearby: distance <= _gpsFenceMeters,
                                 ),
+                              ],
                             ],
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            "${gym.city} · ${gym.address}",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFFD5E0EE),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _typeLabels(gym.types)
-                                .map(
-                                  (type) => Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.06),
-                                      borderRadius: BorderRadius.circular(999),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.10,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      type,
-                                      style: theme.textTheme.bodySmall,
-                                    ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  "${gym.city} · ${gym.address}",
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: const Color(0xFF8A9BB5),
+                                    fontSize: 12,
                                   ),
-                                )
-                                .toList(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              ..._typeLabels(gym.types)
+                                  .take(2)
+                                  .map((type) => _GymTypeTag(type: type)),
+                            ],
                           ),
                         ],
                       ),
@@ -434,26 +418,41 @@ class _ExploreTabState extends State<ExploreTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Explore Gyms"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.my_location),
-            tooltip: "Locate me",
-            onPressed: _locateUser,
-          ),
-        ],
-      ),
+      appBar: AppBar(toolbarHeight: 0),
       body: Stack(
         children: [
           RefreshIndicator(
             onRefresh: _loadGyms,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(0, 12, 0, 28),
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 120),
               children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 6, 16, 4),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'EXPLORE',
+                        style: TextStyle(
+                          fontFamily: 'Oswald',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.my_location_rounded, size: 20),
+                        tooltip: 'Locate me',
+                        color: const Color(0xFF6B8299),
+                        onPressed: _locateUser,
+                      ),
+                    ],
+                  ),
+                ),
                 _buildMapCard(),
                 const Padding(
-                  padding: EdgeInsets.fromLTRB(20, 12, 20, 10),
+                  padding: EdgeInsets.fromLTRB(20, 16, 20, 10),
                   child: SectionLabel("Gym List"),
                 ),
                 _buildGymList(),
@@ -723,6 +722,60 @@ Future<Position> _readPosition() async {
   return Geolocator.getCurrentPosition().timeout(
     const Duration(seconds: 8),
   );
+}
+
+class _DistancePill extends StatelessWidget {
+  const _DistancePill({required this.label, required this.nearby});
+  final String label;
+  final bool nearby;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = nearby ? const Color(0xFF5ED9A6) : const Color(0xFF7BE0FF);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+class _GymTypeTag extends StatelessWidget {
+  const _GymTypeTag({required this.type});
+  final String type;
+
+  static Color _colorFor(String type) {
+    final t = type.toLowerCase();
+    if (t.contains('boulder')) return const Color(0xFFFF7A18);
+    if (t.contains('lead')) return const Color(0xFF7BE0FF);
+    if (t.contains('top')) return const Color(0xFF818CF8);
+    if (t.contains('speed')) return const Color(0xFF5ED9A6);
+    return const Color(0xFFFFB26D);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _colorFor(type);
+    return Container(
+      margin: const EdgeInsets.only(left: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        type.isEmpty ? type : type[0].toUpperCase() + type.substring(1),
+        style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
 }
 
 List<String> _typeLabels(String rawTypes) {

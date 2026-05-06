@@ -50,4 +50,5 @@ flutter:
   assets:
     - assets/map/map.html
     - assets/icons/icon.png
+    - assets/images/
 

@@ -116,7 +116,7 @@ public class BadgeAutomationServiceImpl implements BadgeAutomationService {
                     .actorId(user.getId())
                     .actorName("BetaUp")
                     .referenceId(badge.getId())
-                    .content("🏅 恭喜！你获得了徽章：" + badge.getName())
+                    .content("🏅 Congratulations! You earned a badge: " + badge.getName())
                     .isRead(false)
                     .build());
 

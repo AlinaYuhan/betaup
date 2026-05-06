@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../data/models.dart';
@@ -56,16 +58,16 @@ class _MainShellState extends State<MainShell> {
     final shouldLogout = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text("退出登录？"),
-            content: const Text("确认退出当前账号吗？"),
+            title: const Text("Log Out?"),
+            content: const Text("Sign out of your account?"),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("取消"),
+                child: const Text("Cancel"),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("退出"),
+                child: const Text("Log Out"),
               ),
             ],
           ),
@@ -99,57 +101,76 @@ class _MainShellState extends State<MainShell> {
       );
     }
 
+    final navBar = ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF09111F).withValues(alpha: 0.78),
+            border: Border(
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+          ),
+          child: NavigationBar(
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) {
+              setState(() => _currentIndex = index);
+              if (index == _notifIndex) {
+                _unreadCount = 0;
+                _notifKey.currentState?.reload();
+              } else {
+                _refreshUnreadCount();
+                if (index == _profileIndex) _profileKey.currentState?.reloadLeaderboard();
+              }
+            },
+            destinations: [
+              const NavigationDestination(
+                icon: Icon(Icons.explore_outlined),
+                selectedIcon: Icon(Icons.explore),
+                label: "Explore",
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.fitness_center_outlined),
+                selectedIcon: Icon(Icons.fitness_center),
+                label: "Train",
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.people_outline),
+                selectedIcon: Icon(Icons.people),
+                label: "Community",
+              ),
+              NavigationDestination(
+                icon: notifIcon(Icons.notifications_outlined),
+                selectedIcon: notifIcon(Icons.notifications),
+                label: "Alerts",
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: "Profile",
+              ),
+              if (isAdmin)
+                const NavigationDestination(
+                  icon: Icon(Icons.admin_panel_settings_outlined),
+                  selectedIcon: Icon(Icons.admin_panel_settings),
+                  label: "Admin",
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+
     final scaffold = Scaffold(
+      extendBody: true,
       body: IndexedStack(
         index: _currentIndex,
         children: pages,
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-          if (index == _notifIndex) {
-            _unreadCount = 0;
-            _notifKey.currentState?.reload();
-          } else {
-            _refreshUnreadCount();
-            if (index == _profileIndex) _profileKey.currentState?.reloadLeaderboard();
-          }
-        },
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore),
-            label: "探索",
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.fitness_center_outlined),
-            selectedIcon: Icon(Icons.fitness_center),
-            label: "记录",
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
-            label: "社区",
-          ),
-          NavigationDestination(
-            icon: notifIcon(Icons.notifications_outlined),
-            selectedIcon: notifIcon(Icons.notifications),
-            label: "通知",
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: "我的",
-          ),
-          if (isAdmin)
-            const NavigationDestination(
-              icon: Icon(Icons.admin_panel_settings_outlined),
-              selectedIcon: Icon(Icons.admin_panel_settings),
-              label: "管理",
-            ),
-        ],
-      ),
+      bottomNavigationBar: navBar,
     );
 
     // Wrap in a Stack so the draggable panda floats above everything,

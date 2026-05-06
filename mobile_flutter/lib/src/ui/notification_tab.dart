@@ -101,48 +101,69 @@ class NotificationTabState extends State<NotificationTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("通知"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.done_all),
-            tooltip: "全部标为已读",
-            onPressed: () async {
-              final session = SessionScope.of(context);
-              await session.api.markAllNotificationsRead();
-              setState(() {
-                _items = _items
-                    .map((n) => AppNotification(
-                          id: n.id,
-                          type: n.type,
-                          actorId: n.actorId,
-                          actorName: n.actorName,
-                          referenceId: n.referenceId,
-                          content: n.content,
-                          isRead: true,
-                          createdAt: n.createdAt,
-                        ))
-                    .toList();
-              });
-            },
+      appBar: AppBar(toolbarHeight: 0),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 6, 16, 4),
+            child: Row(
+              children: [
+                const Text(
+                  'ALERTS',
+                  style: TextStyle(
+                    fontFamily: 'Oswald',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.done_all, size: 20),
+                  tooltip: "Mark all as read",
+                  color: const Color(0xFF6B8299),
+                  onPressed: () async {
+                    final session = SessionScope.of(context);
+                    await session.api.markAllNotificationsRead();
+                    setState(() {
+                      _items = _items
+                          .map((n) => AppNotification(
+                                id: n.id,
+                                type: n.type,
+                                actorId: n.actorId,
+                                actorName: n.actorName,
+                                referenceId: n.referenceId,
+                                content: n.content,
+                                isRead: true,
+                                createdAt: n.createdAt,
+                              ))
+                          .toList();
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _items.isEmpty
+                    ? const Center(child: Text("No notifications"))
+                    : RefreshIndicator(
+                        onRefresh: _load,
+                        child: ListView.separated(
+                          itemCount: _items.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemBuilder: (_, i) => _NotificationTile(
+                            item: _items[i],
+                            onTap: () => _onTap(_items[i]),
+                          ),
+                        ),
+                      ),
           ),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _items.isEmpty
-              ? const Center(child: Text("暂无通知"))
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView.separated(
-                    itemCount: _items.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (_, i) => _NotificationTile(
-                      item: _items[i],
-                      onTap: () => _onTap(_items[i]),
-                    ),
-                  ),
-                ),
     );
   }
 }
