@@ -211,7 +211,7 @@ class _ExploreTabState extends State<ExploreTab> {
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: SizedBox(
-              height: 320,
+              height: 260,
               child: FlutterMap(
                 mapController: _mapController,
                 options: MapOptions(

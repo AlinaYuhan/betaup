@@ -59,6 +59,11 @@ class _RecordTabState extends State<RecordTab>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging && _tabController.index == 1) {
+        _statsKey.currentState?.replayAnimation();
+      }
+    });
   }
 
   @override
@@ -1262,8 +1267,12 @@ class StatsTabState extends State<StatsTab> {
   bool _loading = true;
   bool _initialized = false;
   String? _error;
+  int _animKey = 0; // increment forces _StatsBody rebuild → animation replays
 
   void reload() => _load();
+  void replayAnimation() {
+    if (_stats != null) setState(() => _animKey++);
+  }
 
   @override
   void didChangeDependencies() {
@@ -1344,7 +1353,7 @@ class StatsTabState extends State<StatsTab> {
               color: const Color(0xFFFF7A18),
               backgroundColor: const Color(0xFF1A2535),
               onRefresh: _load,
-              child: _StatsBody(stats: _stats!),
+              child: _StatsBody(key: ValueKey(_animKey), stats: _stats!),
             ),
           ),
       ],
@@ -1352,72 +1361,94 @@ class StatsTabState extends State<StatsTab> {
   }
 }
 
-class _StatsBody extends StatelessWidget {
-  const _StatsBody({required this.stats});
+class _StatsBody extends StatefulWidget {
+  const _StatsBody({super.key, required this.stats});
   final ClimbStats stats;
 
   @override
+  State<_StatsBody> createState() => _StatsBodyState();
+}
+
+class _StatsBodyState extends State<_StatsBody>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1000));
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _slide = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    Future.delayed(const Duration(milliseconds: 60), () {
+      if (mounted) _ctrl.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final s = stats.summary;
+    final s = widget.stats.summary;
     final topGradeColor = _gradeColor(s.topGrade);
-    return ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-        children: [
-          // ── 2×2 big stat cards ─────────────────────────────────────────
-          Row(
-            children: [
-              _BigStatCard(
-                value: '${s.totalClimbs}',
-                label: 'CLIMBS',
-                color: const Color(0xFF60A5FA),
-              ),
-              const SizedBox(width: 10),
-              _BigStatCard(
-                value: '${s.flashRatePct}%',
-                label: 'FLASH RATE',
-                color: const Color(0xFFFFD700),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _BigStatCard(
-                value: s.topGrade ?? '—',
-                label: 'BEST GRADE',
-                color: topGradeColor,
-                highlight: true,
-              ),
-              const SizedBox(width: 10),
-              _BigStatCard(
-                value: '${s.totalSessions}',
-                label: 'SESSIONS',
-                color: const Color(0xFF4ADE80),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
+    return FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(
+        position: _slide,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+          children: [
+            // ── 2×2 big stat cards ───────────────────────────────────────
+            Row(
+              children: [
+                _BigStatCard(value: '${s.totalClimbs}', label: 'CLIMBS',
+                    color: const Color(0xFF60A5FA)),
+                const SizedBox(width: 8),
+                _BigStatCard(value: '${s.flashRatePct}%', label: 'FLASH RATE',
+                    color: const Color(0xFFFFD700)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _BigStatCard(value: s.topGrade ?? '—', label: 'BEST GRADE',
+                    color: topGradeColor, highlight: true),
+                const SizedBox(width: 8),
+                _BigStatCard(value: '${s.totalSessions}', label: 'SESSIONS',
+                    color: const Color(0xFF4ADE80)),
+              ],
+            ),
+            const SizedBox(height: 18),
 
-          // ── Frequency bar chart ────────────────────────────────────────
-          const _SectionTitle("FREQUENCY"),
-          const SizedBox(height: 12),
-          _FrequencyChart(buckets: stats.buckets),
-          const SizedBox(height: 28),
+            // ── Frequency bar chart ──────────────────────────────────────
+            const _SectionTitle("FREQUENCY"),
+            const SizedBox(height: 10),
+            _FrequencyChart(buckets: widget.stats.buckets),
+            const SizedBox(height: 18),
 
-          // ── Grade distribution ─────────────────────────────────────────
-          if (stats.gradeDistribution.isNotEmpty) ...[
-            const _SectionTitle("GRADE DISTRIBUTION"),
-            const SizedBox(height: 12),
-            _GradeDistributionPie(grades: stats.gradeDistribution),
-            const SizedBox(height: 28),
+            // ── Grade distribution ───────────────────────────────────────
+            if (widget.stats.gradeDistribution.isNotEmpty) ...[
+              const _SectionTitle("GRADE DISTRIBUTION"),
+              const SizedBox(height: 10),
+              _GradeDistributionPie(grades: widget.stats.gradeDistribution),
+              const SizedBox(height: 18),
+            ],
+
+            // ── Result breakdown ─────────────────────────────────────────
+            const _SectionTitle("RESULT BREAKDOWN"),
+            const SizedBox(height: 10),
+            _ResultBreakdown(summary: s),
           ],
-
-          // ── Result breakdown ───────────────────────────────────────────
-          const _SectionTitle("RESULT BREAKDOWN"),
-          const SizedBox(height: 12),
-          _ResultBreakdown(summary: s),
-        ],
-      );
+        ),
+      ),
+    );
   }
 }
 
@@ -1437,7 +1468,7 @@ class _BigStatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
         decoration: BoxDecoration(
           color: highlight
               ? color.withValues(alpha: 0.09)
@@ -1459,7 +1490,7 @@ class _BigStatCard extends StatelessWidget {
               value,
               style: TextStyle(
                 fontFamily: 'Barlow Condensed',
-                fontSize: 56,
+                fontSize: 36,
                 fontWeight: FontWeight.w800,
                 color: highlight ? color : Colors.white,
                 height: 0.95,
@@ -1547,12 +1578,39 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _FrequencyChart extends StatelessWidget {
+class _FrequencyChart extends StatefulWidget {
   const _FrequencyChart({required this.buckets});
   final List<StatsBucket> buckets;
 
   @override
+  State<_FrequencyChart> createState() => _FrequencyChartState();
+}
+
+class _FrequencyChartState extends State<_FrequencyChart> {
+  bool _animate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (mounted) setState(() => _animate = true);
+    });
+  }
+
+  @override
+  void didUpdateWidget(_FrequencyChart old) {
+    super.didUpdateWidget(old);
+    if (old.buckets != widget.buckets) {
+      setState(() => _animate = false);
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (mounted) setState(() => _animate = true);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final buckets = widget.buckets;
     if (buckets.isEmpty) {
       return Container(
         height: 120,
@@ -1572,9 +1630,7 @@ class _FrequencyChart extends StatelessWidget {
       );
     }
 
-    final maxCount = buckets
-        .map((b) => b.climbCount)
-        .fold(0, (a, b) => a > b ? a : b);
+    final maxCount = buckets.map((b) => b.climbCount).fold(0, (a, b) => a > b ? a : b);
     final maxY = maxCount.toDouble().clamp(1.0, double.infinity);
 
     final groups = buckets.asMap().entries.map((e) {
@@ -1583,7 +1639,7 @@ class _FrequencyChart extends StatelessWidget {
         x: e.key,
         barRods: [
           BarChartRodData(
-            toY: e.value.climbCount.toDouble(),
+            toY: _animate ? e.value.climbCount.toDouble() : 0.0,
             gradient: LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
@@ -1612,7 +1668,7 @@ class _FrequencyChart extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
       child: SizedBox(
-        height: 210,
+        height: 130,
         child: BarChart(
           BarChartData(
             alignment: BarChartAlignment.spaceAround,
@@ -1668,23 +1724,103 @@ class _FrequencyChart extends StatelessWidget {
               ),
             ),
           ),
+          duration: const Duration(milliseconds: 1500),
+          curve: Curves.easeOutCubic,
         ),
       ),
     );
   }
 }
 
-class _GradeDistributionPie extends StatelessWidget {
+class _GradeDistributionPie extends StatefulWidget {
   const _GradeDistributionPie({required this.grades});
   final List<GradeStat> grades;
 
   @override
+  State<_GradeDistributionPie> createState() => _GradeDistributionPieState();
+}
+
+class _GradeDistributionPieState extends State<_GradeDistributionPie>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _progress;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1400));
+    _progress = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    Future.delayed(const Duration(milliseconds: 180), () {
+      if (mounted) _ctrl.forward();
+    });
+  }
+
+  @override
+  void didUpdateWidget(_GradeDistributionPie old) {
+    super.didUpdateWidget(old);
+    if (old.grades != widget.grades) {
+      _ctrl.reset();
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) _ctrl.forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Widget _legendItem(GradeStat g, int total) {
+    final pct = (g.total / total * 100).round();
+    final color = _gradeColor(g.difficulty);
+    return Expanded(
+      child: Row(
+        children: [
+          Container(
+            width: 7, height: 7,
+            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+          ),
+          const SizedBox(width: 4),
+          Text(g.difficulty,
+              style: TextStyle(fontFamily: 'Oswald', color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+          const SizedBox(width: 4),
+          Text('${g.total}x',
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 10)),
+          const SizedBox(width: 3),
+          Text('$pct%',
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.32), fontSize: 10)),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildLegendRows(List<GradeStat> grades, int total) => [
+    for (int i = 0; i < grades.length; i += 2)
+      Padding(
+        padding: const EdgeInsets.only(bottom: 7),
+        child: Row(
+          children: [
+            _legendItem(grades[i], total),
+            if (i + 1 < grades.length)
+              _legendItem(grades[i + 1], total)
+            else
+              const Expanded(child: SizedBox()),
+          ],
+        ),
+      ),
+  ];
+
+  @override
   Widget build(BuildContext context) {
+    final grades = widget.grades;
     final total = grades.fold(0, (s, g) => s + g.total);
     if (total == 0) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       decoration: BoxDecoration(
         color: const Color(0xFF111D2E),
         borderRadius: BorderRadius.circular(18),
@@ -1694,93 +1830,47 @@ class _GradeDistributionPie extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Donut chart
-          SizedBox(
-            width: 130,
-            height: 130,
-            child: CustomPaint(
-              painter: _DonutPainter(grades: grades, total: total),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$total',
-                      style: const TextStyle(
-                        fontFamily: 'Oswald',
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      'SENDS',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.38),
-                        fontSize: 9,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 20),
-          // Legend
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: grades.map((g) {
-                final pct = (g.total / total * 100).round();
-                final color = _gradeColor(g.difficulty);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 11),
-                  child: Row(
+          AnimatedBuilder(
+            animation: _progress,
+            builder: (_, __) => SizedBox(
+              width: 128,
+              height: 128,
+              child: CustomPaint(
+                painter: _DonutPainter(
+                    grades: grades, total: total, progress: _progress.value),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
                       Text(
-                        g.difficulty,
-                        style: TextStyle(
-                          fontFamily: 'Oswald',
-                          color: color,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${g.total}',
+                        '$total',
                         style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
+                          fontFamily: 'Oswald',
+                          color: Colors.white,
+                          fontSize: 26,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      SizedBox(
-                        width: 34,
-                        child: Text(
-                          '$pct%',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.32),
-                            fontSize: 11,
-                          ),
+                      Text(
+                        'SENDS',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.38),
+                          fontSize: 9,
+                          letterSpacing: 1.2,
                         ),
                       ),
                     ],
                   ),
-                );
-              }).toList(),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 18),
+          // Legend — explicit 2-column layout
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: _buildLegendRows(grades, total),
             ),
           ),
         ],
@@ -1790,24 +1880,28 @@ class _GradeDistributionPie extends StatelessWidget {
 }
 
 class _DonutPainter extends CustomPainter {
-  const _DonutPainter({required this.grades, required this.total});
+  const _DonutPainter({
+    required this.grades,
+    required this.total,
+    this.progress = 1.0,
+  });
   final List<GradeStat> grades;
   final int total;
+  final double progress; // 0.0 → 1.0, drives clockwise reveal
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 6;
     const strokeWidth = 20.0;
-    const gapAngle = 0.04; // radians of gap between slices
+    const gapAngle = 0.04;
 
     final rect = Rect.fromCircle(center: center, radius: radius);
-    final paint = Paint()
+    final arcPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.butt;
 
-    // Background track
     canvas.drawCircle(
       center, radius,
       Paint()
@@ -1816,18 +1910,28 @@ class _DonutPainter extends CustomPainter {
         ..color = Colors.white.withValues(alpha: 0.05),
     );
 
+    // Total angle budget to draw this frame (clockwise reveal)
+    final budget = progress * 2 * pi;
     double startAngle = -pi / 2;
+    double drawn = 0;
+
     for (final g in grades) {
-      final sweep = (g.total / total) * 2 * pi - gapAngle;
-      paint.color = _gradeColor(g.difficulty);
-      canvas.drawArc(rect, startAngle + gapAngle / 2, sweep.clamp(0.01, 2 * pi), false, paint);
-      startAngle += sweep + gapAngle;
+      final fullSweep = (g.total / total) * 2 * pi - gapAngle;
+      final available = (budget - drawn).clamp(0.0, fullSweep);
+      if (available > 0) {
+        arcPaint.color = _gradeColor(g.difficulty);
+        canvas.drawArc(
+            rect, startAngle + gapAngle / 2, available, false, arcPaint);
+      }
+      drawn += fullSweep + gapAngle;
+      startAngle += fullSweep + gapAngle;
+      if (drawn >= budget) break;
     }
   }
 
   @override
   bool shouldRepaint(_DonutPainter old) =>
-      old.grades != grades || old.total != total;
+      old.grades != grades || old.total != total || old.progress != progress;
 }
 
 class _ResultBreakdown extends StatelessWidget {

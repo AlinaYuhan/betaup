@@ -17,8 +17,8 @@ class VoiceAssistantOverlay extends StatefulWidget {
 
 class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
     with TickerProviderStateMixin {
-  double _right = 16;
-  double _bottom = 160;
+  double _right = 6;
+  double _bottom = 130;
 
   // _breathCtrl: runs only while listening/responding, drives the glow-ring painter
   late final AnimationController _breathCtrl;
@@ -143,13 +143,13 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay>
     final state = widget.service.state;
     final color = _stateColor(state);
 
-    // Panda face — FIXED at 68×68, never moves or scales
+    // Panda face — FIXED at 56×56, never moves or scales
     const pandaFace = SizedBox(
-      width: 68,
-      height: 68,
+      width: 56,
+      height: 56,
       child: CustomPaint(
         painter: _PandaPainter(ringColor: Colors.white),
-        size: Size(68, 68),
+        size: Size(56, 56),
       ),
     );
 
