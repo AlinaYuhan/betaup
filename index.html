@@ -271,126 +271,298 @@
     box-shadow: 0 32px 70px rgba(0,0,0,0.42);
   }
   .phone-screen {
+    position: relative;
     height: 100%;
     border-radius: 1.72rem;
     overflow: hidden;
-    background: #f7f0e8;
-    color: #222831;
+    background: #081121;
+    color: #f7f0e8;
     display: flex;
     flex-direction: column;
   }
-  .app-topbar,
-  .app-tabbar {
+  .train-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+    height: 3.45rem;
+    background: rgba(5, 12, 26, 0.96);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .train-nav span {
+    position: relative;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: rgba(247,240,232,0.28);
+    text-transform: uppercase;
+  }
+  .train-nav .active {
+    color: #fffaf4;
+  }
+  .train-nav .active::after {
+    content: '';
+    position: absolute;
+    left: 31%;
+    right: 31%;
+    bottom: 0;
+    height: 0.18rem;
+    border-radius: 999px 999px 0 0;
+    background: var(--summit);
+    box-shadow: 0 0 14px rgba(232,80,10,0.6);
+  }
+  .train-hero {
+    position: relative;
+    height: 24rem;
+    padding: 0 1rem;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(5,12,26,0.05), rgba(5,12,26,0.1) 40%, #081121 96%),
+      linear-gradient(90deg, rgba(5,12,26,0.24), rgba(5,12,26,0.05)),
+      url('assets/photos/fieldwork-gym2.jpg') center top/cover;
+  }
+  .train-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 58%, transparent 0 24%, rgba(5,12,26,0.56) 48%, rgba(5,12,26,0.9) 82%),
+      linear-gradient(180deg, transparent 0 64%, #081121 100%);
+    pointer-events: none;
+  }
+  .train-level,
+  .train-location,
+  .train-side-stats,
+  .climb-button,
+  .train-add {
+    position: absolute;
+    z-index: 1;
+  }
+  .train-level {
+    left: 1.2rem;
+    top: 7.2rem;
+  }
+  .train-kicker {
+    display: block;
+    margin-bottom: 0.1rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.62);
+    text-transform: uppercase;
+  }
+  .train-grade {
+    display: block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5.35rem;
+    line-height: 0.85;
+    color: #fff;
+    text-shadow: 0 12px 32px rgba(0,0,0,0.45);
+  }
+  .train-sub {
+    display: block;
+    margin-top: 0.45rem;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.72);
+  }
+  .train-location {
+    left: 1.2rem;
+    top: 15.4rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.48);
+  }
+  .train-side-stats {
+    right: 0.95rem;
+    top: 6.6rem;
+    display: grid;
+    gap: 0.85rem;
+    text-align: center;
+  }
+  .train-side-stats strong {
+    display: block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    line-height: 0.9;
+  }
+  .train-side-stats span {
+    display: block;
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  .stat-flash strong,
+  .stat-flash span { color: #f6df48; }
+  .stat-send strong,
+  .stat-send span { color: #72d97b; }
+  .climb-button {
+    left: 50%;
+    top: 67%;
+    width: 7.8rem;
+    height: 7.8rem;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: radial-gradient(circle at 35% 28%, rgba(255,255,255,0.42), rgba(142,128,104,0.82));
+    border: 2px solid rgba(232,80,10,0.48);
+    box-shadow: 0 0 0 0.32rem rgba(255,255,255,0.15), 0 22px 42px rgba(0,0,0,0.36);
+  }
+  .climb-button span {
+    display: block;
+    text-align: center;
+  }
+  .climb-icon {
+    margin-top: 0.45rem;
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+  .climb-key {
+    margin-top: -0.2rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.72);
+  }
+  .climb-button strong {
+    display: block;
+    margin-top: -0.35rem;
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+  .train-add {
+    left: 50%;
+    bottom: 2.15rem;
+    transform: translateX(-50%);
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.52);
+    white-space: nowrap;
+  }
+  .recent-sessions {
+    position: relative;
+    flex: 1;
+    padding: 1.25rem 1rem 5.1rem;
+    background: #081121;
+  }
+  .recent-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.1rem 1rem 0.95rem;
-  }
-  .app-brand {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.48rem;
-    color: var(--summit);
-  }
-  .app-avatar {
-    width: 2.15rem;
-    height: 2.15rem;
-    border-radius: 50%;
-    background: #222831;
-  }
-  .app-hero-card {
-    margin: 0 1rem;
-    padding: 1rem;
-    border-radius: 8px;
-    color: var(--chalk);
-    background: linear-gradient(rgba(34,40,49,0.2), rgba(34,40,49,0.74)), url('assets/photos/fieldwork-gym2.jpg') center/cover;
-    min-height: 9.55rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-  .app-chip {
-    width: max-content;
-    margin-bottom: 0.5rem;
-    padding: 0.3rem 0.62rem;
-    border-radius: 999px;
-    background: var(--summit);
-    color: var(--chalk);
-    font-size: 0.72rem;
-    font-weight: 700;
-  }
-  .app-hero-title {
-    font-size: 1.38rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 800;
-    line-height: 1.12;
+    text-transform: uppercase;
   }
-  .app-stats {
+  .recent-header span {
+    color: rgba(247,240,232,0.58);
+  }
+  .session-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.55rem;
-    padding: 0.9rem 1rem;
+    gap: 0.75rem;
   }
-  .app-stat {
-    padding: 0.7rem;
-    border-radius: 8px;
-    background: #fffaf4;
-    border: 1px solid rgba(34,40,49,0.08);
+  .session-card {
+    position: relative;
+    padding: 1rem 4.1rem 1rem 1rem;
+    border-radius: 1rem;
+    background: rgba(23,34,55,0.94);
+    border: 1px solid rgba(160,180,220,0.22);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
   }
-  .app-stat strong {
+  .session-card.muted {
+    opacity: 0.52;
+  }
+  .session-card strong {
     display: block;
-    font-size: 1.25rem;
-    line-height: 1;
-    color: var(--summit);
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+    color: #fff;
   }
-  .app-stat span {
+  .session-meta {
     display: block;
-    margin-top: 0.3rem;
-    font-size: 0.7rem;
-    color: #6c665f;
+    margin-bottom: 0.7rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: rgba(247,240,232,0.3);
   }
-  .app-list {
-    display: grid;
-    gap: 0.6rem;
-    padding: 0 1rem 1rem;
+  .session-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
   }
-  .app-list-row {
-    display: grid;
-    grid-template-columns: 2.25rem 1fr auto;
+  .session-tags span,
+  .session-grade {
+    display: inline-flex;
     align-items: center;
-    gap: 0.7rem;
-    padding: 0.72rem;
-    border-radius: 8px;
-    background: #fffaf4;
-    border: 1px solid rgba(34,40,49,0.08);
+    justify-content: center;
+    min-width: 3rem;
+    padding: 0.36rem 0.5rem;
+    border-radius: 0.35rem;
+    background: rgba(255,255,255,0.04);
+    color: rgba(247,240,232,0.45);
+    font-size: 0.66rem;
+    font-weight: 800;
   }
-  .app-row-icon {
+  .session-tags .send {
+    color: #80df8a;
+    background: rgba(91,172,99,0.18);
+  }
+  .session-grade {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    min-width: 2.55rem;
+    padding: 0.42rem 0.55rem;
+    color: #a4a6ff;
+    border: 1px solid rgba(164,166,255,0.3);
+  }
+  .panda-assistant {
+    position: absolute;
+    right: 1.08rem;
+    top: 9rem;
+    width: 3.25rem;
+    height: 3.25rem;
     display: grid;
     place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 8px;
-    background: rgba(232,80,10,0.1);
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    font-size: 1.75rem;
   }
-  .app-list-row strong {
-    display: block;
-    font-size: 0.83rem;
+  .train-tabbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 4.55rem;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
+    background: rgba(5,12,26,0.97);
+    border-top: 1px solid rgba(255,255,255,0.08);
   }
-  .app-list-row span {
-    display: block;
-    font-size: 0.72rem;
-    color: #756f67;
-  }
-  .app-status {
-    color: var(--moss);
-    font-size: 0.72rem;
+  .train-tabbar span {
+    display: grid;
+    gap: 0.3rem;
+    place-items: center;
+    color: rgba(247,240,232,0.58);
+    font-size: 0.64rem;
     font-weight: 800;
   }
-  .app-tabbar {
-    margin-top: auto;
-    border-top: 1px solid rgba(34,40,49,0.08);
-    color: #756f67;
-    font-size: 0.7rem;
-    padding-top: 0.95rem;
-    padding-bottom: 0.95rem;
+  .train-tabbar span::before {
+    content: attr(data-icon);
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+  .train-tabbar .active {
+    color: #fff;
+  }
+  .train-tabbar .active::before {
+    min-width: 3rem;
+    padding: 0.35rem 0;
+    border-radius: 999px;
+    background: rgba(232,80,10,0.42);
   }
   .preview-notes {
     display: grid;
@@ -1283,59 +1455,70 @@
     <div class="product-preview" aria-label="BetaUp app preview">
       <div class="phone-mockup">
         <div class="phone-screen">
-          <div class="app-topbar">
-            <div class="app-brand">BetaUp</div>
-            <div class="app-avatar"></div>
+          <div class="train-nav">
+            <span class="active">Train</span>
+            <span>Progress</span>
+            <span>Badges</span>
           </div>
-          <div class="app-hero-card">
-            <div class="app-chip">Session Live</div>
-            <div class="app-hero-title">Log a V5 flash, unlock progress, get coach feedback.</div>
-          </div>
-          <div class="app-stats">
-            <div class="app-stat">
-              <strong>12</strong>
-              <span>routes</span>
+          <div class="train-hero">
+            <div class="train-level">
+              <span class="train-kicker">Best this month</span>
+              <span class="train-grade">V11</span>
+              <span class="train-sub">8 sessions this month</span>
             </div>
-            <div class="app-stat">
-              <strong>4</strong>
-              <span>badges</span>
-            </div>
-            <div class="app-stat">
-              <strong>154</strong>
-              <span>bpm</span>
-            </div>
-          </div>
-          <div class="app-list">
-            <div class="app-list-row">
-              <div class="app-row-icon">🎙️</div>
-              <div>
-                <strong>Voice log ready</strong>
-                <span>"Start my session"</span>
+            <div class="train-location">⌖ Nearest: 考拉攀岩(狮山店) · 37.7km</div>
+            <div class="train-side-stats">
+              <div class="stat-flash">
+                <strong>1</strong>
+                <span>Flash</span>
               </div>
-              <div class="app-status">Live</div>
-            </div>
-            <div class="app-list-row">
-              <div class="app-row-icon">🏅</div>
-              <div>
-                <strong>Badge unlocked</strong>
-                <span>First V5 send</span>
+              <div class="stat-send">
+                <strong>5</strong>
+                <span>Send</span>
               </div>
-              <div class="app-status">New</div>
             </div>
-            <div class="app-list-row">
-              <div class="app-row-icon">📍</div>
-              <div>
-                <strong>Gym check-in</strong>
-                <span>Suzhou bouldering wall</span>
-              </div>
-              <div class="app-status">Done</div>
+            <div class="climb-button">
+              <span class="climb-icon">▲</span>
+              <span class="climb-key">G</span>
+              <strong>CLIMB</strong>
             </div>
+            <div class="train-add">+ &nbsp;Log single climb</div>
           </div>
-          <div class="app-tabbar">
-            <span>Home</span>
-            <span>Logs</span>
-            <span>Coach</span>
-            <span>Community</span>
+
+          <div class="recent-sessions">
+            <div class="recent-header">
+              <strong>Recent Sessions</strong>
+              <span>10×</span>
+            </div>
+            <div class="session-list">
+              <div class="session-card">
+                <strong>考拉攀岩(狮山店)</strong>
+                <span class="session-meta">MAY 5 · 19:59 · 16秒 · 1 logs</span>
+                <div class="session-tags">
+                  <span>Flash 0</span>
+                  <span class="send">Send 1</span>
+                  <span>Attempt 0</span>
+                </div>
+                <span class="session-grade">V4</span>
+              </div>
+              <div class="session-card muted">
+                <strong>考拉攀岩(狮山店)</strong>
+                <span class="session-meta">MAY 5 · 15:59 · 13秒 · 0 logs</span>
+                <div class="session-tags">
+                  <span>Flash 0</span>
+                  <span>Send 0</span>
+                  <span>Attempt 0</span>
+                </div>
+              </div>
+            </div>
+            <div class="panda-assistant">🐼</div>
+          </div>
+          <div class="train-tabbar">
+            <span data-icon="◉">Explore</span>
+            <span class="active" data-icon="⚒">Train</span>
+            <span data-icon="♚">Community</span>
+            <span data-icon="⌂">Alerts</span>
+            <span data-icon="♙">Profile</span>
           </div>
         </div>
       </div>
