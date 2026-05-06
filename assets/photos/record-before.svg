@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" role="img" aria-label="Record page before redesign">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0c1220"/>
+      <stop offset="100%" stop-color="#0a1020"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#bg)"/>
+  <text x="42" y="86" fill="#ffffff" font-size="56" font-family="Arial, sans-serif" font-weight="700">记录</text>
+
+  <g transform="translate(0 126)">
+    <text x="170" y="80" fill="#ff8a2b" font-size="34" font-family="Arial, sans-serif" font-weight="700">训练</text>
+    <text x="505" y="80" fill="#677085" font-size="34" font-family="Arial, sans-serif" font-weight="700">进步</text>
+    <text x="855" y="80" fill="#677085" font-size="34" font-family="Arial, sans-serif" font-weight="700">徽章</text>
+    <rect x="132" y="108" width="70" height="10" rx="5" fill="#ff8a2b"/>
+    <rect x="0" y="118" width="1080" height="3" fill="#222b3c"/>
+  </g>
+
+  <g transform="translate(34 308)">
+    <rect x="0" y="0" width="180" height="150" rx="28" fill="#171f31" stroke="#232d42" stroke-width="3"/>
+    <text x="38" y="52" fill="#74809a" font-size="26" font-family="Arial, sans-serif" font-weight="700">本月训练</text>
+    <text x="38" y="118" fill="#ffffff" font-size="56" font-family="Arial, sans-serif" font-weight="700">7次</text>
+
+    <rect x="214" y="0" width="180" height="150" rx="28" fill="#171f31" stroke="#232d42" stroke-width="3"/>
+    <text x="252" y="52" fill="#74809a" font-size="26" font-family="Arial, sans-serif" font-weight="700">累计时长</text>
+    <text x="252" y="118" fill="#ffffff" font-size="56" font-family="Arial, sans-serif" font-weight="700">0min</text>
+  </g>
+
+  <g transform="translate(34 522)">
+    <rect x="0" y="0" width="1012" height="106" rx="34" fill="#171f31" stroke="#232d42" stroke-width="3"/>
+    <circle cx="48" cy="53" r="14" fill="#8c96aa"/>
+    <rect x="42" y="62" width="12" height="18" rx="6" fill="#8c96aa"/>
+    <text x="88" y="66" fill="#80879a" font-size="28" font-family="Arial, sans-serif" font-weight="700">最近：岩石攀岩·工业园区（3.2km）</text>
+    <text x="958" y="67" fill="#80879a" font-size="46" font-family="Arial, sans-serif" font-weight="700">C</text>
+  </g>
+
+  <g transform="translate(34 704)">
+    <rect x="0" y="0" width="1012" height="136" rx="48" fill="#ff7c17"/>
+    <text x="522" y="88" text-anchor="middle" fill="#ffffff" font-size="42" font-family="Arial, sans-serif" font-weight="700">Go Climb</text>
+    <text x="522" y="204" text-anchor="middle" fill="#7e8799" font-size="32" font-family="Arial, sans-serif" font-weight="700">＋ 单条记录</text>
+  </g>
+
+  <g transform="translate(34 1040)">
+    <text x="0" y="0" fill="#ffffff" font-size="54" font-family="Arial, sans-serif" font-weight="700">最近训练</text>
+    <text x="910" y="0" fill="#798299" font-size="34" font-family="Arial, sans-serif" font-weight="700">共 7 次</text>
+  </g>
+
+  <g transform="translate(34 1088)">
+    <rect x="0" y="0" width="1012" height="258" rx="34" fill="#171f31" stroke="#232d42" stroke-width="3"/>
+    <text x="38" y="70" fill="#ffffff" font-size="28" font-family="Arial, sans-serif" font-weight="700">岩石攀岩·工业园区</text>
+    <text x="38" y="118" fill="#7e8799" font-size="22" font-family="Arial, sans-serif" font-weight="700">4月11日 22:50  ·  0min  ·  3条</text>
+    <rect x="820" y="28" width="140" height="52" rx="22" fill="#3a2a23"/>
+    <text x="890" y="62" text-anchor="middle" fill="#ff8b2f" font-size="24" font-family="Arial, sans-serif" font-weight="700">最高 V5</text>
+    <rect x="38" y="160" width="110" height="56" rx="18" fill="#31351f"/>
+    <rect x="170" y="160" width="110" height="56" rx="18" fill="#18352d"/>
+    <rect x="302" y="160" width="110" height="56" rx="18" fill="#3a2e24"/>
+    <text x="93" y="198" text-anchor="middle" fill="#ffd445" font-size="24" font-family="Arial, sans-serif" font-weight="700">⚡ 1</text>
+    <text x="225" y="198" text-anchor="middle" fill="#53e07d" font-size="24" font-family="Arial, sans-serif" font-weight="700">✓ 1</text>
+    <text x="357" y="198" text-anchor="middle" fill="#ffbb6f" font-size="24" font-family="Arial, sans-serif" font-weight="700">🧗 1</text>
+  </g>
+
+  <g transform="translate(34 1374)">
+    <rect x="0" y="0" width="1012" height="258" rx="34" fill="#171f31" stroke="#232d42" stroke-width="3"/>
+    <text x="38" y="70" fill="#ffffff" font-size="28" font-family="Arial, sans-serif" font-weight="700">苏州岩馆</text>
+    <text x="38" y="118" fill="#7e8799" font-size="22" font-family="Arial, sans-serif" font-weight="700">4月11日 22:40  ·  0min  ·  3条</text>
+    <rect x="820" y="28" width="140" height="52" rx="22" fill="#3a2a23"/>
+    <text x="890" y="62" text-anchor="middle" fill="#ff8b2f" font-size="24" font-family="Arial, sans-serif" font-weight="700">最高 V5</text>
+    <rect x="38" y="160" width="110" height="56" rx="18" fill="#31351f"/>
+    <rect x="170" y="160" width="110" height="56" rx="18" fill="#18352d"/>
+    <rect x="302" y="160" width="110" height="56" rx="18" fill="#3a2e24"/>
+    <text x="93" y="198" text-anchor="middle" fill="#ffd445" font-size="24" font-family="Arial, sans-serif" font-weight="700">⚡ 1</text>
+    <text x="225" y="198" text-anchor="middle" fill="#53e07d" font-size="24" font-family="Arial, sans-serif" font-weight="700">✓ 1</text>
+    <text x="357" y="198" text-anchor="middle" fill="#ffbb6f" font-size="24" font-family="Arial, sans-serif" font-weight="700">🧗 1</text>
+  </g>
+
+  <g transform="translate(0 1808)">
+    <rect x="0" y="0" width="1080" height="112" fill="#0c1220" stroke="#20283a" stroke-width="2"/>
+    <ellipse cx="310" cy="40" rx="78" ry="28" fill="#6f452f"/>
+    <text x="68" y="58" fill="#f0f2f8" font-size="24" font-family="Arial, sans-serif">◉</text>
+    <text x="54" y="94" fill="#8d96aa" font-size="20" font-family="Arial, sans-serif" font-weight="700">探索</text>
+    <text x="310" y="58" text-anchor="middle" fill="#fff3ea" font-size="24" font-family="Arial, sans-serif">⚒</text>
+    <text x="310" y="94" text-anchor="middle" fill="#ffffff" font-size="20" font-family="Arial, sans-serif" font-weight="700">记录</text>
+    <text x="542" y="58" text-anchor="middle" fill="#f0f2f8" font-size="24" font-family="Arial, sans-serif">👥</text>
+    <text x="542" y="94" text-anchor="middle" fill="#8d96aa" font-size="20" font-family="Arial, sans-serif" font-weight="700">社区</text>
+    <text x="774" y="58" text-anchor="middle" fill="#f0f2f8" font-size="24" font-family="Arial, sans-serif">🔔</text>
+    <text x="774" y="94" text-anchor="middle" fill="#8d96aa" font-size="20" font-family="Arial, sans-serif" font-weight="700">通知</text>
+    <text x="1000" y="58" text-anchor="middle" fill="#f0f2f8" font-size="24" font-family="Arial, sans-serif">◌</text>
+    <text x="1000" y="94" text-anchor="middle" fill="#8d96aa" font-size="20" font-family="Arial, sans-serif" font-weight="700">我的</text>
+  </g>
+</svg>
