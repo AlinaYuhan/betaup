@@ -334,8 +334,7 @@
   .train-level,
   .train-location,
   .train-side-stats,
-  .climb-button,
-  .train-add {
+  .climb-button {
     position: absolute;
     z-index: 1;
   }
@@ -431,15 +430,6 @@
     margin-top: -0.18rem;
     font-size: 0.96rem;
     font-weight: 800;
-  }
-  .train-add {
-    left: 63%;
-    bottom: 4.05rem;
-    transform: translateX(-50%);
-    font-size: 0.64rem;
-    font-weight: 800;
-    color: rgba(255,255,255,0.52);
-    white-space: nowrap;
   }
   .recent-sessions {
     position: relative;
@@ -1049,11 +1039,43 @@
   .ba-pair { background: #1a1a1a; border: 1px solid #242424; border-radius: 4px; overflow: hidden; }
   .ba-label { font-family: 'Space Mono', monospace; font-size: 0.76rem; color: var(--summit); text-transform: uppercase; padding: 0.75rem 1.25rem; background: #161616; border-bottom: 1px solid #242424; }
   .ba-screens { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-  .ba-slot { aspect-ratio: 9/16; border-right: 1px solid #242424; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; }
+  .ba-slot {
+    position: relative;
+    aspect-ratio: 9/16;
+    border-right: 1px solid #242424;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    overflow: hidden;
+    background: #0b1017;
+  }
   .ba-slot:last-child { border-right: none; }
-  .ba-slot .ba-marker { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.1em; padding: 0.2rem 0.6rem; border-radius: 2px; }
+  .ba-slot .ba-marker {
+    position: absolute;
+    top: 0.8rem;
+    left: 0.8rem;
+    z-index: 2;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+  }
   .before-marker { background: rgba(107,107,107,0.15); color: var(--granite); border: 1px solid #2a2a2a; }
   .after-marker { background: rgba(74,124,89,0.12); color: var(--moss); border: 1px solid rgba(74,124,89,0.3); }
+  .ba-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .ba-slot img.ba-contain {
+    object-fit: contain;
+    padding: 1.25rem;
+    background: #0b1017;
+  }
   .ba-slot .ph-icon { font-size: 2rem; opacity: 0.2; }
   .ba-slot .ph-text { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: #3a3a3a; letter-spacing: 0.05em; }
 
@@ -1278,65 +1300,114 @@
   /* ── Visual Architecture Diagram ───────────────────────────────────── */
   /* ── Visual Architecture Diagram ───────────────────────────────────── */
   .arch-visual {
-    background: linear-gradient(160deg, #0e0e10 0%, #0b0b0d 100%);
-    border: 1px solid #1e1e1e;
-    border-radius: 10px;
-    padding: 2rem 2rem 1.75rem;
+    background: linear-gradient(160deg, #11171f 0%, #0c1118 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 2rem 2rem 1.9rem;
     margin-top: 1.5rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.22);
   }
   .arch-visual::before {
     content: '';
     position: absolute; inset: 0;
-    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(74,144,217,0.04) 0%, transparent 70%),
-                radial-gradient(ellipse 60% 40% at 50% 100%, rgba(232,80,10,0.04) 0%, transparent 70%);
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(143,184,216,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 50% 100%, rgba(232,80,10,0.08) 0%, transparent 70%);
     pointer-events: none;
   }
-  .av-layer { border-radius: 8px; padding: 1.25rem 1.5rem; position: relative; }
+  .av-layer {
+    border-radius: 12px;
+    padding: 1.35rem 1.5rem 1.25rem;
+    position: relative;
+  }
   .av-flutter {
-    border: 1px solid rgba(74,144,217,0.28);
-    background: rgba(74,144,217,0.04);
-    box-shadow: 0 0 0 1px rgba(74,144,217,0.05) inset, 0 1px 20px rgba(74,144,217,0.05);
+    border: 1px solid rgba(143,184,216,0.34);
+    background: linear-gradient(180deg, rgba(143,184,216,0.12), rgba(143,184,216,0.05));
+    box-shadow: 0 0 0 1px rgba(143,184,216,0.06) inset, 0 12px 28px rgba(18,39,61,0.22);
   }
   .av-backend {
-    border: 1px solid rgba(232,80,10,0.28);
-    background: rgba(232,80,10,0.04);
-    box-shadow: 0 0 0 1px rgba(232,80,10,0.05) inset, 0 1px 20px rgba(232,80,10,0.05);
+    border: 1px solid rgba(232,80,10,0.32);
+    background: linear-gradient(180deg, rgba(232,80,10,0.11), rgba(232,80,10,0.045));
+    box-shadow: 0 0 0 1px rgba(232,80,10,0.06) inset, 0 12px 28px rgba(68,24,10,0.18);
   }
-  .av-layer-badge { font-family: 'Space Mono',monospace; font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 0.9rem; display: flex; align-items: center; gap: 0.6rem; }
-  .av-flutter .av-layer-badge { color: #5a9fd4; }
+  .av-layer-badge {
+    font-family: 'Space Mono',monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    line-height: 1.6;
+  }
+  .av-flutter .av-layer-badge { color: #a6d2f0; }
   .av-backend .av-layer-badge { color: var(--summit); }
-  .av-layer-badge::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.12; }
-  .av-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-  .av-tags + .av-tags { margin-top: 0.4rem; }
-  .av-tag { font-family: 'Space Mono',monospace; font-size: 0.57rem; padding: 0.2rem 0.6rem; border-radius: 3px; letter-spacing: 0.04em; white-space: nowrap; transition: border-color 0.2s; }
-  .av-tag-blue { background: rgba(74,144,217,0.1); color: #5a9fd4; border: 1px solid rgba(74,144,217,0.2); }
-  .av-tag-blue:hover { border-color: rgba(74,144,217,0.5); }
-  .av-tag-orange { background: rgba(232,80,10,0.1); color: var(--summit); border: 1px solid rgba(232,80,10,0.22); }
-  .av-tag-orange:hover { border-color: rgba(232,80,10,0.5); }
-  .av-tag-dim { background: rgba(80,80,80,0.06); color: #454545; border: 1px solid #1e1e1e; }
-  .av-connector { display: flex; flex-direction: column; align-items: center; padding: 0.55rem 0; }
-  .av-conn-line { width: 1px; height: 16px; background: linear-gradient(to bottom, #252525, #2e2e2e); }
-  .av-conn-text { font-family: 'Space Mono',monospace; font-size: 0.53rem; color: #2e2e2e; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.15rem 0.7rem; border: 1px solid #1e1e1e; border-radius: 2px; background: #0c0c0e; }
-  .av-conn-arrow { color: #282828; font-size: 0.75rem; line-height: 1; }
+  .av-layer-badge::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.18; }
+  .av-tags { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+  .av-tags + .av-tags { margin-top: 0.65rem; }
+  .av-tag {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.38rem 0.75rem;
+    border-radius: 999px;
+    letter-spacing: 0;
+    white-space: normal;
+    line-height: 1.4;
+    transition: border-color 0.2s, transform 0.2s, background 0.2s;
+  }
+  .av-tag-blue { background: rgba(143,184,216,0.12); color: #d7edfb; border: 1px solid rgba(143,184,216,0.24); }
+  .av-tag-blue:hover { border-color: rgba(143,184,216,0.48); transform: translateY(-1px); }
+  .av-tag-orange { background: rgba(232,80,10,0.14); color: #ffd7c4; border: 1px solid rgba(232,80,10,0.26); }
+  .av-tag-orange:hover { border-color: rgba(232,80,10,0.52); transform: translateY(-1px); }
+  .av-tag-dim {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-body);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .av-connector { display: flex; flex-direction: column; align-items: center; padding: 0.85rem 0 0.95rem; }
+  .av-conn-line { width: 1px; height: 18px; background: linear-gradient(to bottom, rgba(255,255,255,0.08), rgba(255,255,255,0.16)); }
+  .av-conn-text {
+    font-family: 'Space Mono',monospace;
+    font-size: 0.62rem;
+    color: var(--text-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.38rem 0.9rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    text-align: center;
+    line-height: 1.6;
+  }
+  .av-conn-arrow { color: rgba(255,255,255,0.38); font-size: 0.9rem; line-height: 1; }
   .av-branch-row { display: grid; grid-template-columns: repeat(3,1fr); }
   .av-branch { display: flex; justify-content: center; padding: 0.45rem 0 0.4rem; }
   .av-branch-inner { display: flex; flex-direction: column; align-items: center; }
-  .av-branch-line { width: 1px; height: 14px; background: #242424; }
-  .av-branch-arrow { width: 0; height: 0; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid #262626; }
-  .av-bottom { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; align-items: start; }
+  .av-branch-line { width: 1px; height: 14px; background: rgba(255,255,255,0.14); }
+  .av-branch-arrow { width: 0; height: 0; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid rgba(255,255,255,0.18); }
+  .av-bottom { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; align-items: start; }
   .av-data {
-    border: 1px solid #1c1c1c;
-    border-radius: 8px;
-    padding: 1rem 1rem 0.9rem;
-    background: linear-gradient(135deg, #121214 0%, #0f0f11 100%);
-    transition: border-color 0.3s;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 1rem 1rem 0.95rem;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%);
+    transition: border-color 0.3s, transform 0.3s, background 0.3s;
   }
-  .av-data:hover { border-color: #2a2a2a; }
-  .av-data-icon { font-size: 1.1rem; margin-bottom: 0.45rem; }
-  .av-data-name { font-family: 'Space Mono',monospace; font-size: 0.6rem; color: #666; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.35rem; }
-  .av-data-desc { font-size: 0.73rem; color: #383838; line-height: 1.6; }
+  .av-data:hover { border-color: rgba(255,255,255,0.16); transform: translateY(-2px); background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 100%); }
+  .av-data-icon { font-size: 1.25rem; margin-bottom: 0.55rem; }
+  .av-data-name {
+    font-family: 'Space Mono',monospace;
+    font-size: 0.68rem;
+    color: var(--chalk);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+    line-height: 1.5;
+  }
+  .av-data-desc { font-size: 0.82rem; color: var(--text-body); line-height: 1.7; }
 
   /* ── Responsive ─────────────────────────────────────────────────────── */
   @media (max-width: 900px) {
@@ -1366,6 +1437,8 @@
     .hero-metrics,
     .review-grid,
     .review-columns { grid-template-columns: 1fr; }
+    .av-bottom { grid-template-columns: 1fr; }
+    .av-conn-text { width: min(100%, 32rem); }
     .team-grid { grid-template-columns: 1fr 1fr; }
     .timeline { grid-template-columns: 1fr 1fr; }
     .persona-grid { grid-template-columns: 1fr; }
@@ -1399,6 +1472,25 @@
     .timeline::before { display: none; }
     .interview-grid { grid-template-columns: 1fr 1fr; }
     .persona-card { flex-direction: column; }
+    .arch-visual { padding: 1.4rem 1rem 1.25rem; }
+    .av-layer { padding: 1rem; }
+    .av-layer-badge {
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .av-layer-badge::after {
+      width: 100%;
+      flex: none;
+    }
+    .av-tag { font-size: 0.74rem; }
+    .av-conn-text {
+      font-size: 0.56rem;
+      padding: 0.42rem 0.7rem;
+    }
+    .av-bottom { gap: 0.75rem; }
   }
 </style>
 </head>
@@ -1486,7 +1578,6 @@
               <span class="climb-key">G</span>
               <strong>CLIMB</strong>
             </div>
-            <div class="train-add">+ &nbsp;Log single climb</div>
           </div>
 
           <div class="recent-sessions">
@@ -2404,35 +2495,31 @@
         <div class="ba-screens">
           <div class="ba-slot">
             <div class="ba-marker before-marker">BEFORE</div>
-            <div class="ph-icon">📱</div>
-            <div class="ph-text">[Screenshot placeholder]</div>
+            <img class="ba-contain" src="assets/photos/button_before.png?v=20260506-button-before" alt="Voice button before redesign">
           </div>
           <div class="ba-slot">
             <div class="ba-marker after-marker">AFTER</div>
-            <div class="ph-icon">🐼</div>
-            <div class="ph-text">[Screenshot placeholder]</div>
+            <img class="ba-contain" src="assets/photos/button_after.png?v=20260506-button-after" alt="Voice button after redesign">
           </div>
         </div>
       </div>
       <div class="ba-pair">
-        <div class="ba-label">Record Tab: Form Only → Voice-First with Form Fallback</div>
+        <div class="ba-label">Record Page: Utility Layout → Focused Climb Hub</div>
         <div class="ba-screens">
           <div class="ba-slot">
             <div class="ba-marker before-marker">BEFORE</div>
-            <div class="ph-icon">📋</div>
-            <div class="ph-text">[Screenshot placeholder]</div>
+            <img src="assets/photos/record-before.jpg?v=20260506-real-before" alt="Record page before redesign">
           </div>
           <div class="ba-slot">
             <div class="ba-marker after-marker">AFTER</div>
-            <div class="ph-icon">🎙️</div>
-            <div class="ph-text">[Screenshot placeholder]</div>
+            <img src="assets/photos/record-after.png?v=20260506-real-after" alt="Record page after redesign">
           </div>
         </div>
       </div>
     </div>
     <div class="placeholder-note">
-      <strong>[PLACEHOLDER — all team members to fill]</strong><br>
-      Take screenshots of the app before and after each significant design iteration. Drag-and-drop images into the ba-slot divs and remove the placeholder icons.
+      <strong>Update note</strong><br>
+      The record page comparison has been inserted. You can still replace the first Voice Button comparison with final export screenshots later for a more polished submission.
     </div>
   </div>
 </section>
