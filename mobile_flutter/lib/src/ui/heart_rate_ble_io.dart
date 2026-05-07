@@ -13,6 +13,7 @@ class BlePlatformImpl {
   static const _hrSvcUuid = '0000180d-0000-1000-8000-00805f9b34fb';
 
   static bool get supported => true;
+  static int? get overrideBpm => null; // real BLE on iOS, no JS override needed
 
   static Future<bool> connectAndSubscribe({
     required void Function(int bpm) onBpm,

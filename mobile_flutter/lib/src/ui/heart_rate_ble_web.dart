@@ -5,6 +5,7 @@ external _BleWindow get _window;
 
 extension type _BleWindow(JSObject _) implements JSObject {
   external JSAny? get bleHeartRate;
+  external JSNumber? get demoBpm;
 }
 
 extension type _BleBridge(JSObject _) implements JSObject {
@@ -21,6 +22,18 @@ class BlePlatformImpl {
       return null;
     }
     return bridge as _BleBridge;
+  }
+
+  /// BPM injected from demo.html parent page via `iframe.contentWindow.demoBpm`.
+  static int? get overrideBpm {
+    try {
+      final v = _window.demoBpm;
+      if (v == null) return null;
+      final n = v.toDartInt;
+      return n > 0 ? n : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   static bool get supported {

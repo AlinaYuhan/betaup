@@ -54,37 +54,28 @@ class BleHeartRateService {
 /// Simulates: warmup -> climbing bursts (130-160 bpm) -> rest (90-110 bpm).
 class MockHeartRateSimulator {
   static Timer? _timer;
-  static int _tick = 0;
-  static final _rng = Random();
 
   static bool get isRunning => _timer != null;
 
   static void start({required void Function(HeartRateSample) onSample}) {
     stop();
-    _tick = 0;
     _emit(onSample);
-    _timer = Timer.periodic(const Duration(seconds: 3), (_) => _emit(onSample));
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _emit(onSample));
   }
 
   static void stop() {
     _timer?.cancel();
     _timer = null;
-    _tick = 0;
   }
 
   static void _emit(void Function(HeartRateSample) onSample) {
-    _tick++;
     onSample(HeartRateSample(time: DateTime.now(), bpm: _nextBpm()));
   }
 
   static int _nextBpm() {
-    final t = _tick * 3 / 60.0;
-    final base = 72.0 + (t * 15).clamp(0.0, 38.0);
-    final cycle = (t % 2.5) / 2.5;
-    final burst = cycle < 0.45
-        ? 55.0 * sin(cycle / 0.45 * pi)
-        : 18.0 * (1.0 - (cycle - 0.45) / 0.55);
-    final noise = (_rng.nextDouble() - 0.5) * 10.0;
-    return (base + burst + noise).round().clamp(68, 172);
+    // Clock-based formula — identical to the watch simulation in demo.html.
+    // Both read wall-clock milliseconds so they always display the same BPM.
+    final ms = DateTime.now().millisecondsSinceEpoch;
+    return (128 + 15 * sin(ms / 8000 * 2 * pi)).round().clamp(68, 172);
   }
 }
