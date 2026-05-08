@@ -122,13 +122,25 @@ body {
 /* tag */
 .sc-tag {
   font-family: 'Space Mono', monospace;
-  font-size: 0.56rem;
-  letter-spacing: 0.34em;
+  font-size: 0.5rem;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--summit);
-  margin-bottom: 1.1rem;
+  margin-bottom: 2.8rem;
   opacity: 0;
   animation: fadeUp 0.4s ease 0.05s forwards;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.sc-tag::before {
+  content: '';
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--summit);
+  flex-shrink: 0;
+  animation: pulse 2.4s ease-in-out infinite;
 }
 
 /* title */
@@ -147,8 +159,9 @@ body {
 .sc-lines {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0;
   margin-bottom: 1.6rem;
+  align-items: center;
 }
 .sc-line {
   font-size: 0.88rem;
@@ -156,6 +169,44 @@ body {
   font-weight: 400;
   opacity: 0;
   animation: fadeUp 0.4s ease forwards;
+}
+
+/* Feature spotlight — replaced per step */
+.step-pre {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.9rem, 3.2vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  color: rgba(240,237,232,0.25);
+  opacity: 0;
+  animation: fadeUp 0.36s ease 0.06s both;
+}
+.step-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(4.4rem, 7.4vw, 7rem);
+  line-height: 0.85;
+  letter-spacing: 0.01em;
+  color: #f0ede8;
+  opacity: 0;
+  animation: fadeUp 0.44s ease 0.14s both;
+}
+.step-main em { color: var(--summit); font-style: normal; }
+.step-sep {
+  width: 44px; height: 1.5px;
+  background: linear-gradient(90deg, var(--summit) 0%, rgba(255,122,24,0.2) 100%);
+  border-radius: 1px;
+  margin: 1.4rem 0 1.3rem;
+  opacity: 0;
+  animation: fadeUp 0.28s ease 0.3s both;
+}
+.step-desc {
+  font-size: 0.98rem;
+  color: var(--body);
+  line-height: 1.72;
+  opacity: 0;
+  animation: fadeUp 0.4s ease 0.4s both;
+  max-width: 360px;
+  text-align: center;
 }
 
 /* voiceover reference */
@@ -279,6 +330,7 @@ body {
   gap: 1rem;
   position: relative;
   overflow: hidden;
+  padding-top: 5rem;
 }
 
 .screen-tab {
@@ -583,6 +635,43 @@ body {
 /* responsive phone scale */
 @media (max-height: 860px) { .phone-area { transform: scale(0.84); transform-origin: center; } }
 @media (max-height: 720px) { .phone-area { transform: scale(0.70); transform-origin: center; } }
+
+/* ── STEP CHIPS ──────────────────────────── */
+.step-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1.4rem;
+  opacity: 0;
+  animation: fadeUp 0.4s ease 0.52s both;
+}
+.step-chip {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.48rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 2px;
+  padding: 0.28rem 0.7rem;
+}
+
+/* ── CLIMBING DECORATIONS ─────────────────── */
+/* Subtle hold-shape texture on left panel */
+.panel-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 18px 12px at 82% 12%, rgba(255,122,24,0.05) 0%, transparent 100%),
+    radial-gradient(ellipse 12px 18px at 10% 58%, rgba(255,122,24,0.04) 0%, transparent 100%),
+    radial-gradient(ellipse 22px 14px at 90% 80%, rgba(255,255,255,0.02) 0%, transparent 100%),
+    radial-gradient(ellipse 9px  9px  at 30% 90%, rgba(255,122,24,0.03) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+
 </style>
 </head>
 <body>
@@ -593,13 +682,6 @@ body {
 
     <div class="pl-top">
       <div class="pl-logo">BetaUp</div>
-      <div class="pl-meta">CPT208 · C2-6</div>
-    </div>
-
-    <div class="pl-counter">
-      <span class="pl-cur" id="sc-num">01</span>
-      <span class="pl-sep">&thinsp;/&thinsp;</span>
-      <span class="pl-tot" id="sc-tot">08</span>
     </div>
 
     <!-- Animated scene -->
@@ -613,25 +695,18 @@ body {
 
     <!-- Controls -->
     <div class="panel-controls">
-      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
       <div class="dots-row" id="dots-row"></div>
       <div class="ctrl-row">
         <button class="ctrl-btn" id="btn-prev">← Prev</button>
         <button class="ctrl-btn primary" id="btn-auto">⏸ Pause</button>
         <button class="ctrl-btn" id="btn-next">Next →</button>
       </div>
-      <div class="kb-hint">SPACE · → &nbsp;advance &nbsp;·&nbsp; ← &nbsp;back &nbsp;·&nbsp; P &nbsp;pause</div>
     </div>
 
   </div>
 
   <!-- ══ RIGHT PANEL ═════════════════════════ -->
   <div class="panel-right">
-    <div class="screen-tab">
-      <span class="screen-tab-arrow">→</span>
-      <span id="screen-tab-text">Overview</span>
-    </div>
-
     <div class="phone-area">
 
       <!-- Apple Watch -->
@@ -701,147 +776,51 @@ body {
 
     </div><!-- /.phone-area -->
 
-    <div class="phone-hint">Live app · Watch connected via BLE</div>
   </div>
 
 </div>
 
 <script>
 // ═══════════════════════════════════════════
-//  SCENES  (duration in ms per scene)
+//  MODULES  (3 manual panels; steps auto-advance within each)
 // ═══════════════════════════════════════════
-const SCENES = [
+const MODULES = [
   {
-    dur: 5000,
-    tag: 'CPT208 · Group C2-6',
-    title: 'BETA<em>UP</em>',
-    lines: [
-      'The all-in-one climbing companion',
-      'Log · Grow · Connect',
-    ],
-    vo: 'BetaUp——专为攀岩爱好者打造的全能训练伙伴。',
-    chips: [
-      { text: 'Flutter', cls: 'c-b' },
-      { text: 'Spring Boot 3', cls: 'c-o' },
-      { text: 'DeepSeek AI', cls: 'c-g' },
-    ],
-    screen: 'Home',
+    tag: 'Explore · Achievements',
+    steps: [
+      { pre: 'GYM', main: '<em>MAP</em>', desc: 'All venues · GPS-sorted by distance · open hours · booking', chips: ['700+ Venues','GPS Sort','Open Hours'], dur: 3400 },
+      { pre: 'GPS', main: 'CHECK-IN', desc: 'Arrive at the wall · one tap confirms your session start', chips: ['One Tap','Auto Log','Session Start'], dur: 3200 },
+      { main: 'BADGE <em>UNLOCKED</em>', desc: 'First Check-In — milestone captured and celebrated automatically', chips: ['Milestone','Confetti','Push Notify'], dur: 3400 },
+      { pre: 'YOUR', main: 'BADGE WALL', desc: '20+ achievements · every milestone lives here forever', chips: ['20+ Badges','Public Profile','Showcase'], dur: 3400 },
+    ]
   },
   {
-    dur: 7000,
-    tag: 'Explore',
-    title: 'FIND YOUR\n<em>GYM</em>',
-    lines: [
-      'GPS map · Nearby venues',
-      'Tap any gym to start a session',
-    ],
-    vo: '打开地图，发现附近的攀岩馆。查看场地类型和距离，一键开始。',
-    chips: [
-      { text: 'Live Map', cls: 'c-b' },
-      { text: 'GPS Discovery', cls: 'c-g' },
-    ],
-    screen: 'Explore Tab',
+    tag: 'AI Voice · Panda',
+    steps: [
+      { pre: 'START', main: 'SESSION', desc: 'Just say it · Panda begins your training log instantly', chips: ['Voice First','DeepSeek NLP','Instant'], dur: 3000 },
+      { pre: 'LOG EVERY', main: '<em>CLIMB</em>', desc: '"V5, red route, flash" — both hands stay on the wall', chips: ['Hands-Free','V-Grade','Flash / Redpoint'], dur: 3200 },
+      { pre: 'QUERY', main: 'YOUR DATA', desc: 'Best grade · session count · streaks · ask anything', chips: ['Best Grade','Streaks','Session History'], dur: 3000 },
+      { pre: 'CLIMBING', main: '<em>COACH</em>', desc: 'Technique · route beta · training advice · on demand', chips: ['Technique','Route Beta','Training Plan'], dur: 3200 },
+      { main: 'ZERO <em>FRICTION</em>', desc: 'No screen · no typing · just climbing · just flow', chips: ['No Screen','No Typing','Flow State'], dur: 3000 },
+    ]
   },
   {
-    dur: 8000,
-    tag: 'Session Logging',
-    title: 'LOG EVERY\n<em>SEND</em>',
-    lines: [
-      'Select grade, wall type & outcome',
-      'Under 10 seconds per climb',
-    ],
-    vo: '开始训练，记录每一次完登。选择难度等级——全程不到十秒。',
-    chips: [
-      { text: 'V-Scale', cls: 'c-o' },
-      { text: 'Flash Rate', cls: 'c-g' },
-      { text: 'Streaks', cls: 'c-b' },
-    ],
-    screen: 'Train Tab → Log',
-  },
-  {
-    dur: 12000,
-    tag: 'AI Voice Assistant',
-    title: 'JUST\n<em>SPEAK</em>',
-    lines: [
-      '"V5，红色线路，完登"',
-      'Panda logs it — hands-free',
-    ],
-    vo: '攀爬间隙，直接对熊猫说话。它听懂指令，立刻记录——双手不需要离开岩壁。由 DeepSeek 驱动，真正的零摩擦记录。',
-    chips: [
-      { text: 'DeepSeek NLP', cls: 'c-o' },
-      { text: 'Web Speech API', cls: 'c-b' },
-      { text: 'Hands-Free', cls: 'c-g' },
-    ],
-    screen: 'Voice Assistant (Panda)',
-  },
-  {
-    dur: 7000,
-    tag: 'Progress',
-    title: 'SEE YOUR\n<em>GROWTH</em>',
-    lines: [
-      'Weekly frequency · Grade distribution',
-      'Best grade · Flash rate · Sessions',
-    ],
-    vo: '进度面板实时更新，清楚看见每周训练频率和难度分布趋势。',
-    chips: [
-      { text: 'Live Charts', cls: 'c-b' },
-      { text: 'Grade Stats', cls: 'c-o' },
-    ],
-    screen: 'Train Tab → Progress',
-  },
-  {
-    dur: 5000,
-    tag: 'Heart Rate',
-    title: 'MONITOR\nYOUR <em>BODY</em>',
-    lines: [
-      'Bluetooth BLE · Real-time HR',
-      'Track body data every session',
-    ],
-    vo: '蓝牙心率实时监测，把每次训练的身体状态一并纳入你的攀岩档案。',
-    chips: [
-      { text: 'BLE Monitor', cls: 'c-b' },
-      { text: 'Real-Time', cls: 'c-g' },
-    ],
-    screen: 'Heart Rate Monitor',
-  },
-  {
-    dur: 8000,
     tag: 'Community',
-    title: 'SHARE THE\n<em>SEND</em>',
-    lines: [
-      'Post sends · Like · Comment',
-      'Coach certifications in-app',
-    ],
-    vo: '完登之后，分享到社区。和攀友互动，教练在这里为你的成绩做认证。',
-    chips: [
-      { text: 'Community Feed', cls: 'c-b' },
-      { text: 'Coach Certs', cls: 'c-g' },
-    ],
-    screen: 'Community Tab',
-  },
-  {
-    dur: 3000,
-    tag: 'Achievement',
-    title: 'EARN YOUR\n<em>BADGES</em>',
-    lines: [
-      '20+ milestones unlock automatically',
-    ],
-    vo: '每一次突破，都有专属徽章记录。BetaUp——让每次完登，都有意义。',
-    chips: [
-      { text: 'Milestone Badges', cls: 'c-y' },
-      { text: 'XP + Levels', cls: 'c-g' },
-    ],
-    screen: 'Train Tab → Badges',
+    steps: [
+      { pre: '3 POST', main: 'TYPES', desc: 'General · Partner Search · Beta Route — pick your format', chips: ['General','Partner Search','Beta Route'], dur: 3200 },
+      { pre: 'COMMUNITY', main: '<em>FEED</em>', desc: 'Likes · comments · celebrate every send together', chips: ['Likes','Comments','Celebrate Sends'], dur: 3200 },
+      { pre: 'COACH', main: 'CERTS', desc: 'Coaches verify your achievements in-app · officially', chips: ['Certified Coach','In-App Review','Official Badge'], dur: 3400 },
+    ]
   },
 ];
 
 // ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
-let cur      = 0;
-let autoPlay = true;
-let rafId    = null;
-let t0       = null;
+let curMod   = 0;
+let curStep  = 0;
+let stepTimer = null;
+let busy     = false;
 
 const contentEl = document.getElementById('scene-content');
 const tagEl     = document.getElementById('sc-tag');
@@ -849,139 +828,142 @@ const titleEl   = document.getElementById('sc-title');
 const linesEl   = document.getElementById('sc-lines');
 const voEl      = document.getElementById('sc-vo');
 const chipsEl   = document.getElementById('sc-chips');
-const numEl     = document.getElementById('sc-num');
-const fillEl    = document.getElementById('progress-fill');
 const dotsRow   = document.getElementById('dots-row');
 const btnAuto   = document.getElementById('btn-auto');
-const screenEl  = document.getElementById('screen-tab-text');
 
-document.getElementById('sc-tot').textContent = String(SCENES.length).padStart(2,'0');
+voEl.style.display    = 'none';
+btnAuto.style.display = 'none';
+titleEl.style.display = 'none';
 
-// Build dots
-SCENES.forEach((_,i) => {
+// ── 3 module dots ──
+MODULES.forEach((_,i) => {
   const d = document.createElement('div');
-  d.className = 'sdot' + (i===0 ? ' on' : '');
-  d.addEventListener('click', () => { stopProgress(); goTo(i, i >= cur ? 1 : -1); });
+  d.className = 'sdot' + (i===0?' on':'');
+  d.addEventListener('click', () => goToMod(i));
   dotsRow.appendChild(d);
 });
+
+// ── Step dots container ──
+const stepDotsEl = document.createElement('div');
+stepDotsEl.style.cssText = 'display:flex;gap:7px;justify-content:center;margin-top:1.4rem;';
+contentEl.appendChild(stepDotsEl);
 
 // ═══════════════════════════════════════════
 //  RENDER
 // ═══════════════════════════════════════════
-function renderScene(idx) {
-  const s = SCENES[idx];
-  numEl.textContent   = String(idx+1).padStart(2,'0');
-  tagEl.textContent   = s.tag;
-  titleEl.innerHTML   = s.title.replace(/\n/g,'<br>');
-  screenEl.textContent = s.screen;
-
-  linesEl.innerHTML = s.lines.map((l,i) =>
-    `<div class="sc-line" style="animation-delay:${0.22+i*0.12}s">${l}</div>`
-  ).join('');
-
-  voEl.textContent = s.vo;
-
-  const cd = 0.22 + s.lines.length * 0.12 + 0.1;
-  chipsEl.innerHTML = s.chips.map((c,i) =>
-    `<span class="chip ${c.cls}" style="animation-delay:${cd+i*0.07}s">${c.text}</span>`
-  ).join('');
-
+function renderMod(modIdx) {
+  const m = MODULES[modIdx];
+  tagEl.textContent = m.tag;
+  chipsEl.innerHTML = '';
   document.querySelectorAll('.sdot').forEach((d,i) =>
-    d.classList.toggle('on', i===idx)
+    d.classList.toggle('on', i===modIdx)
   );
+  // Rebuild step dots
+  stepDotsEl.innerHTML = m.steps.map((_,i) =>
+    `<span style="width:4px;height:4px;border-radius:50%;display:inline-block;` +
+    `background:${i===0?'var(--summit)':'var(--border)'};` +
+    `transition:background .3s,transform .3s;` +
+    `transform:${i===0?'scale(1.5)':'scale(1)'}"></span>`
+  ).join('');
+  curStep = 0;
+  renderStep(0);
+}
+
+function renderStep(stepIdx) {
+  curStep = stepIdx;
+  const step = MODULES[curMod].steps[stepIdx];
+  // Highlight active step dot
+  stepDotsEl.querySelectorAll('span').forEach((d,i) => {
+    d.style.background = i===stepIdx ? 'var(--summit)' : 'var(--border)';
+    d.style.transform  = i===stepIdx ? 'scale(1.5)' : 'scale(1)';
+  });
+  // Replace content — animations restart on each DOM replace
+  const chipsHtml = step.chips
+    ? `<div class="step-chips">${step.chips.map(c => `<span class="step-chip">${c}</span>`).join('')}</div>`
+    : '';
+  linesEl.innerHTML =
+    (step.pre ? `<div class="step-pre">${step.pre}</div>` : '') +
+    `<div class="step-main">${step.main}</div>` +
+    `<div class="step-sep"></div>` +
+    `<p class="step-desc">${step.desc}</p>` +
+    chipsHtml;
+  scheduleNext(step.dur);
 }
 
 // ═══════════════════════════════════════════
-//  TRANSITION (vertical fade)
+//  STEP TIMER (auto-advance within module, loops)
 // ═══════════════════════════════════════════
-let busy = false;
-function goTo(idx, dir=1) {
-  if (busy) return;
-  idx = ((idx % SCENES.length) + SCENES.length) % SCENES.length;
-  if (idx === cur) { if (autoPlay) startProgress(); return; }
-  busy = true;
+function scheduleNext(dur) {
+  if (stepTimer) clearTimeout(stepTimer);
+  stepTimer = setTimeout(() => {
+    renderStep((curStep + 1) % MODULES[curMod].steps.length);
+  }, dur);
+}
 
-  // exit: fade down
+function stopTimer() {
+  if (stepTimer) { clearTimeout(stepTimer); stepTimer = null; }
+}
+
+// ═══════════════════════════════════════════
+//  MODULE NAVIGATION (manual only)
+// ═══════════════════════════════════════════
+function goToMod(idx) {
+  if (busy) return;
+  idx = ((idx % MODULES.length) + MODULES.length) % MODULES.length;
+  if (idx === curMod) return;
+  busy = true;
+  stopTimer();
+
   contentEl.classList.remove('show');
   contentEl.classList.add('out');
 
   setTimeout(() => {
-    cur = idx;
-    renderScene(cur);
-
+    curMod = idx;
+    renderMod(curMod);
     contentEl.classList.remove('out');
     contentEl.classList.add('enter');
-
     requestAnimationFrame(() => requestAnimationFrame(() => {
       contentEl.classList.remove('enter');
       contentEl.classList.add('show');
       busy = false;
-      if (autoPlay) startProgress();
     }));
   }, 340);
 }
 
-// ═══════════════════════════════════════════
-//  PROGRESS (per-scene duration)
-// ═══════════════════════════════════════════
-function startProgress() {
-  stopProgress();
-  fillEl.style.width = '0%';
-  t0 = null;
-  const dur = SCENES[cur].dur;
-
-  function tick(ts) {
-    if (!t0) t0 = ts;
-    const pct = Math.min((ts - t0) / dur * 100, 100);
-    fillEl.style.width = pct + '%';
-    if (pct < 100) {
-      rafId = requestAnimationFrame(tick);
-    } else {
-      goTo((cur + 1) % SCENES.length, 1);
-    }
-  }
-  rafId = requestAnimationFrame(tick);
-}
-function stopProgress() {
-  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-}
-
-// ═══════════════════════════════════════════
-//  CONTROLS
-// ═══════════════════════════════════════════
-function toggleAuto() {
-  autoPlay = !autoPlay;
-  if (autoPlay) {
-    btnAuto.textContent = '⏸ Pause';
-    btnAuto.className = 'ctrl-btn primary';
-    startProgress();
-  } else {
-    btnAuto.textContent = '▶ Auto';
-    btnAuto.className = 'ctrl-btn paused';
-    stopProgress();
-    fillEl.style.width = '0%';
-  }
-}
-
-document.getElementById('btn-prev').addEventListener('click', () => { stopProgress(); goTo(cur-1,-1); });
-document.getElementById('btn-next').addEventListener('click', () => { stopProgress(); goTo(cur+1, 1); });
-btnAuto.addEventListener('click', toggleAuto);
+document.getElementById('btn-prev').addEventListener('click', () => goToMod(curMod-1));
+document.getElementById('btn-next').addEventListener('click', () => goToMod(curMod+1));
 
 document.addEventListener('keydown', e => {
   if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
-  if (e.code==='ArrowRight'||e.code==='Space') { e.preventDefault(); stopProgress(); goTo(cur+1,1); }
-  else if (e.code==='ArrowLeft')               { e.preventDefault(); stopProgress(); goTo(cur-1,-1); }
-  else if (e.code==='KeyP')                    { toggleAuto(); }
+  if (e.code==='ArrowRight'||e.code==='Space') { e.preventDefault(); goToMod(curMod+1); }
+  else if (e.code==='ArrowLeft')               { e.preventDefault(); goToMod(curMod-1); }
 });
+
 
 // ═══════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════
-renderScene(0);
-startProgress();
+renderMod(0);
+contentEl.classList.add('show');
 
-document.getElementById('app-frame').addEventListener('load', () => {
-  setTimeout(() => document.getElementById('app-ph').classList.add('hidden'), 300);
+document.getElementById('app-frame').addEventListener('load', function() {
+  const frame = this;
+  const ph = document.getElementById('app-ph');
+  function hidePh() { ph.classList.add('hidden'); }
+  // Poll for Flutter canvas — give 1.2s after detection for Flutter to paint
+  const poll = setInterval(() => {
+    try {
+      const doc = frame.contentDocument;
+      if (doc && doc.querySelector('canvas, flt-glass-pane')) {
+        clearInterval(poll);
+        setTimeout(hidePh, 1200);
+      }
+    } catch(e) {
+      // Cross-origin — fall through to the timeout below
+    }
+  }, 600);
+  // Fallback: hide after 40s regardless (WASM first-time compile can be slow)
+  setTimeout(() => { clearInterval(poll); hidePh(); }, 40000);
 });
 
 // ═══════════════════════════════════════════
@@ -1006,7 +988,7 @@ document.getElementById('app-frame').addEventListener('load', () => {
 
   // Clock-based BPM — same formula as Flutter MockHeartRateSimulator._nextBpm()
   function clockBpm() {
-    return Math.round(128 + 15 * Math.sin(Date.now() / 8000 * 2 * Math.PI));
+    return Math.round(128 + 15 * Math.sin(Date.now() / 20000 * 2 * Math.PI));
   }
 
   // ── PQRST waveform ──

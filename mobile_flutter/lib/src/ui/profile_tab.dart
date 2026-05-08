@@ -22,7 +22,11 @@ class ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateMi
   int _leaderboardReloadKey = 0;
 
   /// Called from MainShell when the user switches to this tab.
-  void reloadLeaderboard() => setState(() => _leaderboardReloadKey++);
+  void reloadLeaderboard() {
+    setState(() => _leaderboardReloadKey++);
+    // Refresh session user so follower/following counts stay current.
+    SessionScope.of(context).refreshUser().catchError((_) {});
+  }
 
   @override
   void initState() {

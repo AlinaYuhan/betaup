@@ -8,23 +8,23 @@
 <style>
   /* ── Root ──────────────────────────────────────────────────────────── */
   :root {
-    --rock: #222831;
-    --chalk: #fff7ee;
-    --summit: #e8500a;
-    --moss: #6da36f;
-    --sky: #8fb8d8;
-    --granite: #a7a197;
-    --accent: #b9aa91;
-    --surface: #2b3138;
-    --surface-strong: #353c44;
-    --border-subtle: #49515a;
-    --text-body: #d8d1c6;
-    --text-muted: #c3bcae;
-    --text-dim: #9f988d;
-    --surface-elevated: #313943;
-    --surface-glass: rgba(43,49,56,0.74);
-    --shadow-soft: 0 18px 44px rgba(8, 10, 13, 0.22);
-    --shadow-strong: 0 32px 64px rgba(6, 8, 11, 0.3);
+    --rock: oklch(11% 0.010 48);
+    --chalk: oklch(97% 0.014 68);
+    --summit: oklch(58% 0.188 42);
+    --moss: oklch(63% 0.108 148);
+    --sky: oklch(71% 0.072 228);
+    --granite: oklch(62% 0.020 52);
+    --accent: oklch(73% 0.040 68);
+    --surface: oklch(16% 0.012 48);
+    --surface-strong: oklch(20% 0.012 48);
+    --border-subtle: oklch(30% 0.015 48);
+    --text-body: oklch(83% 0.016 68);
+    --text-muted: oklch(76% 0.016 68);
+    --text-dim: oklch(60% 0.013 55);
+    --surface-elevated: oklch(18% 0.012 48);
+    --surface-glass: oklch(16% 0.012 48 / 0.74);
+    --shadow-soft: 0 18px 44px oklch(5% 0.020 48 / 0.38);
+    --shadow-strong: 0 32px 64px oklch(5% 0.020 48 / 0.50);
     --page-width: 1240px;
   }
 
@@ -32,8 +32,9 @@
   html { scroll-behavior: smooth; }
   body {
     background:
-      linear-gradient(180deg, rgba(232,80,10,0.08), transparent 22rem),
-      linear-gradient(180deg, #2d343c 0%, #252c34 38%, var(--rock) 100%);
+      radial-gradient(ellipse 72% 52% at 88% 0%, oklch(58% 0.188 42 / 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 38% at 10% 94%, oklch(63% 0.108 148 / 0.10) 0%, transparent 55%),
+      oklch(9% 0.008 48);
     color: var(--chalk);
     font-family: 'DM Sans', sans-serif;
     font-weight: 400;
@@ -51,19 +52,19 @@
     height: 26rem;
     border-radius: 50%;
     filter: blur(90px);
-    opacity: 0;
+    opacity: 1;
     pointer-events: none;
     z-index: -1;
   }
   body::before {
-    top: 8rem;
-    right: -8rem;
-    background: rgba(232,80,10,0.32);
+    top: 30%;
+    right: -6rem;
+    background: oklch(58% 0.188 42 / 0.22);
   }
   body::after {
-    bottom: 10rem;
-    left: -8rem;
-    background: rgba(74,124,89,0.28);
+    bottom: 8rem;
+    left: -6rem;
+    background: oklch(63% 0.108 148 / 0.18);
   }
   .text-emphasis { color: var(--chalk); font-weight: 700; }
 
@@ -71,26 +72,33 @@
   #topnav {
     position: sticky; top: 0; z-index: 200;
     display: flex; justify-content: space-between; align-items: center;
-    width: min(var(--page-width), calc(100% - 2rem));
-    margin: 1rem auto 0;
-    padding: 0.85rem 1.15rem;
-    background: rgba(34,40,49,0.82);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border-subtle);
-    border-radius: 8px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
-    transition: border-color 0.3s, transform 0.3s, background 0.3s;
+    width: 100%;
+    padding: 0.85rem 4rem;
+    background: oklch(11% 0.010 48 / 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: border-color 0.3s, background 0.3s;
   }
   #topnav.scrolled {
-    border-bottom-color: rgba(232,80,10,0.4);
-    background: rgba(34,40,49,0.92);
-    transform: translateY(0.1rem);
+    border-bottom-color: rgba(232,80,10,0.35);
+    background: oklch(11% 0.010 48 / 0.96);
   }
   .nav-logo {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.35rem;
     color: var(--summit);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .nav-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    display: block;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   }
   .nav-links { display: flex; gap: 0.55rem; align-items: center; }
   .nav-links a {
@@ -122,17 +130,17 @@
 
   /* ── Hero ──────────────────────────────────────────────────────────── */
   .hero {
-    min-height: 92vh;
+    min-height: calc(100vh - 56px);
     display: grid;
     grid-template-rows: 1fr auto;
     position: relative;
     overflow: hidden;
-    padding: 2rem 4rem 2.5rem;
+    padding: 0 4rem 1.5rem;
   }
   .hero-bg {
     position: absolute; inset: 0; z-index: 0;
     background:
-      linear-gradient(rgba(34,40,49,0.72), rgba(34,40,49,0.86)),
+      linear-gradient(rgba(8,10,12,0.48), rgba(8,10,12,0.62)),
       url('assets/photos/fieldwork-gym1.jpg') center/cover;
   }
   .hero-texture {
@@ -146,12 +154,12 @@
   .hero-center {
     position: relative; z-index: 10;
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
-    gap: 3rem;
+    grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
+    gap: 2.5rem;
     align-items: center;
     width: min(var(--page-width), 100%);
     margin: 0 auto;
-    padding: 5rem 0 2rem;
+    padding: 2.5rem 0 1rem;
   }
   .hero-copy {
     display: flex;
@@ -162,24 +170,24 @@
   }
   .hero-eyebrow {
     font-family: 'Space Mono', monospace;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     color: var(--summit); text-transform: uppercase;
-    margin-bottom: 1.3rem;
+    margin-bottom: 0.85rem;
     opacity: 0; animation: fadeUp 0.8s ease 0.2s forwards;
   }
   .hero-title {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 7.6rem;
+    font-size: clamp(4.5rem, 9vw, 7.5rem);
     line-height: 0.88;
     color: var(--chalk); margin-bottom: 0.18em;
     opacity: 0; animation: fadeUp 0.8s ease 0.4s forwards;
   }
   .hero-title span { color: var(--summit); }
   .hero-subtitle {
-    font-size: 1.28rem;
-    font-weight: 400; color: var(--sky);
-    letter-spacing: 0.04em; margin-bottom: 1.4rem;
-    max-width: 28ch;
+    font-size: 1.15rem;
+    font-weight: 400; color: var(--text-body);
+    margin-bottom: 1rem;
+    max-width: 30ch;
     opacity: 0; animation: fadeUp 0.8s ease 0.6s forwards;
   }
   .hero-tagline {
@@ -191,7 +199,7 @@
     display: flex;
     gap: 0.9rem;
     flex-wrap: wrap;
-    margin-top: 2rem;
+    margin-top: 1.25rem;
     opacity: 0;
     animation: fadeUp 0.8s ease 1s forwards;
   }
@@ -223,14 +231,14 @@
   .hero-metrics {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.9rem;
-    width: min(100%, 42rem);
-    margin-top: 2rem;
+    gap: 0.65rem;
+    width: min(100%, 38rem);
+    margin-top: 1.25rem;
     opacity: 0;
     animation: fadeUp 0.8s ease 1.15s forwards;
   }
   .hero-metric {
-    padding: 1rem 1.05rem;
+    padding: 0.75rem 1rem;
     border-radius: 8px;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.07);
@@ -239,21 +247,21 @@
   .hero-metric-value {
     display: block;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
+    font-size: 1.75rem;
     letter-spacing: 0.04em;
-    color: var(--chalk);
+    color: var(--summit);
   }
   .hero-metric-label {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
-    line-height: 1.5;
+    line-height: 1.4;
   }
   .product-preview {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(19rem, 21rem) minmax(13rem, 0.62fr);
-    gap: 1.15rem;
+    grid-template-columns: minmax(19rem, 21rem) minmax(14rem, 0.7fr);
+    gap: 2rem;
     align-items: center;
     justify-self: end;
     opacity: 0;
@@ -560,7 +568,7 @@
   }
   .preview-notes {
     display: grid;
-    gap: 0.75rem;
+    gap: 1rem;
     align-self: center;
   }
   .preview-note {
@@ -696,26 +704,150 @@
   .feature-title { font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 800; color: var(--chalk); margin-bottom: 0.55rem; }
   .feature-desc { font-size: 0.87rem; color: var(--text-muted); line-height: 1.75; }
 
-  /* ── Process Timeline ───────────────────────────────────────────────── */
-  .process-section { max-width: 1200px; margin: 0 auto; }
-  .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 3rem; position: relative; }
-  .timeline::before {
-    content: ''; position: absolute; top: 28px; left: 10%; right: 10%; height: 1px;
-    background: linear-gradient(90deg, transparent, #50545b, var(--summit), #50545b, transparent);
+  /* ── Weekly Timeline ────────────────────────────────────────────────── */
+  .process-section { max-width: 960px; margin: 0 auto; }
+  .wt-grid {
+    margin-top: 3rem;
+    display: grid;
+    grid-template-columns: 7rem 1px 1fr;
+    gap: 0;
   }
-  .timeline-step { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 1rem; }
-  .step-dot {
-    width: 56px; height: 56px; border-radius: 50%;
-    background: var(--rock); border: 2px solid #50545b;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--summit);
-    margin-bottom: 1.5rem; position: relative; z-index: 1;
-    transition: border-color 0.3s, background 0.3s;
+  .wt-row {
+    display: contents;
   }
-  .step-dot.active { border-color: var(--summit); background: rgba(232,80,10,0.1); }
-  .step-week { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--summit); text-transform: uppercase; margin-bottom: 0.5rem; }
-  .step-title { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; color: var(--chalk); margin-bottom: 0.5rem; }
-  .step-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; }
+  .wt-left {
+    padding: 0 1.5rem 2.5rem 0;
+    text-align: right;
+    position: relative;
+  }
+  .wt-week-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    color: var(--summit);
+    line-height: 1;
+  }
+  .wt-date-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 0.2rem;
+  }
+  .wt-spine {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .wt-spine-line {
+    width: 1px;
+    flex: 1;
+    background: linear-gradient(to bottom, rgba(232,80,10,0.35), rgba(232,80,10,0.08));
+    min-height: 100%;
+  }
+  .wt-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: oklch(25% 0.012 48);
+    border: 2px solid oklch(20% 0.010 48);
+    box-shadow: none;
+    flex-shrink: 0;
+    margin-top: 0.35rem;
+    transition: background 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+  }
+  .wt-dot.dim {
+    background: oklch(20% 0.010 48);
+    box-shadow: none;
+    border-color: oklch(18% 0.008 48);
+  }
+  .wt-spine-line {
+    transition: background 0.6s ease;
+  }
+  /* lit state — applied by JS on scroll */
+  .wt-spine.wt-lit .wt-dot {
+    background: var(--summit);
+    border-color: oklch(9% 0.008 48);
+    box-shadow: 0 0 14px rgba(232,80,10,0.7), 0 0 4px rgba(232,80,10,0.5);
+  }
+  .wt-spine.wt-lit .wt-spine-line {
+    background: linear-gradient(to bottom, rgba(232,80,10,0.5), rgba(232,80,10,0.08));
+  }
+  .wt-left.wt-lit .wt-week-label {
+    color: var(--summit);
+    text-shadow: 0 0 18px rgba(232,80,10,0.45);
+    transition: color 0.4s, text-shadow 0.4s;
+  }
+  .wt-right.wt-lit {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* initial hidden state for right column */
+  .wt-right.wt-anim-init {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .wt-left { transition: color 0.4s; }
+  .wt-right {
+    padding: 0 0 2.5rem 1.75rem;
+  }
+  .wt-milestone-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--summit);
+    background: rgba(232,80,10,0.1);
+    border: 1px solid rgba(232,80,10,0.3);
+    border-radius: 3px;
+    padding: 0.2rem 0.55rem;
+    margin-bottom: 0.5rem;
+  }
+  .wt-milestone-badge.upcoming {
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
+  }
+  .wt-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    color: var(--chalk);
+    margin-bottom: 0.6rem;
+    line-height: 1.1;
+  }
+  .wt-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .wt-tag {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    background: oklch(16% 0.010 48);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 4px;
+    padding: 0.2rem 0.55rem;
+  }
+  .wt-tag.highlight {
+    color: var(--chalk);
+    background: rgba(232,80,10,0.1);
+    border-color: rgba(232,80,10,0.25);
+  }
+  .wt-tag.tool {
+    color: oklch(63% 0.108 148);
+    background: rgba(109,163,111,0.08);
+    border-color: rgba(109,163,111,0.2);
+  }
+  @media (max-width: 700px) {
+    .wt-grid { grid-template-columns: 4.5rem 1px 1fr; }
+    .wt-week-label { font-size: 1.1rem; }
+  }
 
   /* ── Team Section ───────────────────────────────────────────────────── */
   .team-section { max-width: 1200px; margin: 0 auto; }
@@ -1019,20 +1151,47 @@
 
   /* ── SUS / Evaluation ───────────────────────────────────────────────── */
   .sus-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1.5rem; }
-  .sus-card { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 2rem; text-align: center; transition: border-color 0.3s; }
-  .sus-card:hover { border-color: #3a3a3a; }
+  .sus-card { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.75rem 1.5rem; text-align: center; transition: border-color 0.3s; }
+  .sus-card:hover { border-color: rgba(232,80,10,0.3); }
   .sus-score { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--summit); line-height: 1; }
-  .sus-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.5rem; display: block; }
+  .sus-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 0.6rem; display: block; }
+  .sus-participant-detail { margin-top: 0.5rem; }
+  .sus-participant-detail span { display: block; font-size: 0.76rem; color: var(--text-muted); line-height: 1.6; }
   .sus-participant { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--text-muted); margin-top: 0.3rem; }
-  .sus-placeholder { font-size: 2.5rem; opacity: 0.2; }
-  .evaluation-note { font-size: 0.85rem; color: #888; line-height: 1.7; margin-bottom: 1.5rem; max-width: 680px; }
-  .findings-box { background: #262c33; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 2rem; margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-  .findings-col h4 { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #242424; }
+  /* Average bar */
+  .sus-average-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(232,80,10,0.07); border: 1px solid rgba(232,80,10,0.2);
+    border-radius: 8px; padding: 1.1rem 1.75rem; margin-top: 0.75rem;
+  }
+  .sus-avg-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--summit); display: block; margin-bottom: 0.2rem; }
+  .sus-avg-note { font-size: 0.78rem; color: var(--text-muted); }
+  .sus-avg-score { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--summit); line-height: 1; }
+  /* Quantitative table */
+  .quant-table-wrap { margin-top: 1.25rem; overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-subtle); }
+  .quant-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .quant-table thead tr { background: oklch(17% 0.010 48); }
+  .quant-table th { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); padding: 0.85rem 1.25rem; text-align: left; font-weight: 400; border-bottom: 1px solid var(--border-subtle); }
+  .quant-table td { padding: 0.85rem 1.25rem; color: var(--text-body); border-bottom: 1px solid oklch(18% 0.008 48); vertical-align: middle; }
+  .quant-table tbody tr:last-child td { border-bottom: none; }
+  .quant-table tbody tr:hover td { background: oklch(16% 0.010 48); }
+  .quant-rate { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; letter-spacing: 0.04em; }
+  .quant-rate.full { color: oklch(63% 0.108 148); }
+  .quant-rate.partial { color: var(--summit); }
+  .quant-error { font-family: 'Space Mono', monospace; font-size: 0.8rem; padding: 0.15rem 0.5rem; border-radius: 3px; }
+  .quant-error.none { color: oklch(63% 0.108 148); background: rgba(109,163,111,0.1); }
+  .quant-error.low { color: oklch(75% 0.12 80); background: rgba(200,150,50,0.1); }
+  .quant-error.high { color: var(--summit); background: rgba(232,80,10,0.1); }
+  .evaluation-note { font-size: 0.85rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 1.5rem; max-width: 720px; }
+  .findings-box { background: oklch(14% 0.010 48); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 2rem; margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+  .findings-col h4 { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle); }
   .findings-col.issues h4 { color: var(--summit); }
   .findings-col.positives h4 { color: var(--moss); }
   .findings-col ul { padding-left: 0; list-style: none; }
-  .findings-col ul li { font-size: 0.82rem; color: var(--text-body); line-height: 1.7; padding: 0.4rem 0; border-bottom: 1px solid #22262b; }
+  .findings-col ul li { font-size: 0.82rem; color: var(--text-body); line-height: 1.75; padding: 0.5rem 0; border-bottom: 1px solid oklch(18% 0.008 48); }
   .findings-col ul li:last-child { border-bottom: none; }
+  .findings-col.issues ul li::before { content: '△ '; color: var(--summit); font-size: 0.7rem; }
+  .findings-col.positives ul li::before { content: '✓ '; color: var(--moss); }
   .findings-col.issues ul li::before { content: '△ '; color: var(--summit); font-size: 0.7rem; }
   .findings-col.positives ul li::before { content: '✓ '; color: var(--moss); font-size: 0.7rem; }
   .ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; }
@@ -1081,7 +1240,11 @@
 
   /* ── AI Reflection ──────────────────────────────────────────────────── */
   .reflection-content { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem; }
-  .ai-tool-block { background: #262c33; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 2rem; }
+  .ai-tool-block { background: oklch(14% 0.010 48); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 2rem; }
+  .tools-pill-grid { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem; }
+  .tool-pill { display: flex; align-items: baseline; gap: 1rem; padding: 0.65rem 1rem; background: oklch(17% 0.010 48); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); }
+  .tool-pill-name { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--chalk); white-space: nowrap; min-width: 9rem; }
+  .tool-pill-use { font-size: 0.8rem; color: var(--text-muted); }
   .ai-tool-block,
   .ethics-block,
   .ref-list,
@@ -1412,8 +1575,8 @@
   /* ── Responsive ─────────────────────────────────────────────────────── */
   @media (max-width: 900px) {
     #topnav {
-      width: calc(100% - 1rem);
-      padding: 0.9rem 1rem;
+      width: 100%;
+      padding: 0.9rem 1.25rem;
       flex-wrap: wrap;
       gap: 0.85rem;
     }
@@ -1498,7 +1661,10 @@
 
 <!-- ═══ STICKY NAV ══════════════════════════════════════════════════════ -->
 <nav id="topnav">
-  <div class="nav-logo">BETAUP</div>
+  <div class="nav-logo">
+    <img src="assets/photos/icon.png" alt="" class="nav-icon">
+    BETAUP
+  </div>
   <div class="nav-links">
     <a href="#about">About</a>
     <a href="#motivation">Research</a>
@@ -1551,70 +1717,7 @@
     <div class="product-preview" aria-label="BetaUp app preview">
       <div class="phone-mockup">
         <div class="phone-screen">
-          <div class="train-nav">
-            <span class="active">Train</span>
-            <span>Progress</span>
-            <span>Badges</span>
-          </div>
-          <div class="train-hero">
-            <div class="train-level">
-              <span class="train-kicker">Best this month</span>
-              <span class="train-grade">V11</span>
-              <span class="train-sub">8 sessions this month</span>
-            </div>
-            <div class="train-location">⌖ Nearest: 考拉攀岩(狮山店) · 37.7km</div>
-            <div class="train-side-stats">
-              <div class="stat-flash">
-                <strong>1</strong>
-                <span>Flash</span>
-              </div>
-              <div class="stat-send">
-                <strong>5</strong>
-                <span>Send</span>
-              </div>
-            </div>
-            <div class="climb-button">
-              <span class="climb-icon">▲</span>
-              <span class="climb-key">G</span>
-              <strong>CLIMB</strong>
-            </div>
-          </div>
-
-          <div class="recent-sessions">
-            <div class="recent-header">
-              <strong>Recent Sessions</strong>
-              <span>10×</span>
-            </div>
-            <div class="session-list">
-              <div class="session-card">
-                <strong>考拉攀岩(狮山店)</strong>
-                <span class="session-meta">MAY 5 · 19:59 · 16秒 · 1 logs</span>
-                <div class="session-tags">
-                  <span>Flash 0</span>
-                  <span class="send">Send 1</span>
-                  <span>Attempt 0</span>
-                </div>
-                <span class="session-grade">V4</span>
-              </div>
-              <div class="session-card muted">
-                <strong>考拉攀岩(狮山店)</strong>
-                <span class="session-meta">MAY 5 · 15:59 · 13秒 · 0 logs</span>
-                <div class="session-tags">
-                  <span>Flash 0</span>
-                  <span>Send 0</span>
-                  <span>Attempt 0</span>
-                </div>
-              </div>
-            </div>
-            <div class="panda-assistant">🐼</div>
-          </div>
-          <div class="train-tabbar">
-            <span data-icon="◉">Explore</span>
-            <span class="active" data-icon="⚒">Train</span>
-            <span data-icon="♚">Community</span>
-            <span data-icon="⌂">Alerts</span>
-            <span data-icon="♙">Profile</span>
-          </div>
+          <img src="assets/photos/screenshot-train.png" alt="BetaUp Train tab screenshot" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;">
         </div>
       </div>
       <div class="preview-notes">
@@ -1712,45 +1815,6 @@
     </div>
   </div>
 </section>
-
-<hr class="divider">
-
-<!-- ═══ PROCESS TIMELINE ════════════════════════════════════════════════ -->
-<section id="process">
-  <div class="process-section reveal">
-    <div class="section-label">Design Process</div>
-    <h2 class="section-title">Project Milestones</h2>
-
-    <div class="timeline">
-      <div class="timeline-step">
-        <div class="step-dot active">W1</div>
-        <div class="step-week">Week 1–3</div>
-        <div class="step-title">Foundation</div>
-        <div class="step-desc">Group formation, topic selection, initial brainstorming, competitive analysis, and portfolio site setup.</div>
-      </div>
-      <div class="timeline-step">
-        <div class="step-dot active">W4</div>
-        <div class="step-week">Week 4–6</div>
-        <div class="step-title">Research &amp; Design</div>
-        <div class="step-desc">User research, personas, journey maps, academic literature review, Crazy Eights ideation, and low-fi Figma prototypes.</div>
-      </div>
-      <div class="timeline-step">
-        <div class="step-dot active">W8</div>
-        <div class="step-week">Week 8</div>
-        <div class="step-title">Poster &amp; Alpha</div>
-        <div class="step-desc">Poster presentation completed. Functional Spring Boot + Flutter system with 8+ features including AI voice assistant.</div>
-      </div>
-      <div class="timeline-step">
-        <div class="step-dot">W10</div>
-        <div class="step-week">Week 10</div>
-        <div class="step-title">Final Submission</div>
-        <div class="step-desc">Live deployed app, 2-min demo video, complete portfolio with usability testing and iterative feedback logs.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
 
 <!-- ═══ MOTIVATION & RESEARCH ═══════════════════════════════════════════ -->
 <section id="motivation">
@@ -2024,7 +2088,7 @@
         </p>
       </div>
       <div class="journey-image">
-        <img src="assets/photos/journey-map-alex.png" alt="Alex Chen User Journey Map">
+        <img src="assets/photos/journey-map-alex.png?v=20260508" alt="Alex Chen User Journey Map">
       </div>
     </div>
 
@@ -2036,7 +2100,7 @@
         </p>
       </div>
       <div class="journey-image">
-        <img src="assets/photos/journey-map-coach.png" alt="Coach Li Wei User Journey Map">
+        <img src="assets/photos/journey-map-coach.png?v=20260508" alt="Coach Li Wei User Journey Map">
       </div>
     </div>
 
@@ -2077,7 +2141,7 @@
 
     <!-- Questionnaire key stats -->
     <div class="survey-callout">
-      <div class="journey-kicker">Questionnaire · 12 Valid Responses · Suzhou Climbing Community</div>
+      <div class="journey-kicker">Questionnaire · 96 Valid Responses · Suzhou Climbing Community</div>
       <ul>
         <li><strong class="text-emphasis">75%</strong> of participants train indoors regularly (bouldering)</li>
         <li>Top desired features: <strong class="text-emphasis">track climbs &amp; progress charts (75%)</strong>, gym map &amp; check-in (66.67%), gym info &amp; booking (66.67%)</li>
@@ -2337,7 +2401,7 @@
       <div class="live-url-text">
         <h4>Deployed BetaUp Application</h4>
         <p>The full-stack system (Spring Boot API + Flutter web build) deployed to a public URL for live demonstration and usability testing.</p>
-        <div class="live-url-badge">[PLACEHOLDER — deploy to Railway (backend) + Vercel (Flutter web) · update this URL before Week 10 submission]</div>
+        <a class="live-url-badge" href="https://web-liart-sigma-79.vercel.app/" target="_blank" style="color:var(--summit);text-decoration:none;">↗ web-liart-sigma-79.vercel.app</a>
       </div>
     </div>
 
@@ -2435,56 +2499,146 @@
   <div class="content-section reveal">
     <div class="section-label">05 — Evaluation &amp; Reflection</div>
     <h2 class="section-title">Testing with<br>Real Users</h2>
-    <p class="section-intro">System Usability Scale scores, qualitative findings, and iterative improvements driven by user feedback.</p>
+    <p class="section-intro">System Usability Scale scores, task performance data, qualitative findings, and iterative improvements driven by user feedback.</p>
 
-    <!-- SUS Scores -->
-    <div class="subsection-label">Usability Testing — SUS Results</div>
+    <!-- Methodology -->
+    <div class="subsection-label">Usability Testing — Methodology</div>
     <p class="evaluation-note">
-      Three participants tested the Alpha version on Chrome in a think-aloud session (~15 min each). Tasks included: creating an account, logging a climb, viewing badges, posting to community, and using the voice assistant.
+      Three participants completed a think-aloud usability session testing the live BetaUp prototype. Each session lasted approximately 15 minutes. Participants were observed performing four representative tasks: using the AI Voice Training Log, exploring the Progress Dashboard, interacting with the Badge Reward System, and posting in the Community Module. A 10-question System Usability Scale (SUS) questionnaire was administered after each session. Informed consent was obtained from all participants prior to data collection.
     </p>
-    <div class="sus-grid">
+
+    <!-- Participants + SUS -->
+    <div class="sus-grid" style="grid-template-columns: repeat(3,1fr); margin-bottom: 0;">
       <div class="sus-card">
-        <div class="sus-placeholder">👤</div>
-        <div class="sus-score">—</div>
-        <span class="sus-label">Participant 01</span>
-        <div class="sus-participant">[Name/initials to fill]</div>
+        <div class="sus-score" style="font-size:2.6rem;">60.5</div>
+        <span class="sus-label">PARTICIPANT 01</span>
+        <div class="sus-participant-detail">
+          <span>Climber (Primary User) · Age 21</span>
+          <span>Level V3–V4 · iPhone 14</span>
+        </div>
       </div>
       <div class="sus-card">
-        <div class="sus-placeholder">👤</div>
-        <div class="sus-score">—</div>
-        <span class="sus-label">Participant 02</span>
-        <div class="sus-participant">[Name/initials to fill]</div>
+        <div class="sus-score" style="font-size:2.6rem;">77.5</div>
+        <span class="sus-label">PARTICIPANT 02</span>
+        <div class="sus-participant-detail">
+          <span>Climber (Primary User) · Age 19</span>
+          <span>Level V1–V2 · Huawei Mate 60</span>
+        </div>
       </div>
       <div class="sus-card">
-        <div class="sus-placeholder">👤</div>
-        <div class="sus-score">—</div>
-        <span class="sus-label">Average SUS</span>
-        <div class="sus-participant">Target: &gt;68 = above average</div>
+        <div class="sus-score" style="font-size:2.6rem;">63.0</div>
+        <span class="sus-label">PARTICIPANT 03</span>
+        <div class="sus-participant-detail">
+          <span>Coach (Secondary User) · Age 22</span>
+          <span>Certified Coach · iPhone 15</span>
+        </div>
       </div>
+    </div>
+    <!-- Average SUS banner -->
+    <div class="sus-average-bar">
+      <div class="sus-avg-left">
+        <span class="sus-avg-label">Average SUS Score</span>
+        <span class="sus-avg-note">Approaching the threshold for "Above Average" usability (≥68)</span>
+      </div>
+      <div class="sus-avg-score">67.0</div>
+    </div>
+
+    <!-- Test Tasks -->
+    <div class="subsection-label" style="margin-top:3rem;">Test Tasks &amp; Success Criteria</div>
+    <div class="quant-table-wrap">
+      <table class="quant-table">
+        <thead>
+          <tr>
+            <th>Core Function</th>
+            <th>Test Task</th>
+            <th>Success Criteria</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="white-space:nowrap;color:var(--chalk);">AI Voice Training Log</td>
+            <td>Use voice assistant to record a climbing training session</td>
+            <td>Complete voice input within 1 minute and generate accurate training log</td>
+          </tr>
+          <tr>
+            <td style="white-space:nowrap;color:var(--chalk);">Progress Dashboard</td>
+            <td>Analyse climbing data and identify weak points</td>
+            <td>Find corresponding data within 30 seconds</td>
+          </tr>
+          <tr>
+            <td style="white-space:nowrap;color:var(--chalk);">Badge Reward System</td>
+            <td>Unlock and share the "First Check-in" badge</td>
+            <td>Complete viewing, unlocking and sharing within 2 minutes</td>
+          </tr>
+          <tr>
+            <td style="white-space:nowrap;color:var(--chalk);">Community Module</td>
+            <td>Browse community posts and find climbing partners</td>
+            <td>Find a suitable climbing partner within 5 minutes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Quantitative Test Results -->
+    <div class="subsection-label" style="margin-top:3rem;">Quantitative Test Results</div>
+    <div class="quant-table-wrap">
+      <table class="quant-table">
+        <thead>
+          <tr>
+            <th>Test Task</th>
+            <th>Completion Rate</th>
+            <th>Avg Completion Time</th>
+            <th>Avg Error Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>AI Voice Training Log</td>
+            <td><span class="quant-rate partial">66.7%</span></td>
+            <td>85s</td>
+            <td><span class="quant-error high">1.3</span></td>
+          </tr>
+          <tr>
+            <td>Progress Visualization Dashboard</td>
+            <td><span class="quant-rate full">100%</span></td>
+            <td>22s</td>
+            <td><span class="quant-error none">0</span></td>
+          </tr>
+          <tr>
+            <td>Badge Reward System</td>
+            <td><span class="quant-rate full">100%</span></td>
+            <td>75s</td>
+            <td><span class="quant-error low">0.7</span></td>
+          </tr>
+          <tr>
+            <td>Community Module</td>
+            <td><span class="quant-rate full">100%</span></td>
+            <td>242s</td>
+            <td><span class="quant-error none">0</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Findings -->
+    <div class="subsection-label" style="margin-top:3rem;">Key Findings</div>
     <div class="findings-box">
       <div class="findings-col issues">
-        <h4>Issues Found</h4>
+        <h4>Issues Identified</h4>
         <ul>
-          <li>[Issue 1 — e.g. "Could not find voice assistant button immediately"]</li>
-          <li>[Issue 2 — e.g. "Badge unlock animation was too brief to notice"]</li>
-          <li>[Issue 3 — e.g. "Session end button placement was unclear"]</li>
+          <li>AI Voice Training Log had the lowest completion rate (66.7%) and highest error count (1.3 avg) — users needed clearer interaction guidance to activate and use the voice feature</li>
+          <li>Community Module required the longest completion time (242s) — navigation flow between post creation and feed browsing was not immediately intuitive</li>
+          <li>Badge Reward System recorded 0.7 average errors — the unlock trigger was not always discoverable without prior context</li>
         </ul>
       </div>
       <div class="findings-col positives">
         <h4>Positive Feedback</h4>
         <ul>
-          <li>[Quote 1 — e.g. "The panda is adorable — I immediately wanted to try it" — P1]</li>
-          <li>[Quote 2 — e.g. "Stats updating live while logging was really satisfying" — P2]</li>
-          <li>[Quote 3 — e.g. "Badge unlock felt genuinely rewarding" — P3]</li>
+          <li>Participants generally found core functions understandable and easy to learn across all four task areas</li>
+          <li>Progress Visualization Dashboard received the clearest positive feedback — 100% completion in just 22 seconds with zero errors</li>
+          <li>The AI Voice Training Log was considered genuinely useful despite the interaction friction — participants expressed interest in the concept and wanted to use it more</li>
         </ul>
       </div>
-    </div>
-    <div class="placeholder-note">
-      <strong>[PLACEHOLDER — Yang Mengxi to fill]</strong><br>
-      Run SUS test with 3 participants using the live app. Collect 10-question SUS questionnaire. Record think-aloud session notes. Fill in scores and quotes above.
     </div>
 
     <!-- Before / After -->
@@ -2495,11 +2649,11 @@
         <div class="ba-screens">
           <div class="ba-slot">
             <div class="ba-marker before-marker">BEFORE</div>
-            <img class="ba-contain" src="assets/photos/button_before.png?v=20260506-button-before" alt="Voice button before redesign">
+            <img class="ba-contain" src="assets/photos/button_before.png?v=20260508b" alt="Voice button before redesign">
           </div>
           <div class="ba-slot">
             <div class="ba-marker after-marker">AFTER</div>
-            <img class="ba-contain" src="assets/photos/button_after.png?v=20260506-button-after" alt="Voice button after redesign">
+            <img class="ba-contain" src="assets/photos/button_after.png?v=20260508b" alt="Voice button after redesign">
           </div>
         </div>
       </div>
@@ -2529,42 +2683,95 @@
 <!-- ═══ AI TECHNICAL REFLECTION ══════════════════════════════════════════ -->
 <section id="reflection">
   <div class="content-section reveal">
-    <div class="section-label">06 — Technical Reflection</div>
+    <div class="section-label">06 — AI &amp; Technical Reflection</div>
     <h2 class="section-title">AI-Assisted<br>Development</h2>
-    <p class="section-intro">How we used large language model tools, what we generated, how we verified it, and the ethical considerations.</p>
+    <p class="section-intro">Our Vibe Coding process, the tools we used, and an honest account of what worked and what fell short.</p>
 
     <div class="reflection-content">
 
-      <!-- Claude Code -->
+      <!-- Vibe Coding Process -->
       <div class="ai-tool-block">
         <div class="ai-tool-header">
-          <div class="ai-tool-badge">AI TOOL [1]</div>
+          <div class="ai-tool-badge">PROCESS</div>
           <div>
-            <div class="ai-tool-name">Claude Code — Anthropic</div>
-            <span class="ai-tool-url">claude.ai · accessed April 2026</span>
+            <div class="ai-tool-name">Our Vibe Coding Approach</div>
           </div>
         </div>
         <div class="ai-tool-body">
-          <p><strong>Used for:</strong> Spring Boot API scaffolding (controller, service, repository layers), Flutter screen component generation, JWT authentication boilerplate, database schema design, DeepSeek system prompt engineering, and the voice assistant pipeline — including the <code>VoiceService</code> state machine, <code>DeepSeekClient</code> HTTP wrapper, and the custom <code>CustomPainter</code> panda widget.</p>
-          <div class="verify">
-            Verification approach: Every generated backend endpoint was manually tested via browser or Postman before integration into the Flutter client. Flutter screens were hot-reloaded and exercised on Chrome. Voice assistant state machine edge cases (simultaneous TTS + STT, network failure during DeepSeek call, empty transcripts) were tested by simulating each failure mode.
+          <p>BetaUp was built with AI-assisted development as a first-class workflow throughout the entire project — from requirement gathering to final polish. Rather than using AI as a passive code generator, we operated as experienced Vibe Coders: deliberately designing prompts with precise context (role, constraints, expected output format), invoking specialised skills for specific tasks, and dispatching parallel agents for independent workstreams.</p>
+          <p style="margin-top:0.85rem;">At the ideation stage, a <code>brainstorming</code> skill was used to explore feature directions before committing to requirements. During frontend development, the <code>impeccable</code> skill drove design decisions — colour strategy, typography hierarchy, component layout — while a <code>frontend-design</code> skill handled component-level implementation. After completing major features, a <code>requesting-code-review</code> skill was used to catch issues before moving forward. Independent tasks — backend endpoint development, Flutter screen implementation, portfolio redesign — were dispatched to parallel agents simultaneously, with agents also used cross-functionally to review each other's output. This multi-agent, skill-augmented workflow meant the team could move faster without sacrificing quality or coherence.</p>
+        </div>
+      </div>
+
+      <!-- Tools Overview -->
+      <div class="ai-tool-block">
+        <div class="ai-tool-header">
+          <div class="ai-tool-badge">TOOLS</div>
+          <div>
+            <div class="ai-tool-name">Tools Overview</div>
+          </div>
+        </div>
+        <div class="ai-tool-body">
+          <div class="tools-pill-grid">
+            <div class="tool-pill">
+              <span class="tool-pill-name">Claude Code</span>
+              <span class="tool-pill-use">Full-stack development · Prompt engineering · Skills execution</span>
+            </div>
+            <div class="tool-pill">
+              <span class="tool-pill-name">DeepSeek API</span>
+              <span class="tool-pill-use">Voice assistant NLP engine · Command parsing</span>
+            </div>
+            <div class="tool-pill">
+              <span class="tool-pill-name">ChatGPT (GPT-4)</span>
+              <span class="tool-pill-use">Content drafting · Early brainstorming</span>
+            </div>
+            <div class="tool-pill">
+              <span class="tool-pill-name">豆包 (Doubao)</span>
+              <span class="tool-pill-use">Demo video generation</span>
+            </div>
+            <div class="tool-pill">
+              <span class="tool-pill-name">可灵 (Kling)</span>
+              <span class="tool-pill-use">Video generation · Demo editing</span>
+            </div>
+            <div class="tool-pill">
+              <span class="tool-pill-name">Antigravity</span>
+              <span class="tool-pill-use">UI micro-optimisations · Portfolio layout refinements</span>
+            </div>
+            <div class="tool-pill">
+              <span class="tool-pill-name">Codex (codex-cli)</span>
+              <span class="tool-pill-use">Automated code review · Pre-merge quality checks</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- DeepSeek -->
+      <!-- What worked / didn't -->
       <div class="ai-tool-block">
         <div class="ai-tool-header">
-          <div class="ai-tool-badge">AI TOOL [2]</div>
+          <div class="ai-tool-badge">REFLECTION</div>
           <div>
-            <div class="ai-tool-name">DeepSeek Chat API — DeepSeek</div>
-            <span class="ai-tool-url">api.deepseek.com · accessed April 2026</span>
+            <div class="ai-tool-name">What Worked — and What Didn't</div>
           </div>
         </div>
         <div class="ai-tool-body">
-          <p><strong>Used as:</strong> The NLP engine inside the voice assistant, parsing natural-language Chinese climbing commands into structured JSON actions — <code>LOG_CLIMB</code>, <code>START_SESSION</code>, <code>END_SESSION</code>, and <code>QUERY_STATS</code> — with typed parameters (grade, venue, result, attempts, notes).</p>
-          <div class="verify">
-            Verification approach: The system prompt was iterated 5+ times to improve robustness. Edge cases explicitly tested: partial commands ("log V5"), ambiguous grades ("blue route"), requests outside app scope ("book a gym slot"), multi-turn context (asking about a session that was just started), and Chinese/English mixed input.
+          <div class="findings-box" style="margin-top:0;">
+            <div class="findings-col positives">
+              <h4>Effective</h4>
+              <ul>
+                <li><strong>Claude Code + skills ecosystem</strong> was highly effective across the full stack. Spring Boot endpoint scaffolding, Flutter widget generation, and JWT auth boilerplate were all reliable enough to integrate with minimal rework — largely because prompts were designed with precise context from the start.</li>
+                <li><strong>DeepSeek</strong> performed reliably as the voice assistant NLP engine for Chinese climbing commands. After 5+ prompt iterations, structured JSON output (LOG_CLIMB, START_SESSION, QUERY_STATS) was stable and predictable.</li>
+                <li><strong>Parallel multi-agent execution</strong> meaningfully compressed development time — backend and frontend workstreams ran concurrently without blocking each other.</li>
+                <li><strong>Codex</strong> provided reliable automated code review before key merges, catching edge cases that manual review missed. <strong>Antigravity</strong> was useful for targeted UI micro-optimisations on the portfolio page.</li>
+              </ul>
+            </div>
+            <div class="findings-col issues">
+              <h4>Fell Short</h4>
+              <ul>
+                <li><strong>豆包 / 可灵</strong> generated video clips with physically unrealistic climbing movements — AI models lack domain understanding of climbing biomechanics. The footage required heavy manual editing and was ultimately used only as background material rather than primary demonstration content.</li>
+                <li><strong>DeepSeek</strong> showed noticeably weaker performance on English commands, reflecting its training data distribution. This is a documented limitation: non-Chinese speakers may find the voice assistant less reliable.</li>
+                <li><strong>ChatGPT</strong> was less precise than Claude Code for specific coding tasks and required more correction rounds — better suited to content and ideation than implementation.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -2575,19 +2782,19 @@
         <div class="ethics-grid">
           <div class="ethics-item">
             <h4>Accessibility</h4>
-            <p>All AI-generated UI components were checked for contrast ratios (minimum 4.5:1 for body text). The voice assistant is a supplementary input method — every voice action is also reachable via touch UI, so the app remains fully usable for users in noisy environments or with speech difficulties.</p>
+            <p>All AI-generated UI components were checked for contrast ratios (minimum 4.5:1 for body text). The voice assistant is a supplementary input method — every voice action is also reachable via touch UI.</p>
           </div>
           <div class="ethics-item">
             <h4>Language Bias</h4>
-            <p>The DeepSeek NLP model performs better on Chinese commands due to its training data distribution. We document this limitation clearly: non-Chinese speakers may experience lower voice recognition accuracy. A future iteration would support English commands equally.</p>
+            <p>The DeepSeek NLP model performs better on Chinese commands due to training data distribution. Non-Chinese speakers may experience lower voice recognition accuracy — documented as a known limitation.</p>
           </div>
           <div class="ethics-item">
             <h4>Data Privacy</h4>
-            <p>No voice audio is stored by BetaUp. Transcribed text is sent to DeepSeek's API for NLP processing; users are informed of this via the microphone permissions dialogue before first use. All session and climb data is stored only in our local H2 database instance.</p>
+            <p>No voice audio is stored. Transcribed text is sent to DeepSeek's API for processing; users are informed via the microphone permissions dialogue before first use. Session data is stored only in our local H2 database.</p>
           </div>
           <div class="ethics-item">
             <h4>Code Ownership</h4>
-            <p>AI-generated code was reviewed, understood, and in many cases refactored by the lead developer before integration. We do not submit AI output as-is. The developer is responsible for correctness, security (JWT, SQL safety), and alignment with user requirements.</p>
+            <p>AI-generated code was reviewed, understood, and refactored where needed before integration. The developer remains responsible for correctness, security (JWT, SQL safety), and alignment with user requirements.</p>
           </div>
         </div>
       </div>
@@ -2596,12 +2803,17 @@
       <div class="ref-list">
         <h3>References</h3>
         <ol>
-          <li><strong>[1]</strong> Claude Code, Anthropic, claude.ai, accessed April 2026. Used for backend API development, Flutter UI scaffolding, and AI voice assistant pipeline.</li>
-          <li><strong>[2]</strong> DeepSeek Chat, DeepSeek, api.deepseek.com, accessed April 2026. Used as NLP engine for AI voice assistant natural language understanding.</li>
-          <li><strong>[3]</strong> Hamari, J., Koivisto, J., &amp; Sarsa, H. (2014). Does Gamification Work? A Literature Review of Empirical Studies on Gamification. <em>HICSS</em>. DOI: 10.1109/HICSS.2014.377</li>
-          <li><strong>[4]</strong> Deterding, S., Dixon, D., Khaled, R., &amp; Nacke, L. (2011). From Game Design Elements to Gamefulness: Defining "Gamification". <em>MindTrek</em>. DOI: 10.1145/2181037.2181040</li>
-          <li><strong>[5]</strong> Consolvo, S., McDonald, D. W., &amp; Landay, J. A. (2009). Theory-driven Design Strategies for Technologies that Support Behaviour Change. <em>CHI</em>. DOI: 10.1145/1518701.1518766</li>
-          <li><strong>[6]</strong> Rooksby, J., Rost, M., Morrison, A., &amp; Chalmers, M. (2014). Personal Tracking as Lived Informatics. <em>CHI</em>. DOI: 10.1145/2556288.2557039</li>
+          <li><strong>[1]</strong> Claude Code, Anthropic, claude.ai, accessed April 2026. Full-stack development, skills-based workflow, multi-agent execution.</li>
+          <li><strong>[2]</strong> DeepSeek Chat API, DeepSeek, api.deepseek.com, accessed April 2026. NLP engine for AI voice assistant.</li>
+          <li><strong>[3]</strong> ChatGPT (GPT-4), OpenAI, openai.com, accessed 2026. Content drafting and ideation support.</li>
+          <li><strong>[4]</strong> 豆包 (Doubao), ByteDance, accessed May 2026. Demo video generation.</li>
+          <li><strong>[5]</strong> 可灵 (Kling), Kuaishou, accessed May 2026. Video generation and editing for demo footage.</li>
+          <li><strong>[6]</strong> Antigravity, accessed May 2026. UI optimisation and portfolio layout refinements.</li>
+          <li><strong>[7]</strong> Codex (codex-cli), OpenAI, accessed May 2026. Automated code review and pre-merge quality checks.</li>
+          <li><strong>[8]</strong> Hamari, J., Koivisto, J., &amp; Sarsa, H. (2014). Does Gamification Work? <em>HICSS</em>. DOI: 10.1109/HICSS.2014.377</li>
+          <li><strong>[9]</strong> Deterding, S. et al. (2011). From Game Design Elements to Gamefulness. <em>MindTrek</em>. DOI: 10.1145/2181037.2181040</li>
+          <li><strong>[10]</strong> Consolvo, S. et al. (2009). Theory-driven Design Strategies. <em>CHI</em>. DOI: 10.1145/1518701.1518766</li>
+          <li><strong>[11]</strong> Rooksby, J. et al. (2014). Personal Tracking as Lived Informatics. <em>CHI</em>. DOI: 10.1145/2556288.2557039</li>
         </ol>
       </div>
 
@@ -2656,6 +2868,180 @@
 
 <hr class="divider">
 
+<!-- ═══ PROCESS TIMELINE ════════════════════════════════════════════════ -->
+<section id="process">
+  <div class="process-section reveal">
+    <div class="section-label">Design Process</div>
+    <h2 class="section-title">Weekly Timeline</h2>
+    <p class="section-intro" style="max-width:60ch;">Ten weeks from blank page to deployed product — every sprint, research session, and iteration documented.</p>
+
+    <div class="wt-grid">
+
+      <!-- W2 -->
+      <div class="wt-left"><div class="wt-week-label">W2</div><div class="wt-date-label">Feb 2026</div></div>
+      <div class="wt-spine"><div class="wt-dot"></div><div class="wt-spine-line"></div></div>
+      <div class="wt-right">
+        <div class="wt-milestone-badge">★ Milestone — Group &amp; Topic Lock</div>
+        <div class="wt-title">Team Formed &amp; Topic Confirmed: BetaUp</div>
+        <div class="wt-tags">
+          <span class="wt-tag highlight">Group C2-6 assembled</span>
+          <span class="wt-tag highlight">Topic registered on Learning Mall</span>
+          <span class="wt-tag">Problem space defined: fragmented climbing ecosystem</span>
+          <span class="wt-tag">Team roles assigned</span>
+          <span class="wt-tag tool">GitHub repo created</span>
+          <span class="wt-tag tool">Notion workspace set up</span>
+          <span class="wt-tag tool">Portfolio site initialized (GitHub Pages)</span>
+          <span class="wt-tag">Initial feature scope drafted</span>
+        </div>
+      </div>
+
+      <!-- W3 -->
+      <div class="wt-left"><div class="wt-week-label">W3</div><div class="wt-date-label">Mar 2026</div></div>
+      <div class="wt-spine"><div class="wt-dot"></div><div class="wt-spine-line"></div></div>
+      <div class="wt-right">
+        <div class="wt-milestone-badge">Research</div>
+        <div class="wt-title">Market Research, Competitive Analysis &amp; Literature Review</div>
+        <div class="wt-tags">
+          <span class="wt-tag highlight">Full market survey: climbing apps, fitness trackers, social sports platforms</span>
+          <span class="wt-tag highlight">In-depth competitive analysis: 27crags · Crimpd · Strava · TopLogger + others</span>
+          <span class="wt-tag">Comprehensive requirements &amp; market analysis document produced</span>
+          <span class="wt-tag">5+ academic papers reviewed (Hamari 2014, Deterding 2011…)</span>
+          <span class="wt-tag">Strengths &amp; gaps matrix drafted</span>
+          <span class="wt-tag">Survey questionnaire designed</span>
+          <span class="wt-tag">User interview guide written</span>
+          <span class="wt-tag tool">Figma workspace created</span>
+        </div>
+      </div>
+
+      <!-- W4 -->
+      <div class="wt-left"><div class="wt-week-label">W4</div><div class="wt-date-label">Mar 2026</div></div>
+      <div class="wt-spine"><div class="wt-dot"></div><div class="wt-spine-line"></div></div>
+      <div class="wt-right">
+        <div class="wt-milestone-badge">★ Milestone — User Research Conducted</div>
+        <div class="wt-title">Surveys, Interviews &amp; Personas</div>
+        <div class="wt-tags">
+          <span class="wt-tag highlight">Online survey — 96 responses collected</span>
+          <span class="wt-tag highlight">Field interviews conducted (gym climbers + coach)</span>
+          <span class="wt-tag">Persona 1: Alex Chen (recreational climber, V4–V5)</span>
+          <span class="wt-tag">Persona 2: Coach Li Wei (IFSC Level 1)</span>
+          <span class="wt-tag">User journey map completed (5 phases)</span>
+          <span class="wt-tag">Pain points ranked and prioritised</span>
+          <span class="wt-tag tool">Portfolio updated with research findings</span>
+        </div>
+      </div>
+
+      <!-- W5 -->
+      <div class="wt-left"><div class="wt-week-label">W5</div><div class="wt-date-label">Mar 2026</div></div>
+      <div class="wt-spine"><div class="wt-dot"></div><div class="wt-spine-line"></div></div>
+      <div class="wt-right">
+        <div class="wt-milestone-badge">Ideation &amp; Dev Start</div>
+        <div class="wt-title">Requirements, Lo-Fi Prototype &amp; Early Development</div>
+        <div class="wt-tags">
+          <span class="wt-tag highlight">MoSCoW requirements defined (R1–R8)</span>
+          <span class="wt-tag">Crazy Eights sketches — 8 screens ideated</span>
+          <span class="wt-tag highlight">Figma lo-fi wireframes: 6 core screens</span>
+          <span class="wt-tag">Design alternatives evaluated: Flutter vs React vs WeChat Mini</span>
+          <span class="wt-tag">Badge system selected over loot boxes (ethical choice)</span>
+          <span class="wt-tag tool">Flutter project scaffolded (4-tab shell)</span>
+          <span class="wt-tag tool">Spring Boot backend initialised + database schema designed</span>
+          <span class="wt-tag">JWT authentication implemented (CLIMBER / COACH / ADMIN)</span>
+          <span class="wt-tag">First Flutter screens running: Auth · Home skeleton</span>
+        </div>
+      </div>
+
+      <!-- W6 -->
+      <div class="wt-left"><div class="wt-week-label">W6</div><div class="wt-date-label">Mar–Apr 2026</div></div>
+      <div class="wt-spine"><div class="wt-dot"></div><div class="wt-spine-line"></div></div>
+      <div class="wt-right">
+        <div class="wt-milestone-badge">★ Milestone — Mid-Term Poster Draft</div>
+        <div class="wt-title">Poster, Hi-Fi Prototype &amp; First Working Features</div>
+        <div class="wt-tags">
+          <span class="wt-tag highlight">Mid-term poster designed &amp; printed</span>
+          <span class="wt-tag highlight">Figma hi-fi prototype v1 completed (10 screens)</span>
+          <span class="wt-tag">Dark theme + burnt orange colour system finalised</span>
+          <span class="wt-tag highlight">GPS map functional: venues loaded, distance-sorted</span>
+          <span class="wt-tag">One-tap session check-in with GPS confirmation</span>
+          <span class="wt-tag">Session tracking: timer, climb logging, streak calculation</span>
+          <span class="wt-tag tool">REST API: Auth · Sessions · Climbs endpoints live</span>
+        </div>
+      </div>
+
+      <!-- W7 -->
+      <div class="wt-left"><div class="wt-week-label">W7</div><div class="wt-date-label">Apr 2026</div></div>
+      <div class="wt-spine"><div class="wt-dot"></div><div class="wt-spine-line"></div></div>
+      <div class="wt-right">
+        <div class="wt-milestone-badge">Build — Social &amp; Gamification</div>
+        <div class="wt-title">Badges, Community &amp; Coach Certification</div>
+        <div class="wt-tags">
+          <span class="wt-tag highlight">Badge system: 20+ milestones, animated unlock celebrations</span>
+          <span class="wt-tag">Leaderboard: weekly ranking by sends, grade, XP</span>
+          <span class="wt-tag highlight">Community module: posts · likes · comments · follow graph</span>
+          <span class="wt-tag">3 post types: General · Partner Search · Beta Route</span>
+          <span class="wt-tag highlight">Coach certification workflow: apply → admin review → approve/reject</span>
+          <span class="wt-tag">Stats &amp; progress charts: weekly volume, grade distribution</span>
+          <span class="wt-tag tool">Flutter screens: Record · Community · Profile · Badges complete</span>
+        </div>
+      </div>
+
+      <!-- W8 -->
+      <div class="wt-left"><div class="wt-week-label">W8</div><div class="wt-date-label">Apr 2026</div></div>
+      <div class="wt-spine"><div class="wt-dot"></div><div class="wt-spine-line"></div></div>
+      <div class="wt-right">
+        <div class="wt-milestone-badge">★ Milestone — Final Poster &amp; Alpha System</div>
+        <div class="wt-title">AI Voice, Apple Watch &amp; Poster Exhibition</div>
+        <div class="wt-tags">
+          <span class="wt-tag highlight">AI voice assistant (Panda) — DeepSeek NLP + Web Speech API</span>
+          <span class="wt-tag">System prompt engineered: LOG_CLIMB · START_SESSION · QUERY_STATS</span>
+          <span class="wt-tag">Panda CustomPainter UI + voice animation states</span>
+          <span class="wt-tag">Apple Watch BLE heart rate integration</span>
+          <span class="wt-tag highlight">Poster exhibition — public display at XJTLU</span>
+          <span class="wt-tag">Usability observations collected during exhibition</span>
+          <span class="wt-tag tool">Portfolio expanded: system architecture + contribution table</span>
+        </div>
+      </div>
+
+      <!-- W9 -->
+      <div class="wt-left"><div class="wt-week-label">W9</div><div class="wt-date-label">Apr–May 2026</div></div>
+      <div class="wt-spine"><div class="wt-dot"></div><div class="wt-spine-line"></div></div>
+      <div class="wt-right">
+        <div class="wt-milestone-badge">Evaluate &amp; Iterate</div>
+        <div class="wt-title">Usability Testing, UI Iteration &amp; Deployment Prep</div>
+        <div class="wt-tags">
+          <span class="wt-tag highlight">Usability testing — 3 participants, think-aloud protocol</span>
+          <span class="wt-tag">SUS questionnaire administered</span>
+          <span class="wt-tag">Teacher feedback received and acted on</span>
+          <span class="wt-tag highlight">UI iteration: record screen, panda button, login page v2</span>
+          <span class="wt-tag">UI English-localised: all visible text converted</span>
+          <span class="wt-tag">Voice assistant prompt refined (5+ iterations)</span>
+          <span class="wt-tag tool">Backend voice proxy configured for deployment</span>
+          <span class="wt-tag tool">Railway deployment config prepared (Spring Boot)</span>
+          <span class="wt-tag tool">Portfolio redesigned: warm dark theme, real screenshots, weekly timeline</span>
+          <span class="wt-tag">Before / after UI comparison documented</span>
+        </div>
+      </div>
+
+      <!-- W10 -->
+      <div class="wt-left"><div class="wt-week-label">W10</div><div class="wt-date-label">May 2026</div></div>
+      <div class="wt-spine"><div class="wt-dot dim"></div><div class="wt-spine-line"></div></div>
+      <div class="wt-right">
+        <div class="wt-milestone-badge upcoming">★ Milestone — Final Submission</div>
+        <div class="wt-title">Video, Deployment &amp; Submission</div>
+        <div class="wt-tags">
+          <span class="wt-tag">2-min demo video recorded (why + how, not just what)</span>
+          <span class="wt-tag">Live URL deployed (Railway + GitHub Pages)</span>
+          <span class="wt-tag">Portfolio finalised with iterative feedback logs</span>
+          <span class="wt-tag">AI tools reflected: Claude Code · DeepSeek</span>
+          <span class="wt-tag">Ethical considerations documented</span>
+          <span class="wt-tag highlight">R1–R8 mapped to Design Goals → System Features</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
 <!-- ═══ RESOURCES ════════════════════════════════════════════════════════ -->
 <section>
   <div class="links-section reveal">
@@ -2669,12 +3055,12 @@
         <div class="link-desc">Source code for the full BetaUp system — Spring Boot backend and Flutter frontend. Includes README with setup instructions.</div>
         <div class="link-url">github.com/AlinaYuhan/betaup</div>
       </a>
-      <div class="link-card">
+      <a class="link-card" href="https://web-liart-sigma-79.vercel.app/" target="_blank">
         <div class="link-icon">🚀</div>
         <div class="link-title">Live System</div>
         <div class="link-desc">The deployed BetaUp application — fully functional Spring Boot API + Flutter web client accessible from any browser.</div>
-        <div class="link-url">[Deploying Week 10 · Railway + Vercel]</div>
-      </div>
+        <div class="link-url">web-liart-sigma-79.vercel.app</div>
+      </a>
       <div class="link-card">
         <div class="link-icon">🎬</div>
         <div class="link-title">Video Demo</div>
@@ -2705,6 +3091,32 @@
     });
   }, { threshold: 0.08 });
   reveals.forEach(el => revealObserver.observe(el));
+
+  // ── Timeline scroll-light animation ────────────────────────────────────
+  const wtRights  = document.querySelectorAll('.wt-right');
+  const wtSpines  = document.querySelectorAll('.wt-spine');
+  const wtLefts   = document.querySelectorAll('.wt-left');
+  wtRights.forEach(el => el.classList.add('wt-anim-init'));
+  const wtObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const idx = [...wtRights].indexOf(entry.target);
+      if (idx < 0) return;
+      setTimeout(() => {
+        wtSpines[idx]?.classList.add('wt-lit');
+        wtLefts[idx]?.classList.add('wt-lit');
+        wtRights[idx]?.classList.add('wt-lit');
+      }, idx * 60);
+      wtObserver.unobserve(entry.target);
+    });
+  }, { threshold: 0.25 });
+  wtRights.forEach(el => wtObserver.observe(el));
+
+  // ── Always start at top on page load (ignore URL hash scroll) ─────────
+  if (window.location.hash) {
+    history.replaceState(null, '', window.location.pathname);
+    window.scrollTo(0, 0);
+  }
 
   // ── Sticky nav: scrolled state + active link ─────────────────────────
   const nav = document.getElementById('topnav');
