@@ -612,22 +612,28 @@
   section { padding: 6rem 4rem; position: relative; }
   .section-label {
     font-family: 'Space Mono', monospace;
-    font-size: 0.66rem; letter-spacing: 0.28em;
+    font-size: 0.72rem; letter-spacing: 0.22em;
     color: var(--summit); text-transform: uppercase;
-    margin-bottom: 1rem;
-    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.1rem;
+    display: flex; align-items: center; gap: 0.85rem;
+    text-shadow: 0 0 18px oklch(58% 0.188 42 / 0.45);
   }
   .section-label::before {
-    content: ''; width: 30px; height: 1px; background: var(--summit);
+    content: ''; width: 36px; height: 2px;
+    background: linear-gradient(to right, var(--summit), oklch(58% 0.188 42 / 0.3));
+    border-radius: 2px;
+    flex-shrink: 0;
   }
   .section-title {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 4rem;
-    line-height: 1; margin-bottom: 1rem;
+    line-height: 1; margin-bottom: 0.6rem;
   }
   .section-intro {
-    font-size: 1.02rem; color: var(--text-body); line-height: 1.9;
-    max-width: 42rem; margin-bottom: 3rem;
+    font-size: 1.05rem; color: var(--text-body); line-height: 1.95;
+    max-width: 44rem; margin-bottom: 3rem;
+    border-left: 2px solid rgba(232,80,10,0.22);
+    padding-left: 1rem;
   }
   .content-section,
   .process-section,
@@ -648,35 +654,49 @@
   }
 
   /* ── About Section ──────────────────────────────────────────────────── */
-  .about {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 4rem; align-items: start;
+  .about-wrap {
     max-width: var(--page-width); margin: 0 auto;
+    display: flex; flex-direction: column; gap: 2rem;
   }
-  .about-text p { font-size: 1.04rem; line-height: 1.85; color: var(--text-body); margin-bottom: 1.5rem; }
-  .about-text p strong { color: var(--chalk); font-weight: 500; }
-  .about-meta { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
+  .about-head {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 3rem;
+    align-items: end;
+  }
+  .about-head-left .section-title { font-size: clamp(2.8rem, 5vw, 4rem); }
+  .about-tagline {
+    font-size: 1.05rem; color: var(--text-body); line-height: 1.85;
+    padding-bottom: 0.25rem;
+  }
+  .about-tagline strong { color: var(--chalk); font-weight: 500; }
+  .about-right { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; }
+  .about-meta-strip {
+    display: flex; align-items: flex-start; gap: 2rem; flex-wrap: wrap;
+    padding: 1.25rem 1.5rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+  }
+  .meta-divider { width: 1px; align-self: stretch; background: rgba(255,255,255,0.1); flex-shrink: 0; }
   .meta-item {
-    display: flex; flex-direction: column;
-    border-left: 2px solid var(--summit); padding-left: 1rem;
+    display: flex; flex-direction: column; min-width: 0; flex: 1;
   }
-  .meta-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; color: var(--text-dim); text-transform: uppercase; }
-  .meta-value { font-size: 0.95rem; color: var(--chalk); margin-top: 0.25rem; }
+  .meta-label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.18em; color: var(--text-dim); text-transform: uppercase; }
+  .meta-value { font-size: 0.88rem; color: var(--chalk); margin-top: 0.2rem; }
   .pill-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
   .pill { font-family: 'Space Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; padding: 0.42rem 0.85rem; border-radius: 999px; text-transform: uppercase; }
   .pill-green { background: rgba(74,124,89,0.2); color: var(--moss); border: 1px solid rgba(74,124,89,0.4); }
   .pill-orange { background: rgba(232,80,10,0.15); color: var(--summit); border: 1px solid rgba(232,80,10,0.4); }
   .pill-blue { background: rgba(200,223,232,0.1); color: var(--sky); border: 1px solid rgba(200,223,232,0.3); }
   .pill-gold { background: rgba(232,80,10,0.08); color: var(--text-body); border: 1px solid rgba(232,80,10,0.22); }
-  .about-right { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
   .feature-card {
     background: linear-gradient(180deg, rgba(53,60,68,0.95), rgba(40,46,53,0.92));
     border: 1px solid rgba(200,223,232,0.1);
     border-radius: 8px;
-    padding: 1.4rem; position: relative; overflow: hidden;
-    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    padding: 1.1rem; position: relative; overflow: hidden;
+    transition: border-color 0.3s, transform 0.5s ease, box-shadow 0.3s, opacity 0.55s ease;
     box-shadow: var(--shadow-soft);
-    min-height: 12.5rem;
   }
   .feature-card:hover {
     border-color: rgba(232,80,10,0.4);
@@ -691,18 +711,18 @@
   }
   .feature-card:hover::before { opacity: 1; }
   .feature-icon {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 8px;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 7px;
     display: grid;
     place-items: center;
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
     background: rgba(232,80,10,0.1);
     border: 1px solid rgba(232,80,10,0.18);
   }
-  .feature-title { font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 800; color: var(--chalk); margin-bottom: 0.55rem; }
-  .feature-desc { font-size: 0.87rem; color: var(--text-muted); line-height: 1.75; }
+  .feature-title { font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 800; color: var(--chalk); margin-bottom: 0.4rem; }
+  .feature-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.65; }
 
   /* ── Weekly Timeline ────────────────────────────────────────────────── */
   .process-section { max-width: 960px; margin: 0 auto; }
@@ -895,6 +915,12 @@
     background: rgba(43,49,56,0.92);
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: var(--shadow-soft);
+    transition: border-color 0.3s, transform 0.5s ease, box-shadow 0.3s, opacity 0.55s ease;
+  }
+  .review-card:hover {
+    border-color: rgba(232,80,10,0.32);
+    transform: translateY(-4px);
+    box-shadow: 0 22px 44px rgba(0,0,0,0.24);
   }
   .review-card h3 {
     font-size: 1.1rem;
@@ -960,7 +986,7 @@
   .persona-card {
     background: linear-gradient(180deg, rgba(53,60,68,0.92), rgba(39,45,52,0.94)); border: 1px solid rgba(200,223,232,0.1); border-radius: 8px;
     padding: 2rem; display: flex; gap: 1.5rem; align-items: flex-start;
-    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    transition: border-color 0.3s, transform 0.5s ease, box-shadow 0.3s, opacity 0.55s ease;
     box-shadow: var(--shadow-soft);
   }
   .persona-card:hover { border-color: rgba(232,80,10,0.36); transform: translateY(-4px); box-shadow: 0 24px 46px rgba(0,0,0,0.22); }
@@ -1592,8 +1618,10 @@
     section { padding: 4rem 2rem; }
     .section-title { font-size: 3.2rem; }
     .divider { margin: 0 2rem; }
-    .about { grid-template-columns: 1fr; gap: 3rem; }
+    .about-head { grid-template-columns: 1fr; gap: 1.5rem; }
     .about-right { grid-template-columns: 1fr 1fr; }
+    .about-meta-strip { flex-direction: column; gap: 1rem; }
+    .meta-divider { width: auto; height: 1px; align-self: auto; }
     .hero-center { grid-template-columns: 1fr; padding: 4rem 0 2rem; }
     .product-preview { grid-template-columns: 1fr; justify-self: center; width: min(100%, 21rem); }
     .phone-mockup { width: 100%; }
@@ -1744,75 +1772,78 @@
 
 <!-- ═══ ABOUT ═══════════════════════════════════════════════════════════ -->
 <section id="about">
-  <div class="about reveal">
-    <div class="about-text">
-      <div class="section-label">About the Project</div>
-      <h2 class="section-title">What is<br>BetaUp?</h2>
-      <p>
-        <strong>BetaUp</strong> is a human-centric application designed to enhance the experience of <strong>climbers and coaches</strong> through gamification, real-time feedback, and social connectivity.
-      </p>
-      <p>
-        Rooted in the <strong>Active Lifestyles</strong> theme of CPT208, our project explores how playful design principles can motivate climbers from beginner to advanced level, and help coaches deliver more engaging, data-driven guidance.
-      </p>
-      <p>
-        We apply a user-centred design process: conducting field research, building personas, prototyping iteratively, and evaluating with real users at climbing venues.
-      </p>
-      <div class="about-meta">
-        <div class="meta-item">
-          <span class="meta-label">Track</span>
-          <span class="meta-value">C2 — Go Climbers (Active Lifestyles)</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">Target Platform</span>
-          <span class="meta-value">Mobile + Web · Flutter &amp; Spring Boot</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">Good-to-Have Features Delivered</span>
-          <span class="meta-value">Location-based gym discovery · AI Voice Assistant · BLE Heart Rate Monitor</span>
-        </div>
+  <div class="about-wrap reveal">
+
+    <!-- Header row: title left, tagline right -->
+    <div class="about-head">
+      <div class="about-head-left">
+        <div class="section-label">About the Project</div>
+        <h2 class="section-title" style="margin-bottom:0">What is<br>BetaUp?</h2>
       </div>
-      <div class="pill-row">
-        <span class="pill pill-green">User Research</span>
-        <span class="pill pill-green">Persona Design</span>
-        <span class="pill pill-orange">Gamification</span>
-        <span class="pill pill-orange">Prototyping</span>
-        <span class="pill pill-blue">Usability Testing</span>
-        <span class="pill pill-gold">AI Voice Assistant</span>
-      </div>
+      <p class="about-tagline">
+        <strong>BetaUp</strong> is a human-centric app for <strong>climbers and coaches</strong> — combining gamification, real-time feedback, and social connectivity to make every session more playful and measurable.
+      </p>
     </div>
 
+    <!-- Feature cards: 3-col grid -->
     <div class="about-right">
       <div class="feature-card">
         <div class="feature-icon">🏅</div>
         <div class="feature-title">Achievement &amp; Badge System</div>
-        <div class="feature-desc">Climbers automatically unlock badges on milestones — first send, streaks, grade PRs. Each unlock triggers a celebratory animation, turning every session into a satisfying achievement.</div>
+        <div class="feature-desc">Milestones auto-unlock badges and celebratory animations — first send, streaks, grade PRs all rewarded.</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🐼</div>
         <div class="feature-title">AI Voice Assistant</div>
-        <div class="feature-desc">A draggable panda avatar activates a full-duplex voice interface. Speak hands-free mid-climb: "Log a V5 flash" or "Start my session" — DeepSeek NLP understands and acts.</div>
+        <div class="feature-desc">Draggable panda avatar — speak hands-free mid-climb to log sessions via DeepSeek NLP.</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🤝</div>
         <div class="feature-title">Social &amp; Community Layer</div>
-        <div class="feature-desc">Live leaderboards, community posts, comments, and a follow graph create a motivating social ecosystem. Compete weekly, celebrate sends, and discover training partners nearby.</div>
+        <div class="feature-desc">Live leaderboards, posts, and a follow graph to compete weekly and find training partners nearby.</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📍</div>
         <div class="feature-title">Location-Aware Gym Discovery</div>
-        <div class="feature-desc">Discover climbing venues nearby, check in, and link session data to a real location. C2 track's location-based Good-to-Have fully realised.</div>
+        <div class="feature-desc">Discover nearby venues, check in, and link session data to a real gym location.</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🏫</div>
         <div class="feature-title">Coach Certification System</div>
-        <div class="feature-desc">Coaches apply for certified status through the app; admins review and approve or reject applications. Verified coaches unlock a dedicated panel to view athlete data and post training feedback — a complete role-based workflow rarely seen in consumer climbing apps.</div>
+        <div class="feature-desc">Coaches apply for verified status; unlocks a dedicated panel for athlete tracking and feedback.</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon">❤️</div>
         <div class="feature-title">BLE Heart Rate Monitor</div>
-        <div class="feature-desc">Bluetooth LE integration that connects to an Apple Watch or compatible wearable to stream real-time heart rate data during a climbing session, enabling hardware-linked training insights.</div>
+        <div class="feature-desc">Apple Watch &amp; BLE wearable integration streams live heart rate during climbing sessions.</div>
       </div>
     </div>
+
+    <!-- Meta strip: horizontal across the bottom -->
+    <div class="about-meta-strip">
+      <div class="meta-item">
+        <span class="meta-label">Track</span>
+        <span class="meta-value">C2 — Go Climbers (Active Lifestyles)</span>
+      </div>
+      <div class="meta-divider"></div>
+      <div class="meta-item">
+        <span class="meta-label">Target Platform</span>
+        <span class="meta-value">Mobile + Web · Flutter &amp; Spring Boot</span>
+      </div>
+      <div class="meta-divider"></div>
+      <div class="meta-item">
+        <span class="meta-label">Good-to-Have Features Delivered</span>
+        <span class="meta-value">Location · AI Voice · BLE Heart Rate</span>
+      </div>
+      <div class="meta-divider"></div>
+      <div class="pill-row" style="margin-top:0; flex-wrap:wrap; gap:0.5rem;">
+        <span class="pill pill-green">User Research</span>
+        <span class="pill pill-orange">Gamification</span>
+        <span class="pill pill-blue">Usability Testing</span>
+        <span class="pill pill-gold">AI Voice</span>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -3083,13 +3114,30 @@
 </footer>
 
 <script>
+  // ── Stagger cards: set initial invisible state ───────────────────────
+  const CARD_SEL = '.review-card, .feature-card, .persona-card, .must-have-card, .sketch-card, .sus-card';
+  document.querySelectorAll(CARD_SEL).forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(22px)';
+  });
+
   // ── Reveal on scroll ─────────────────────────────────────────────────
   const reveals = document.querySelectorAll('.reveal');
   const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) entry.target.classList.add('visible');
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('visible');
+      // Stagger child cards within this section
+      const cards = entry.target.querySelectorAll(CARD_SEL);
+      cards.forEach((card, idx) => {
+        setTimeout(() => {
+          card.style.opacity = '';
+          card.style.transform = '';
+        }, 120 + idx * 85);
+      });
+      revealObserver.unobserve(entry.target);
     });
-  }, { threshold: 0.08 });
+  }, { threshold: 0.06 });
   reveals.forEach(el => revealObserver.observe(el));
 
   // ── Timeline scroll-light animation ────────────────────────────────────
@@ -3136,6 +3184,61 @@
       link.classList.toggle('active', link.getAttribute('href') === '#' + current);
     });
   }, { passive: true });
+</script>
+
+<!-- Mouse glow cursor effect -->
+<div id="cursor-glow"></div>
+<style>
+  #cursor-glow {
+    position: fixed;
+    top: 0; left: 0;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      oklch(58% 0.188 42 / 0.08) 0%,
+      oklch(58% 0.188 42 / 0.03) 45%,
+      transparent 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.4s ease;
+    opacity: 0;
+    will-change: left, top;
+    mix-blend-mode: screen;
+  }
+</style>
+<script>
+  (function() {
+    const glow = document.getElementById('cursor-glow');
+    let mouseX = 0, mouseY = 0;
+    let glowX = 0, glowY = 0;
+    let raf;
+    let visible = false;
+
+    document.addEventListener('mousemove', function(e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      if (!visible) {
+        visible = true;
+        glow.style.opacity = '1';
+      }
+    }, { passive: true });
+
+    document.addEventListener('mouseleave', function() {
+      visible = false;
+      glow.style.opacity = '0';
+    });
+
+    function animate() {
+      glowX += (mouseX - glowX) * 0.09;
+      glowY += (mouseY - glowY) * 0.09;
+      glow.style.left = glowX + 'px';
+      glow.style.top = glowY + 'px';
+      raf = requestAnimationFrame(animate);
+    }
+    animate();
+  })();
 </script>
 </body>
 </html>
