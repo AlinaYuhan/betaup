@@ -23,11 +23,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CommunityDataInitializer implements ApplicationRunner {
 
-    private final UserRepository    userRepository;
-    private final PostRepository    postRepository;
-    private final CommentRepository commentRepository;
-    private final PasswordEncoder   passwordEncoder;
-    private final EntityManager     em;
+    private final UserRepository      userRepository;
+    private final PostRepository      postRepository;
+    private final CommentRepository   commentRepository;
+    private final PasswordEncoder     passwordEncoder;
+    private final EntityManager       em;
+    private final BadgeRepository     badgeRepository;
+    private final UserBadgeRepository userBadgeRepository;
 
     @Override
     @Transactional
@@ -147,8 +149,26 @@ public class CommunityDataInitializer implements ApplicationRunner {
         cmt(sarah, p11, "下次一起！", now.minusDays(4).plusHours(6));
         cmt(dada,  p11, "来来来 V4 等你 😆", now.minusDays(4).plusHours(7));
 
+        // ── Badges per user (reflects their stated level) ─────────────────
+        award(dada,  "FIRST_LOG", "LEVEL_FIRST_SEND", "LEVEL_SEND_10", "LEVEL_SEND_30", "FIRST_FLASH", "FLASH_10");
+        award(jay,   "FIRST_LOG", "LEVEL_FIRST_SEND", "LEVEL_SEND_10", "LEVEL_SEND_30", "FIRST_FLASH", "FLASH_10");
+        award(sarah, "FIRST_LOG", "LEVEL_FIRST_SEND", "LEVEL_SEND_10", "FIRST_FLASH");
+        award(mike,  "FIRST_LOG", "LEVEL_FIRST_SEND", "LEVEL_SEND_10", "FIRST_FLASH");
+        award(tom,   "FIRST_LOG", "LEVEL_FIRST_SEND");
+        award(lisa,  "FIRST_LOG", "LEVEL_FIRST_SEND");
+
         log.info("[Community] Seeded 6 demo users, {} posts, {} comments.",
                 postRepository.count(), commentRepository.count());
+    }
+
+    private void award(User user, String... keys) {
+        for (String key : keys) {
+            badgeRepository.findByBadgeKey(key).ifPresent(badge -> {
+                if (!userBadgeRepository.existsByUserIdAndBadgeId(user.getId(), badge.getId())) {
+                    userBadgeRepository.save(UserBadge.builder().user(user).badge(badge).build());
+                }
+            });
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

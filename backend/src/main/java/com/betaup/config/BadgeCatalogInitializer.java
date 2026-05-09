@@ -10,6 +10,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 @Component
+@org.springframework.core.annotation.Order(2)
 @RequiredArgsConstructor
 public class BadgeCatalogInitializer implements ApplicationRunner {
 

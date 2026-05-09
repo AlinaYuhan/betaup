@@ -46,7 +46,6 @@ public class User {
     @Column(nullable = false, length = 120)
     private String name;
 
-    @Email
     @NotBlank
     @Size(max = 150)
     @Column(nullable = false, unique = true, length = 150)

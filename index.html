@@ -1218,6 +1218,35 @@
   .findings-col ul li:last-child { border-bottom: none; }
   .findings-col.issues ul li::before { content: '△ '; color: var(--summit); font-size: 0.7rem; }
   .findings-col.positives ul li::before { content: '✓ '; color: var(--moss); font-size: 0.7rem; }
+
+  /* P-O-A Technical Reflection carousel */
+  .poa-carousel { position: relative; overflow: hidden; width: 100%; }
+  .poa-track { display: flex; width: 100%; transition: transform 0.38s cubic-bezier(0.4,0,0.2,1); }
+  .poa-card { flex: 0 0 100%; min-width: 0; box-sizing: border-box; background: oklch(12% 0.008 48); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.5rem; overflow-wrap: break-word; word-break: break-word; }
+  .poa-card-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--summit); margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle); }
+  .poa-row { display: flex; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid oklch(18% 0.008 48); }
+  .poa-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .poa-tag { font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; width: 1.75rem; height: 1.75rem; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 0.15rem; }
+  .poa-tag-p { background: rgba(100,150,220,0.15); color: #7aaae8; border: 1px solid rgba(100,150,220,0.3); }
+  .poa-tag-o { background: rgba(232,80,10,0.12); color: var(--summit); border: 1px solid rgba(232,80,10,0.3); }
+  .poa-tag-a { background: rgba(90,140,90,0.15); color: var(--moss); border: 1px solid rgba(90,140,90,0.3); }
+  .poa-content { flex: 1; }
+  .poa-content-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+  .poa-content p { font-size: 0.82rem; color: var(--text-body); line-height: 1.75; margin: 0; }
+  .poa-content code { font-family: 'Space Mono', monospace; font-size: 0.75rem; background: oklch(18% 0.010 48); padding: 0.1em 0.35em; border-radius: 3px; color: var(--summit); }
+  .poa-status-badge { font-size: 0.55rem; font-weight: 700; padding: 0.1em 0.45em; border-radius: 3px; letter-spacing: 0.08em; }
+  .poa-status-badge.success { background: rgba(90,140,90,0.15); color: var(--moss); border: 1px solid rgba(90,140,90,0.3); }
+  .poa-status-badge.buggy { background: rgba(220,160,30,0.15); color: #d4a030; border: 1px solid rgba(220,160,30,0.3); }
+  .poa-status-badge.irrelevant { background: oklch(20% 0.005 48); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+  .poa-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; }
+  .poa-nav-btn { font-family: 'Space Mono', monospace; font-size: 0.68rem; background: none; border: 1px solid var(--border-subtle); color: var(--text-muted); padding: 0.35rem 0.85rem; border-radius: 4px; cursor: pointer; transition: border-color 0.2s, color 0.2s; letter-spacing: 0.05em; }
+  .poa-nav-btn:hover:not(:disabled) { border-color: var(--summit); color: var(--summit); }
+  .poa-nav-btn:disabled { opacity: 0.25; cursor: default; }
+  .poa-dots { display: flex; gap: 0.4rem; align-items: center; }
+  .poa-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-subtle); cursor: pointer; transition: background 0.2s, transform 0.2s; border: none; padding: 0; }
+  .poa-dot.active { background: var(--summit); transform: scale(1.35); }
+  .poa-counter { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--text-muted); }
+
   .priority-tag {
     display: inline-block;
     font-family: 'Space Mono', monospace;
@@ -1228,8 +1257,9 @@
     vertical-align: middle;
     letter-spacing: 0.04em;
   }
-  .priority-tag.p1 { background: rgba(232,80,10,0.15); color: var(--summit); border: 1px solid rgba(232,80,10,0.45); }
-  .priority-tag.p2 { background: rgba(200,150,50,0.12); color: oklch(75% 0.12 80); border: 1px solid rgba(200,150,50,0.35); }
+  .priority-tag.s3 { background: rgba(232,80,10,0.15); color: var(--summit); border: 1px solid rgba(232,80,10,0.45); }
+  .priority-tag.s2 { background: rgba(200,150,50,0.12); color: oklch(75% 0.12 80); border: 1px solid rgba(200,150,50,0.35); }
+  .priority-tag.s1 { background: rgba(200,223,232,0.08); color: var(--sky); border: 1px solid rgba(200,223,232,0.25); }
   .interview-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
   .ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; }
   .ba-pair { background: #1a1a1a; border: 1px solid #242424; border-radius: 4px; overflow: hidden; }
@@ -2685,9 +2715,9 @@
       <div class="findings-col issues">
         <h4>Issues Identified</h4>
         <ul>
-          <li><span class="priority-tag p1">P1</span>AI Voice Training Log had the lowest completion rate (66.7%) and highest error count (1.3 avg) — users needed clearer interaction guidance to activate and use the voice feature</li>
-          <li><span class="priority-tag p2">P2</span>Community Module required the longest completion time (242s) — navigation flow between post creation and feed browsing was not immediately intuitive</li>
-          <li><span class="priority-tag p2">P2</span>Badge Reward System recorded 0.7 average errors — the unlock trigger was not always discoverable without prior context</li>
+          <li><span class="priority-tag s3">S3</span>AI Voice Training Log had the lowest completion rate (66.7%) and highest error count (1.3 avg) — users needed clearer interaction guidance to activate and use the voice feature</li>
+          <li><span class="priority-tag s2">S2</span>Community Module required the longest completion time (242s) — navigation flow between post creation and feed browsing was not immediately intuitive</li>
+          <li><span class="priority-tag s2">S2</span>Badge Reward System recorded 0.7 average errors — the unlock trigger was not always discoverable without prior context</li>
         </ul>
       </div>
       <div class="findings-col positives">
@@ -2804,34 +2834,163 @@
         </div>
       </div>
 
-      <!-- What worked / didn't -->
+      <!-- Technical Reflection — P-O-A Carousel -->
       <div class="ai-tool-block">
         <div class="ai-tool-header">
-          <div class="ai-tool-badge">REFLECTION</div>
+          <div class="ai-tool-badge">TECHNICAL REFLECTION</div>
           <div>
-            <div class="ai-tool-name">What Worked — and What Didn't</div>
+            <div class="ai-tool-name">AI Use Cases — P · O · A</div>
+            <div class="ai-tool-sub">P (Prompt) &middot; O (Outcome) &middot; A (Action) &nbsp;&mdash;&nbsp; use arrows to browse</div>
           </div>
         </div>
         <div class="ai-tool-body">
-          <div class="findings-box" style="margin-top:0;">
-            <div class="findings-col positives">
-              <h4>Effective</h4>
-              <ul>
-                <li><strong>Claude Code + skills ecosystem</strong> was highly effective across the full stack. Spring Boot endpoint scaffolding, Flutter widget generation, and JWT auth boilerplate were all reliable enough to integrate with minimal rework — largely because prompts were designed with precise context from the start.</li>
-                <li><strong>DeepSeek</strong> performed reliably as the voice assistant NLP engine for Chinese climbing commands. After 5+ prompt iterations, structured JSON output (LOG_CLIMB, START_SESSION, QUERY_STATS) was stable and predictable.</li>
-                <li><strong>Parallel multi-agent execution</strong> meaningfully compressed development time — backend and frontend workstreams ran concurrently without blocking each other.</li>
-                <li><strong>Codex</strong> provided reliable automated code review before key merges, catching edge cases that manual review missed. <strong>Antigravity</strong> was useful for targeted UI micro-optimisations on the portfolio page.</li>
-              </ul>
+
+          <div class="poa-carousel" id="poa-carousel">
+            <div class="poa-track" id="poa-track">
+
+              <!-- Card 1: DeepSeek — Voice NLP -->
+              <div class="poa-card">
+                <div class="poa-card-label">01 / 05 &mdash; DeepSeek &middot; Voice Command NLP</div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-p">P</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Prompt</div>
+                    <p>"Parse this Chinese voice command from a climbing user and return a JSON object with a single <code>intent</code> field — one of: <code>LOG_CLIMB</code>, <code>START_SESSION</code>, or <code>QUERY_STATS</code> — plus any relevant parameters. The user said: '帮我记录今天的攀岩成绩'. Return only valid JSON, no explanation." Three few-shot examples with expected outputs were appended as context.</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-o">O</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Outcome &nbsp;<span class="poa-status-badge success">Success (after iteration)</span></div>
+                    <p>Initial responses returned inconsistent JSON with hallucinated extra fields (<code>confidence</code>, <code>raw_text</code>) not in the schema — output was unusable in 2 of the first 3 tests. After 5+ rounds of prompt refinement with stricter few-shot examples and explicit schema constraints, structured output became stable and predictable across all three intent types.</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-a">A</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Action</div>
+                    <p>Added a strict JSON-only instruction and an explicit output schema template to the prompt. Integrated the stable output directly into the Spring Boot voice handler. Documented the final prompt in the team wiki so all members could reproduce consistent results.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2: Claude Code — Spring Boot backend -->
+              <div class="poa-card">
+                <div class="poa-card-label">02 / 05 &mdash; Claude Code &middot; Spring Boot API Scaffolding</div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-p">P</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Prompt</div>
+                    <p>"Generate a Spring Boot REST controller for climbing session management. Endpoints needed: <code>POST /sessions</code>, <code>GET /sessions/{userId}</code>, <code>POST /sessions/{id}/climbs</code>. Use JPA with H2 database, include JWT authentication via a filter chain, and return standard JSON responses with appropriate HTTP status codes. Match the existing <code>SessionDTO</code> and <code>ClimbDTO</code> field names."</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-o">O</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Outcome &nbsp;<span class="poa-status-badge success">Success</span></div>
+                    <p>Generated a complete controller with correct JPA annotations, proper HTTP status codes, and JWT filter wiring. Two minor issues: some field names didn't match our existing DTOs, and error responses used generic messages rather than our custom error format. Both were small, targeted fixes rather than regeneration.</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-a">A</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Action</div>
+                    <p>Manually aligned field names with existing DTOs and replaced generic error messages with the project's <code>ApiResponse</code> wrapper. No regeneration was needed — the structural scaffolding was correct and only surface-level editing was required before integration.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 3: Claude Code — Flutter widget -->
+              <div class="poa-card">
+                <div class="poa-card-label">03 / 05 &mdash; Claude Code &middot; Flutter Leaderboard Widget</div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-p">P</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Prompt</div>
+                    <p>"Generate a Flutter <code>StatelessWidget</code> for a climbing leaderboard screen. Each row shows: rank number, username, weekly climb count, and a progress bar relative to the top user. Dark theme — background <code>#1a1a1a</code>, accent <code>#E8500A</code>. Use <code>ListView.builder</code> with a <code>List&lt;LeaderboardEntry&gt;</code> input. No external packages."</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-o">O</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Outcome &nbsp;<span class="poa-status-badge buggy">Buggy</span></div>
+                    <p>Generated a clean <code>ListView.builder</code> structure with correct styling matching our colour scheme. One bug: the progress bar width was calculated as <code>entry.count / 100</code> (hard-coded max) instead of dividing by the top user's count — causing bars to overflow when weekly counts exceeded 100. Visual output was otherwise production-ready.</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-a">A</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Action</div>
+                    <p>Fixed the progress bar calculation to <code>entry.count / entries.first.count</code>. Adjusted font sizes to match the existing design system. Used the widget directly in the leaderboard screen without further regeneration — one targeted fix was sufficient.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 4: Codex — Pre-merge code review -->
+              <div class="poa-card">
+                <div class="poa-card-label">04 / 05 &mdash; Codex (codex-cli) &middot; Pre-merge Code Review</div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-p">P</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Prompt</div>
+                    <p>Submitted the JWT authentication implementation diff to Codex via <code>codex review</code> before merging into main. The diff included the token generation, validation filter, and a session-filtering database query. No additional instruction was given — standard review mode was used.</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-o">O</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Outcome &nbsp;<span class="poa-status-badge success">Success</span></div>
+                    <p>Codex flagged two issues that manual review had missed: (1) a potential SQL injection risk in a raw JPQL string used for session filtering, and (2) a missing null check in the token refresh path that would throw a <code>NullPointerException</code> on expired tokens. Both were high-severity issues caught before reaching production.</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-a">A</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Action</div>
+                    <p>Replaced the raw JPQL string with a parameterised <code>@Query</code> and added a null guard to the refresh handler. Made Codex review a required pre-merge step for all subsequent backend PRs — the two catches justified the overhead for the remainder of the project.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 5: 豆包 / 可灵 — Video generation -->
+              <div class="poa-card">
+                <div class="poa-card-label">05 / 05 &mdash; 豆包 / 可灵 &middot; Demo Video Generation</div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-p">P</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Prompt</div>
+                    <p>"Generate a 10-second video clip of an indoor rock climber performing a dynamic move on a colourful competition wall — the climber should reach for a yellow hold above their head while their feet stay on red footholds. Cinematic lighting, realistic gym setting." Submitted to both 豆包 and 可灵 with minor wording variations across 4 attempts.</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-o">O</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Outcome &nbsp;<span class="poa-status-badge irrelevant">Irrelevant</span></div>
+                    <p>Generated clips were visually coherent but physically unrealistic — climbers' body positions violated basic biomechanics: wrong foot placement, implausible grip angles, and unnatural centre of gravity. Both models lacked domain knowledge of climbing movement patterns. The footage could not serve as primary demonstration content without misrepresenting the sport.</p>
+                  </div>
+                </div>
+                <div class="poa-row">
+                  <div class="poa-tag poa-tag-a">A</div>
+                  <div class="poa-content">
+                    <div class="poa-content-label">Action</div>
+                    <p>Discarded AI-generated clips as primary demo content. Downgraded to background filler only — used for ambient atmosphere in the intro sequence where physical accuracy is less critical. Switched to locally screen-recorded app demos as the main demonstration footage, accurately representing the actual system.</p>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /poa-track -->
+          </div><!-- /poa-carousel -->
+
+          <!-- Navigation -->
+          <div class="poa-nav">
+            <button class="poa-nav-btn" id="poa-prev" disabled>&larr; Prev</button>
+            <div style="display:flex;align-items:center;gap:1rem;">
+              <div class="poa-dots" id="poa-dots"></div>
+              <span class="poa-counter" id="poa-counter">1 / 5</span>
             </div>
-            <div class="findings-col issues">
-              <h4>Fell Short</h4>
-              <ul>
-                <li><strong>豆包 / 可灵</strong> generated video clips with physically unrealistic climbing movements — AI models lack domain understanding of climbing biomechanics. The footage required heavy manual editing and was ultimately used only as background material rather than primary demonstration content.</li>
-                <li><strong>DeepSeek</strong> showed noticeably weaker performance on English commands, reflecting its training data distribution. This is a documented limitation: non-Chinese speakers may find the voice assistant less reliable.</li>
-                <li><strong>ChatGPT</strong> was less precise than Claude Code for specific coding tasks and required more correction rounds — better suited to content and ideation than implementation.</li>
-              </ul>
-            </div>
+            <button class="poa-nav-btn" id="poa-next">Next &rarr;</button>
           </div>
+
         </div>
       </div>
 
@@ -3266,6 +3425,46 @@
       raf = requestAnimationFrame(animate);
     }
     animate();
+  })();
+</script>
+<script>
+  (function() {
+    const track = document.getElementById('poa-track');
+    const prevBtn = document.getElementById('poa-prev');
+    const nextBtn = document.getElementById('poa-next');
+    const dotsContainer = document.getElementById('poa-dots');
+    const counter = document.getElementById('poa-counter');
+    if (!track) return;
+
+    const cards = track.querySelectorAll('.poa-card');
+    const total = cards.length;
+    let current = 0;
+
+    const dots = Array.from({ length: total }, function(_, i) {
+      const d = document.createElement('button');
+      d.className = 'poa-dot' + (i === 0 ? ' active' : '');
+      d.setAttribute('aria-label', 'Go to example ' + (i + 1));
+      d.addEventListener('click', function() { go(i); });
+      dotsContainer.appendChild(d);
+      return d;
+    });
+
+    function go(index) {
+      current = index;
+      track.style.transform = 'translateX(-' + (100 * current) + '%)';
+      dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+      counter.textContent = (current + 1) + ' / ' + total;
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === total - 1;
+    }
+
+    prevBtn.addEventListener('click', function() { if (current > 0) go(current - 1); });
+    nextBtn.addEventListener('click', function() { if (current < total - 1) go(current + 1); });
+
+    track.parentElement.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowLeft') go(Math.max(0, current - 1));
+      if (e.key === 'ArrowRight') go(Math.min(total - 1, current + 1));
+    });
   })();
 </script>
 </body>
