@@ -1741,7 +1741,7 @@
     <a href="#ideation">Ideation</a>
     <a href="#system">System</a>
     <a href="#evaluation">Evaluation</a>
-    <a href="#reflection">Reflection</a>
+    <a href="#reflection">AI Reflection</a>
     <a href="#team">Team</a>
   </div>
   <div class="nav-tag">CPT208 · C2-6</div>
@@ -2247,7 +2247,7 @@
     <!-- Field observation photos -->
     <div class="journey-kicker">Field Observation · Suzhou Indoor Climbing Gyms</div>
     <p class="fieldwork-note">
-      We conducted on-site observations and face-to-face interviews with regular climbers at local Suzhou indoor bouldering gyms. Participants matched our core persona Alex Chen — intermediate V3–V5 climbers with long-term training habits who struggled with fragmented logging tools.
+      We conducted on-site observations and face-to-face interviews with regular climbers at Suzhou Olympic Sports Center Indoor Climbing Gym (苏州奥林匹克体育馆室内攀岩馆). Participants matched our core persona Alex Chen — intermediate V3–V5 climbers with long-term training habits who struggled with fragmented logging tools.
     </p>
     <div class="fieldwork-grid">
       <div class="fieldwork-card">
@@ -2586,7 +2586,7 @@
 <!-- ═══ EVALUATION ═══════════════════════════════════════════════════════ -->
 <section id="evaluation">
   <div class="content-section reveal">
-    <div class="section-label">05 — Evaluation &amp; Reflection</div>
+    <div class="section-label">05 — Evaluation</div>
     <h2 class="section-title">Testing with<br>Real Users</h2>
     <p class="section-intro">System Usability Scale scores, task performance data, qualitative findings, and iterative improvements driven by user feedback.</p>
 
@@ -2874,28 +2874,28 @@
                 </div>
               </div>
 
-              <!-- Card 2: Claude Code — Spring Boot backend -->
+              <!-- Card 2: Claude Code — Badge ordering debug -->
               <div class="poa-card">
-                <div class="poa-card-label">02 / 05 &mdash; Claude Code &middot; Spring Boot API Scaffolding</div>
+                <div class="poa-card-label">02 / 05 &mdash; Claude Code &middot; Spring Boot Initializer Ordering Bug</div>
                 <div class="poa-row">
                   <div class="poa-tag poa-tag-p">P</div>
                   <div class="poa-content">
                     <div class="poa-content-label">Prompt</div>
-                    <p>"Generate a Spring Boot REST controller for climbing session management. Endpoints needed: <code>POST /sessions</code>, <code>GET /sessions/{userId}</code>, <code>POST /sessions/{id}/climbs</code>. Use JPA with H2 database, include JWT authentication via a filter chain, and return standard JSON responses with appropriate HTTP status codes. Match the existing <code>SessionDTO</code> and <code>ClimbDTO</code> field names."</p>
+                    <p>"My <code>DemoAccountInitializer</code> runs but <code>badgeRepository.findByBadgeKey()</code> always returns empty Optional. <code>BadgeCatalogInitializer</code> is supposed to seed the badge catalogue first — here are both files. The award calls complete without errors but the demo account ends up with zero badges. What's wrong?"</p>
                   </div>
                 </div>
                 <div class="poa-row">
                   <div class="poa-tag poa-tag-o">O</div>
                   <div class="poa-content">
                     <div class="poa-content-label">Outcome &nbsp;<span class="poa-status-badge success">Success</span></div>
-                    <p>Generated a complete controller with correct JPA annotations, proper HTTP status codes, and JWT filter wiring. Two minor issues: some field names didn't match our existing DTOs, and error responses used generic messages rather than our custom error format. Both were small, targeted fixes rather than regeneration.</p>
+                    <p>Claude identified the root cause immediately: <code>BadgeCatalogInitializer</code> had no <code>@Order</code> annotation, defaulting to <code>Integer.MAX_VALUE</code> (lowest priority), so it ran <em>after</em> <code>DemoAccountInitializer</code> despite appearing to seed first. The badge table was empty at the moment the award call ran — no exception, silent failure.</p>
                   </div>
                 </div>
                 <div class="poa-row">
                   <div class="poa-tag poa-tag-a">A</div>
                   <div class="poa-content">
                     <div class="poa-content-label">Action</div>
-                    <p>Manually aligned field names with existing DTOs and replaced generic error messages with the project's <code>ApiResponse</code> wrapper. No regeneration was needed — the structural scaffolding was correct and only surface-level editing was required before integration.</p>
+                    <p>Added <code>@Order(2)</code> to <code>BadgeCatalogInitializer</code> and <code>@Order(3)</code> to <code>DemoAccountInitializer</code>. Audited all other <code>ApplicationRunner</code> beans in the project and assigned explicit order values to every one — preventing silent sequencing bugs from recurring as the initializer count grew.</p>
                   </div>
                 </div>
               </div>
@@ -2926,28 +2926,28 @@
                 </div>
               </div>
 
-              <!-- Card 4: Codex — Pre-merge code review -->
+              <!-- Card 4: Claude Code — Badge system design -->
               <div class="poa-card">
-                <div class="poa-card-label">04 / 05 &mdash; Codex (codex-cli) &middot; Pre-merge Code Review</div>
+                <div class="poa-card-label">04 / 05 &mdash; Claude Code &middot; Gamification Badge System Design</div>
                 <div class="poa-row">
                   <div class="poa-tag poa-tag-p">P</div>
                   <div class="poa-content">
                     <div class="poa-content-label">Prompt</div>
-                    <p>Submitted the JWT authentication implementation diff to Codex via <code>codex review</code> before merging into main. The diff included the token generation, validation filter, and a session-filtering database query. No additional instruction was given — standard review mode was used.</p>
+                    <p>"Design a gamification badge system for a climbing tracking app. I need: a JPA <code>Badge</code> entity with key, name, description, threshold, and criteria type; a <code>BadgeCriteriaType</code> enum covering total logs, completed climbs, flash climbs, gym check-ins, unique gyms, posts, likes, and coach feedback; and an <code>ApplicationRunner</code> seeding ~15 badges across meaningful categories. The app tracks bouldering sessions, route completions, flash results, and community posts."</p>
                   </div>
                 </div>
                 <div class="poa-row">
                   <div class="poa-tag poa-tag-o">O</div>
                   <div class="poa-content">
-                    <div class="poa-content-label">Outcome &nbsp;<span class="poa-status-badge success">Success</span></div>
-                    <p>Codex flagged two issues that manual review had missed: (1) a potential SQL injection risk in a raw JPQL string used for session filtering, and (2) a missing null check in the token refresh path that would throw a <code>NullPointerException</code> on expired tokens. Both were high-severity issues caught before reaching production.</p>
+                    <div class="poa-content-label">Outcome &nbsp;<span class="poa-status-badge success">Success (after tuning)</span></div>
+                    <p>Generated a complete 3-file implementation: <code>BadgeCriteriaType</code> enum with 9 criteria, <code>Badge</code> entity with builder and JPA annotations, and <code>BadgeCatalogInitializer</code> seeding 18 badges across LEVEL / CHALLENGE / VENUE / SOCIAL. Structure was immediately usable. Two issues: threshold values (e.g. 30 sends for "Intermediate") were calibrated for a generic fitness app and too low for real climbing progression; the SOCIAL category underweighted community engagement relative to our app's focus.</p>
                   </div>
                 </div>
                 <div class="poa-row">
                   <div class="poa-tag poa-tag-a">A</div>
                   <div class="poa-content">
                     <div class="poa-content-label">Action</div>
-                    <p>Replaced the raw JPQL string with a parameterised <code>@Query</code> and added a null guard to the refresh handler. Made Codex review a required pre-merge step for all subsequent backend PRs — the two catches justified the overhead for the remainder of the project.</p>
+                    <p>Adjusted thresholds to reflect actual climbing progression ("Century Climber" at 100 sends, "Flash Master" at 10 flashes). Expanded SOCIAL to include likes received and comments made. No architectural changes were needed — AI provided the correct structure; only domain-specific calibration required human climbing knowledge to finalise.</p>
                   </div>
                 </div>
               </div>
