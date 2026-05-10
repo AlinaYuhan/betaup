@@ -813,7 +813,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       final comment = await widget.client.addComment(
         widget.post.id,
         content,
-        parentId: _replyTarget?.id,
+        parentId: _replyTarget?.parentId ?? _replyTarget?.id,
       );
       _controller.clear();
       if (mounted) {
