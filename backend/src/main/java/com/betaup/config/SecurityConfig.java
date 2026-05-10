@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,11 +32,6 @@ public class SecurityConfig {
 
     @Value("${app.cors.allowed-origin-patterns:http://localhost:*,http://127.0.0.1:*,https://frontend-production-3b88.up.railway.app,https://web-liart-sigma-79.vercel.app}")
     private String allowedOriginPatterns;
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers(HttpMethod.GET, "/uploads/**");
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -63,6 +57,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/status").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/gyms", "/api/gyms/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/maps/amap-config").permitAll()
