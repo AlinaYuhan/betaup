@@ -51,6 +51,8 @@ public class CommentController {
             .content(request.getContent().trim())
             .build();
         commentRepository.save(comment);
+        post.setCommentCount(post.getCommentCount() + 1);
+        postRepository.save(post);
         // Notify post author (skip if commenting on own post)
         if (!post.getUser().getId().equals(user.getId())) {
             notificationRepository.save(Notification.builder()
@@ -79,6 +81,10 @@ public class CommentController {
             throw new org.springframework.security.access.AccessDeniedException("Not your comment.");
         }
         commentRepository.delete(comment);
+        postRepository.findById(postId).ifPresent(p -> {
+            p.setCommentCount(Math.max(0, p.getCommentCount() - 1));
+            postRepository.save(p);
+        });
         return ResponseEntity.ok(ApiResponse.success("Comment deleted.", null));
     }
 

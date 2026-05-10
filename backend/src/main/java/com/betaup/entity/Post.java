@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -52,8 +51,8 @@ public class Post {
     @Column(nullable = false)
     private int likeCount = 0;
 
-    @Formula("(SELECT COUNT(*) FROM comments c WHERE c.post_id = id)")
-    private int commentCount;
+    @Column(nullable = false)
+    private int commentCount = 0;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
