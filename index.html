@@ -654,23 +654,51 @@
   }
 
   /* ── About Section ──────────────────────────────────────────────────── */
+  #about { padding: 3rem 4rem; }
   .about-wrap {
     max-width: var(--page-width); margin: 0 auto;
-    display: flex; flex-direction: column; gap: 2rem;
+    display: flex; flex-direction: column; gap: 1rem;
   }
-  .about-head {
-    display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    gap: 3rem;
-    align-items: end;
-  }
-  .about-head-left .section-title { font-size: clamp(2.8rem, 5vw, 4rem); }
+  .about-head { display: grid; grid-template-columns: auto 1fr; gap: 3rem; align-items: center; }
+  .about-head > div .section-title { font-size: clamp(2.8rem, 4vw, 3.8rem); white-space: nowrap; margin-bottom: 0; }
   .about-tagline {
-    font-size: 1.05rem; color: var(--text-body); line-height: 1.85;
-    padding-bottom: 0.25rem;
+    font-size: 1rem; color: var(--text-body); line-height: 1.8;
+    border-left: 3px solid rgba(232, 80, 10, 0.28);
+    padding-left: 1.25rem;
   }
   .about-tagline strong { color: var(--chalk); font-weight: 500; }
-  .about-right { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; }
+  .about-body { display: grid; grid-template-columns: 1fr 275px; gap: 2.5rem; align-items: center; }
+  .about-right { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+
+  /* ── Phone Mockup ───────────────────────────────────────────────────── */
+  .phone-mockup { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .phone-frame {
+    width: 256px; height: 466px;
+    border: 3px solid rgba(255,255,255,0.12);
+    border-radius: 36px;
+    background: #000;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,80,10,0.2);
+  }
+  .phone-screen { width: 100%; height: 100%; position: relative; overflow: hidden; }
+  .phone-slide {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.7s ease;
+  }
+  .phone-slide.active { opacity: 1; }
+  .phone-dots { display: flex; gap: 6px; }
+  .phone-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    transition: background 0.3s;
+    cursor: pointer;
+  }
+  .phone-dot.active { background: var(--summit); }
   .about-meta-strip {
     display: flex; align-items: flex-start; gap: 2rem; flex-wrap: wrap;
     padding: 1.25rem 1.5rem;
@@ -694,7 +722,7 @@
     background: linear-gradient(180deg, rgba(53,60,68,0.95), rgba(40,46,53,0.92));
     border: 1px solid rgba(200,223,232,0.1);
     border-radius: 8px;
-    padding: 1.1rem; position: relative; overflow: hidden;
+    padding: 1rem; position: relative; overflow: hidden;
     transition: border-color 0.3s, transform 0.5s ease, box-shadow 0.3s, opacity 0.55s ease;
     box-shadow: var(--shadow-soft);
   }
@@ -711,18 +739,18 @@
   }
   .feature-card:hover::before { opacity: 1; }
   .feature-icon {
-    width: 2.4rem;
-    height: 2.4rem;
+    width: 2.2rem;
+    height: 2.2rem;
     border-radius: 7px;
     display: grid;
     place-items: center;
-    font-size: 1.1rem;
-    margin-bottom: 0.75rem;
+    font-size: 1.05rem;
+    margin-bottom: 0.6rem;
     background: rgba(232,80,10,0.1);
     border: 1px solid rgba(232,80,10,0.18);
   }
-  .feature-title { font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 800; color: var(--chalk); margin-bottom: 0.4rem; }
-  .feature-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.65; }
+  .feature-title { font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 800; color: var(--chalk); margin-bottom: 0.3rem; }
+  .feature-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; }
 
   /* ── Weekly Timeline ────────────────────────────────────────────────── */
   .process-section { max-width: 960px; margin: 0 auto; }
@@ -1346,7 +1374,7 @@
   .ethics-item p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.7; }
   .ref-list { margin-top: 1.5rem; background: #161616; border: 1px solid #242424; border-radius: 4px; padding: 2rem; }
   .ref-list h3 { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1.25rem; }
-  .ref-list ol { padding-left: 1.5rem; }
+  .ref-list ul { padding-left: 0; list-style: none; }
   .ref-list li { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--text-dim); line-height: 1.8; margin-bottom: 0.5rem; letter-spacing: 0.02em; }
   .ref-list li strong { color: var(--text-muted); font-weight: 700; }
 
@@ -1675,6 +1703,8 @@
     .section-title { font-size: 3.2rem; }
     .divider { margin: 0 2rem; }
     .about-head { grid-template-columns: 1fr; gap: 1.5rem; }
+    .about-body { grid-template-columns: 1fr; }
+    .phone-mockup { display: none; }
     .about-right { grid-template-columns: 1fr 1fr; }
     .about-meta-strip { flex-direction: column; gap: 1rem; }
     .meta-divider { width: auto; height: 1px; align-self: auto; }
@@ -1830,48 +1860,67 @@
 <section id="about">
   <div class="about-wrap reveal">
 
-    <!-- Header row: title left, tagline right -->
+    <!-- Header: full-width title + tagline -->
     <div class="about-head">
-      <div class="about-head-left">
+      <div>
         <div class="section-label">About the Project</div>
-        <h2 class="section-title" style="margin-bottom:0">What is<br>BetaUp?</h2>
+        <h2 class="section-title" style="margin-bottom:0">What is BetaUp?</h2>
       </div>
       <p class="about-tagline">
         <strong>BetaUp</strong> is a human-centric app for <strong>climbers and coaches</strong> — combining gamification, real-time feedback, and social connectivity to make every session more playful and measurable.
       </p>
     </div>
 
-    <!-- Feature cards: 3-col grid -->
-    <div class="about-right">
-      <div class="feature-card">
-        <div class="feature-icon">🏅</div>
-        <div class="feature-title">Achievement &amp; Badge System</div>
-        <div class="feature-desc">Milestones auto-unlock badges and celebratory animations — first send, streaks, grade PRs all rewarded.</div>
+    <!-- Feature cards + phone mockup side by side -->
+    <div class="about-body">
+      <div class="about-right">
+        <div class="feature-card">
+          <div class="feature-icon">🏅</div>
+          <div class="feature-title">Achievement &amp; Badge System</div><div class="feature-desc">Milestones auto-unlock badges and celebratory animations — first send, streaks, grade PRs all rewarded.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🐼</div>
+          <div class="feature-title">AI Voice Assistant</div><div class="feature-desc">Draggable panda avatar — speak hands-free mid-climb to log sessions via DeepSeek NLP.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🤝</div>
+          <div class="feature-title">Social &amp; Community Layer</div><div class="feature-desc">Live leaderboards, posts, and a follow graph to compete weekly and find training partners nearby.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📍</div>
+          <div class="feature-title">Location-Aware Gym Discovery</div><div class="feature-desc">Discover nearby venues, check in, and link session data to a real gym location.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏫</div>
+          <div class="feature-title">Coach Certification System</div><div class="feature-desc">Coaches apply for verified status; unlocks a dedicated panel for athlete tracking and feedback.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">❤️</div>
+          <div class="feature-title">BLE Heart Rate Monitor</div><div class="feature-desc">Apple Watch &amp; BLE wearable integration streams live heart rate during climbing sessions.</div>
+        </div>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">🐼</div>
-        <div class="feature-title">AI Voice Assistant</div>
-        <div class="feature-desc">Draggable panda avatar — speak hands-free mid-climb to log sessions via DeepSeek NLP.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🤝</div>
-        <div class="feature-title">Social &amp; Community Layer</div>
-        <div class="feature-desc">Live leaderboards, posts, and a follow graph to compete weekly and find training partners nearby.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📍</div>
-        <div class="feature-title">Location-Aware Gym Discovery</div>
-        <div class="feature-desc">Discover nearby venues, check in, and link session data to a real gym location.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🏫</div>
-        <div class="feature-title">Coach Certification System</div>
-        <div class="feature-desc">Coaches apply for verified status; unlocks a dedicated panel for athlete tracking and feedback.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">❤️</div>
-        <div class="feature-title">BLE Heart Rate Monitor</div>
-        <div class="feature-desc">Apple Watch &amp; BLE wearable integration streams live heart rate during climbing sessions.</div>
+
+      <!-- Phone mockup carousel -->
+      <div class="phone-mockup">
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <img class="phone-slide active" src="assets/photos/1.png" alt="BetaUp screen 1">
+            <img class="phone-slide" src="assets/photos/2.png" alt="BetaUp screen 2">
+            <img class="phone-slide" src="assets/photos/3.png" alt="BetaUp screen 3">
+            <img class="phone-slide" src="assets/photos/4.png" alt="BetaUp screen 4">
+            <img class="phone-slide" src="assets/photos/5.png" alt="BetaUp screen 5">
+            <img class="phone-slide" src="assets/photos/6.png" alt="BetaUp screen 6">
+            <img class="phone-slide" src="assets/photos/7.png" alt="BetaUp screen 7">
+            <img class="phone-slide" src="assets/photos/8.png" alt="BetaUp screen 8">
+            <img class="phone-slide" src="assets/photos/9.png" alt="BetaUp screen 9">
+            <img class="phone-slide" src="assets/photos/10.png" alt="BetaUp screen 10">
+            <img class="phone-slide" src="assets/photos/11.png" alt="BetaUp screen 11">
+            <img class="phone-slide" src="assets/photos/12.png" alt="BetaUp screen 12">
+            <img class="phone-slide" src="assets/photos/13.png" alt="BetaUp screen 13">
+            <img class="phone-slide" src="assets/photos/14.png" alt="BetaUp screen 14">
+          </div>
+        </div>
+        <div class="phone-dots" id="phoneDots"></div>
       </div>
     </div>
 
@@ -3075,17 +3124,17 @@
       <!-- References -->
       <div class="ref-list">
         <h3>References</h3>
-        <ol>
+        <ul>
           <li><strong>[1]</strong> Claude Code, Anthropic, v1.0, accessed on 2026-04-01, available at https://claude.ai/. Used for full-stack vibe coding — Spring Boot backend (REST API, JWT auth, gamification engine), Flutter screens, portfolio HTML/CSS, and debugging throughout the project.</li>
           <li><strong>[2]</strong> DeepSeek Chat API, DeepSeek, v1.0, accessed on 2026-04-01, available at https://api.deepseek.com/. Used as the NLP engine for the AI voice assistant — parsing Chinese climbing commands into structured intents.</li>
           <li><strong>[3]</strong> ChatGPT (GPT-4o), OpenAI, accessed on 2026-03-01, available at https://openai.com/. Used for early content drafting, ideation support, and brainstorming feature concepts.</li>
           <li><strong>[4]</strong> 豆包 (Doubao), ByteDance, accessed on 2026-05-01, available at https://www.doubao.com/. Used for demo video generation (AI-generated climbing visuals — discarded due to physical inaccuracy, used as background filler only).</li>
           <li><strong>[5]</strong> 可灵 (Kling), Kuaishou, accessed on 2026-05-01, available at https://kling.kuaishou.com/. Used for video generation and editing assistance during demo production.</li>
           <li><strong>[6]</strong> Antigravity (Claude Agent SDK), Anthropic, accessed on 2026-05-01, available at https://claude.ai/. Used for UI optimisation, portfolio layout review, and multi-agent parallel task execution.</li>
-          <li><strong>[8]</strong> Hamari, J., Koivisto, J., &amp; Sarsa, H. (2014). Does Gamification Work? <em>HICSS</em>. DOI: 10.1109/HICSS.2014.377</li>
-          <li><strong>[9]</strong> Deterding, S. et al. (2011). From Game Design Elements to Gamefulness. <em>MindTrek</em>. DOI: 10.1145/2181037.2181040</li>
-          <li><strong>[10]</strong> Consolvo, S. et al. (2009). Theory-driven Design Strategies. <em>CHI</em>. DOI: 10.1145/1518701.1518766</li>
-          <li><strong>[11]</strong> Rooksby, J. et al. (2014). Personal Tracking as Lived Informatics. <em>CHI</em>. DOI: 10.1145/2556288.2557039</li>
+          <li><strong>[7]</strong> Hamari, J., Koivisto, J., &amp; Sarsa, H. (2014). Does Gamification Work? <em>HICSS</em>. DOI: 10.1109/HICSS.2014.377</li>
+          <li><strong>[8]</strong> Deterding, S. et al. (2011). From Game Design Elements to Gamefulness. <em>MindTrek</em>. DOI: 10.1145/2181037.2181040</li>
+          <li><strong>[9]</strong> Consolvo, S. et al. (2009). Theory-driven Design Strategies. <em>CHI</em>. DOI: 10.1145/1518701.1518766</li>
+          <li><strong>[10]</strong> Rooksby, J. et al. (2014). Personal Tracking as Lived Informatics. <em>CHI</em>. DOI: 10.1145/2556288.2557039</li>
         </ol>
       </div>
 
@@ -3425,6 +3474,29 @@
       link.classList.toggle('active', link.getAttribute('href') === '#' + current);
     });
   }, { passive: true });
+
+  // ── Phone mockup slideshow ───────────────────────────────────────────
+  (function () {
+    const slides = document.querySelectorAll('.phone-slide');
+    const dotsWrap = document.getElementById('phoneDots');
+    if (!slides.length || !dotsWrap) return;
+    let cur = 0;
+    slides.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'phone-dot' + (i === 0 ? ' active' : '');
+      d.addEventListener('click', () => goTo(i));
+      dotsWrap.appendChild(d);
+    });
+    const dots = dotsWrap.querySelectorAll('.phone-dot');
+    function goTo(n) {
+      slides[cur].classList.remove('active');
+      dots[cur].classList.remove('active');
+      cur = n;
+      slides[cur].classList.add('active');
+      dots[cur].classList.add('active');
+    }
+    setInterval(() => goTo((cur + 1) % slides.length), 2500);
+  })();
 </script>
 
 <!-- Mouse glow cursor effect -->
