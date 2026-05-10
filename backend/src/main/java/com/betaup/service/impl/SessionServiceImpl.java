@@ -66,7 +66,7 @@ public class SessionServiceImpl implements SessionService {
                 if (s.getStartTime().plusHours(6).isBefore(LocalDateTime.now())) {
                     s.setEndTime(s.getStartTime().plusHours(6));
                     sessionRepository.save(s);
-                    return ApiResponse.success("No active session.", null);
+                    return ApiResponse.<SessionDto>success("No active session.", null);
                 }
                 return ApiResponse.success("Active session found.", toDto(s));
             })
