@@ -28,7 +28,7 @@ springdoc:
 
 app:
   cors:
-    allowed-origin-patterns: ${BETAUP_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
+    allowed-origin-patterns: ${BETAUP_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*,https://frontend-production-3b88.up.railway.app}
   jwt:
     secret: ${BETAUP_JWT_SECRET:betaUpRoundOneSecretKeyChangeMe1234567890}
     expiration-ms: ${BETAUP_JWT_EXPIRATION_MS:86400000}

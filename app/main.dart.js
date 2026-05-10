@@ -8211,7 +8211,7 @@ A.b85()
 s=new A.Sa(A.b([],t.O))
 r=A.bbE()
 return new A.acY(a,s,r)},
-bbE(){return"http://localhost:8080/api"},
+bbE(){return"https://backend-production-7727.up.railway.app/api"},
 kw:function kw(a){this.a=a},
 acY:function acY(a,b,c){this.a=a
 this.b=b

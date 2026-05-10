@@ -39,7 +39,7 @@ class ApiClient {
     if (!kIsWeb && Platform.isAndroid) {
       return "http://10.0.2.2:8080/api";
     }
-    return "http://localhost:8080/api";
+    return "https://backend-production-7727.up.railway.app/api";
   }
 
   Future<UserProfile> fetchCurrentUser() async {
