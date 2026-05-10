@@ -9,6 +9,7 @@ import com.betaup.entity.PostType;
 import com.betaup.entity.User;
 import com.betaup.entity.PostLike;
 import com.betaup.repository.NotificationRepository;
+import com.betaup.repository.CommentRepository;
 import com.betaup.repository.PostLikeRepository;
 import com.betaup.repository.PostRepository;
 import com.betaup.security.service.CurrentUserService;
@@ -31,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class PostController {
 
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final PostLikeRepository postLikeRepository;
     private final NotificationRepository notificationRepository;
     private final CurrentUserService currentUserService;
@@ -142,6 +144,7 @@ public class PostController {
             throw new org.springframework.security.access.AccessDeniedException("Not your post.");
         }
         postMediaStorageService.deleteMultiple(post.getMediaPaths());
+        commentRepository.deleteByPostId(id);
         postRepository.delete(post);
         return ResponseEntity.ok(ApiResponse.success("Post deleted.", null));
     }
