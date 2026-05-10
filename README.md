@@ -2,8 +2,6 @@
 
 > **"Beta"** is climber slang for route information — tips, sequences, and moves that help others send a problem. BetaUp is where climbers share that knowledge, track every send, and level up together.
 
-**BetaUp** is a full-stack climbing training and social app for climbers and coaches, combining a gamified achievement system, an AI voice assistant (DeepSeek NLP), and a real-time community feed. Built for CPT208 Human-Centric Computing, XJTLU · Group C2-6.
-
 BetaUp 是一款面向攀岩者与教练的全栈训练社交应用，融合游戏化成就系统、AI 语音助手与实时社区互动，让每次训练都变成有意义的进步记录。
 
 ---
