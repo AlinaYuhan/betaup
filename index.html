@@ -1143,6 +1143,17 @@
   .arch-label { color: var(--moss); }
   .tech-stack-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
 
+  /* Data Flow */
+  .data-flow-block { margin-top: 1.5rem; }
+  .df-row { display: flex; align-items: flex-start; gap: 0; flex-wrap: wrap; }
+  .df-step { flex: 1; min-width: 140px; background: oklch(13% 0.008 48); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.1rem 1rem; }
+  .df-arrow { display: flex; align-items: center; padding: 0 0.5rem; color: var(--summit); font-size: 1rem; margin-top: 1.5rem; flex-shrink: 0; }
+  .df-num { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--summit); letter-spacing: 0.12em; margin-bottom: 0.35rem; }
+  .df-label { font-size: 0.82rem; font-weight: 600; color: var(--text-head); margin-bottom: 0.4rem; }
+  .df-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.65; }
+  .df-example { margin-top: 1rem; background: linear-gradient(135deg, rgba(232,80,10,0.08), rgba(232,80,10,0.03)); border: 1px solid rgba(232,80,10,0.18); border-left: 3px solid var(--summit); border-radius: 6px; padding: 0.85rem 1.1rem; font-size: 0.78rem; color: var(--text-body); line-height: 1.75; }
+  .df-ex-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--summit); margin-right: 0.6rem; }
+
   /* ── Contribution Table ─────────────────────────────────────────────── */
   .contrib-wrapper { margin-top: 1.5rem; border: 1px solid #242424; border-radius: 4px; overflow: hidden; }
   .contrib-table { width: 100%; border-collapse: collapse; }
@@ -2468,6 +2479,46 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- Data Flow -->
+    <div class="subsection-label">Data Handling &amp; Interaction State</div>
+    <div class="data-flow-block">
+      <div class="df-row">
+        <div class="df-step">
+          <div class="df-num">01</div>
+          <div class="df-label">User Input</div>
+          <div class="df-desc">Flutter validates input locally (form fields, voice command via Web Speech API) before dispatch.</div>
+        </div>
+        <div class="df-arrow">→</div>
+        <div class="df-step">
+          <div class="df-num">02</div>
+          <div class="df-label">REST API + JWT</div>
+          <div class="df-desc">Every request carries a JWT Bearer token. Spring Security validates identity and role (CLIMBER / COACH / ADMIN) before processing.</div>
+        </div>
+        <div class="df-arrow">→</div>
+        <div class="df-step">
+          <div class="df-num">03</div>
+          <div class="df-label">Business Logic</div>
+          <div class="df-desc">Spring Boot services process the input — creating sessions, logging climbs, parsing voice commands via DeepSeek NLP, or updating community posts.</div>
+        </div>
+        <div class="df-arrow">→</div>
+        <div class="df-step">
+          <div class="df-num">04</div>
+          <div class="df-label">State Persistence</div>
+          <div class="df-desc">JPA / Hibernate writes interaction state to MySQL. Achievement Engine checks badge thresholds and triggers Notification records if criteria are met.</div>
+        </div>
+        <div class="df-arrow">→</div>
+        <div class="df-step">
+          <div class="df-num">05</div>
+          <div class="df-label">UI State Update</div>
+          <div class="df-desc">Response JSON returned to Flutter — profile stats, badge unlocks, and notifications are reflected immediately in the client UI.</div>
+        </div>
+      </div>
+      <div class="df-example">
+        <span class="df-ex-label">Example</span>
+        User logs a V5 send → POST /sessions/{id}/climbs → JPA persists → Achievement Engine detects 10th completion → UserBadge created → Notification pushed → Flutter profile refreshes with new badge.
+      </div>
     </div>
 
     <!-- Tech Stack -->

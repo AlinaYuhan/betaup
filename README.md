@@ -115,6 +115,25 @@ flutter run             # 连接 Android / iOS 设备
 
 ---
 
+## 🌐 Live Demo
+
+| Link | Description |
+|------|-------------|
+| **[Portfolio](https://alinayuhan.github.io/betaup/)** | Process portfolio (GitHub Pages) |
+| **[Live System](https://frontend-production-3b88.up.railway.app/)** | Deployed BetaUp app (Railway) |
+
+> **Note**: VPN may be required to access the live system.  
+> **Demo account**: Username `cpt208` / Password `cpt208`  
+> **Browser tip**: Use Chrome for best voice assistant compatibility.
+
+---
+
+## 🤖 AI Development Logs
+
+AI-assisted development logs are documented in [`/ai-logs`](./ai-logs/), as required by the CPT208 Vibe Coding policy. Each file records the prompt used, the AI tool, outcome, and human modifications made.
+
+---
+
 ## 🔗 Links
 
 - **Portfolio**: [alinayuhan.github.io/betaup](https://alinayuhan.github.io/betaup)
