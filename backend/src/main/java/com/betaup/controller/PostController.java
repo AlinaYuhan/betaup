@@ -17,6 +17,7 @@ import com.betaup.service.BadgeAutomationService;
 import com.betaup.service.PostMediaStorageService;
 import jakarta.validation.Valid;
 import java.util.List;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -135,6 +136,7 @@ public class PostController {
         return dto;
     }
 
+    @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deletePost(@PathVariable Long id) {
         User user = currentUserService.getCurrentUser();
