@@ -186,7 +186,7 @@ public class CommunityDataInitializer implements ApplicationRunner {
         Post p = postRepository.save(Post.builder()
             .user(author).content(content).type(type)
             .isBeta(isBeta).routeName(routeName)
-            .likeCount(likes).commentCount(comments)
+            .likeCount(likes)
             .build());
         postRepository.flush();
         em.createNativeQuery("UPDATE posts SET created_at = ? WHERE id = ?")

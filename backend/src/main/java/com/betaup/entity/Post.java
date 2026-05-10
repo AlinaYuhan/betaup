@@ -5,11 +5,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -48,12 +48,12 @@ public class Post {
     @Column(name = "media_count", nullable = false)
     private int mediaCount = 0;
 
-    // Denormalized counters for fast reads
+    // Denormalized counter for fast reads
     @Column(nullable = false)
     private int likeCount = 0;
 
-    @Column(nullable = false)
-    private int commentCount = 0;
+    @Formula("(SELECT COUNT(*) FROM comments c WHERE c.post_id = id)")
+    private int commentCount;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
