@@ -120,7 +120,7 @@ flutter run             # 连接 Android / iOS 设备
 | Link | Description |
 |------|-------------|
 | **[Portfolio](https://alinayuhan.github.io/betaup/)** | Process portfolio (GitHub Pages) |
-| **[Live System](https://frontend-production-3b88.up.railway.app/)** | Deployed BetaUp app (Railway) |
+| **[Live System](https://web-liart-sigma-79.vercel.app/)** | Deployed BetaUp app (Vercel) |
 
 > **Note**: VPN may be required to access the live system.  
 > **Demo account**: Username `cpt208` / Password `cpt208`  
