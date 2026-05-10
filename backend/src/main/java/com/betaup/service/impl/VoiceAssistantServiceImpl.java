@@ -66,7 +66,6 @@ public class VoiceAssistantServiceImpl implements VoiceAssistantService {
 
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("model", model);
-        payload.put("response_format", Map.of("type", "json_object"));
         payload.put("messages", serializedMessages);
 
         try {
