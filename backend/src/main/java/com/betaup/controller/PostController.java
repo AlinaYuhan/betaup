@@ -147,6 +147,7 @@ public class PostController {
         }
         postMediaStorageService.deleteMultiple(post.getMediaPaths());
         commentRepository.deleteByPostId(id);
+        postLikeRepository.deleteByPostId(id);
         postRepository.delete(post);
         return ResponseEntity.ok(ApiResponse.success("Post deleted.", null));
     }
