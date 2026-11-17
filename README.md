@@ -1,141 +1,64 @@
 # BetaUp
 
-> **"Beta"** is climber slang for route information — tips, sequences, and moves that help others send a problem. BetaUp is where climbers share that knowledge, track every send, and level up together.
+**English** · [简体中文](./README.zh-CN.md)
 
-BetaUp 是一款面向攀岩者与教练的全栈训练社交应用，融合游戏化成就系统、AI 语音助手与实时社区互动，让每次训练都变成有意义的进步记录。
+![BetaUp — training, route beta, and coaching for indoor climbing. Banner uses a photo from the team's gym fieldwork.](./assets/photos/readme-banner.png)
 
----
+**A full-stack app for indoor climbers and their coaches.** BetaUp connects what happens at the wall with what happens after a session. Climbers can log an attempt by voice, see how their grades change over time, share the moves that worked, and get feedback on their training.
 
-## ✨ 核心功能 / Key Features
+[Project portfolio](https://alinayuhan.github.io/betaup/) · [Demo video](https://github.com/AlinaYuhan/betaup/releases/download/v1.0-demo/betaup_video.mp4) · [Hosted prototype](https://web-liart-sigma-79.vercel.app/)
 
-### 🧗 训练记录 / Climb Logging
-- 记录每次攀爬：线路难度、攀爬类型（Flash / Redpoint / Attempt）、训练时长
-- 语音输入——对 Panda 说"记录一个 V5 完成"即可免手操作
-- 自动生成会话总结与进度图表
+## A session with BetaUp
 
-### 🏅 游戏化成就 / Gamification
-- 20+ 成就徽章：首次完成、连续打卡、解锁新难度等
-- XP 经验值系统，徽章解锁触发庆祝动画（Confetti）
-- 个人主页徽章墙，进度一目了然
+- 🧗 **Log a climb.** Record the grade and outcome, or tell Panda, the voice assistant, to log it after an attempt.
+- 🏅 **Review progress.** See session history, grade trends, and milestone badges.
+- 👥 **Share beta.** Post route-specific tips, photos, or videos and discover nearby gyms on the map. In climbing, *beta* means advice on how to complete a route.
+- 🏫 **Train with a coach.** Verified coaches can review training records and send feedback or plans.
 
-### 🤖 AI 语音助手 Panda / AI Voice Assistant
-- 可拖动熊猫头像，点击激活语音界面
-- 基于 DeepSeek NLP + Web Speech API，自然语言理解攀岩指令
-- 支持：记录攀爬、查询统计、开始/结束训练、问天气等
-- TTS 语音回复，全程免触屏操作
+<p align="center">
+  <a href="./assets/photos/screenshot-train.png"><img src="./assets/photos/screenshot-train.png" alt="BetaUp Train tab showing the Go Climb button, recent sessions, and Panda voice assistant" width="300"></a>
+  <br>
+  <em>The Train tab brings session logging, recent climbs, and Panda into one screen.</em>
+</p>
 
-### 👥 社区 / Community
-- 发布动态、上传攀爬照片/视频（最多 6 张）
-- **Beta 分享区**：发布线路 Beta（过线技巧），标记线路名称与难度，帮助其他人突破难关
-- 点赞、评论、关注其他攀岩者
-- 实时排行榜：按次数、最高级别、XP 排名
+## How it works
 
-### 🗺️ 探索地图 / Explore
-- 基于 GPS 定位附近岩馆
-- 岩馆地图 + 打卡签到（积累地点徽章）
-- 心率监测（蓝牙 BLE 设备连接）
+| Layer | Implementation |
+| --- | --- |
+| Client | [Flutter and Dart](./mobile_flutter) for web and mobile |
+| API | [Spring Boot 3.5 and Java 21](./backend), with JWT-based access for climbers, coaches, and admins |
+| Data | Spring Data JPA and file-backed H2 for local development |
+| Voice | Speech recognition captures the command. DeepSeek interprets the request for supported actions such as logging a climb or checking training stats. |
 
-### 🏫 教练系统 / Coach Connect
-- 教练认证申请 → 管理员审核 → 激活教练权限
-- 教练可查看学员训练数据、发布反馈与训练计划
-- 学员可在 App 内直接接收并回复教练反馈
+## Tested with climbers and a coach
 
-### 🛠️ 管理后台 / Admin Dashboard
-- 用户管理与内容审核
-- 教练申请审批
-- 全站数据统计
+In a think-aloud test with two climbers and one coach, all three completed the progress-dashboard task and two completed the voice-logging task. The team revised the voice entry point and the Train screen after observing where participants got stuck. [See the evaluation and design iterations.](https://alinayuhan.github.io/betaup/#evaluation)
 
----
+## Team
 
-## 🏗️ 技术架构 / Tech Stack
+A four-person project for CPT208 Human-Centric Computing at Xi’an Jiaotong-Liverpool University.
 
-```
-┌────────────────────────────────────────────────┐
-│         Flutter Client (Web / Mobile)           │
-│  Auth · Record · Profile · Community · Explore  │
-│  Voice Assistant (Web Speech API + flutter_tts) │
-└──────────────────┬─────────────────────────────┘
-                   │ HTTPS REST API (JSON)
-┌──────────────────▼─────────────────────────────┐
-│      Spring Boot 3.x Backend (Port 8080)        │
-│  JWT Auth · JPA/Hibernate · Achievement Engine  │
-└──────────┬──────────────┬───────────────────────┘
-           │              │
-    ┌──────▼──────┐  ┌────▼────────────┐
-    │  H2 / MySQL │  │  DeepSeek API   │
-    └─────────────┘  └─────────────────┘
-```
+**[Yuhan Cao](https://github.com/AlinaYuhan), team lead and lead developer.** Led the system architecture and database design, built the Spring Boot API and core Flutter workflows, and integrated authentication, achievements, and Panda.
 
-| 层 | 技术 |
-|----|------|
-| 移动/Web 前端 | Flutter 3.x · Dart |
-| 后端 API | Spring Boot 3.2 · Java 21 |
-| 数据库 | H2 In-Memory (Dev) · MySQL (Prod) |
-| 认证 | JWT (Bearer Token) · 角色权限 CLIMBER / COACH / ADMIN |
-| AI 语音 | DeepSeek Chat API · Web Speech API · flutter_tts |
-| 地图 | Geolocator · flutter_map |
-| 硬件 | flutter_blue_plus (BLE 心率) |
-| 图表 | fl_chart |
-| Portfolio | GitHub Pages |
+[Renyu Yang](https://github.com/Renyuuu) · User research<br>
+[Zixi Chen](https://github.com/czx6365) · UI/UX design and prototyping<br>
+[Mengxi Yang](https://github.com/sunnydayyy774) · Usability evaluation
 
----
+[Detailed team contributions](https://alinayuhan.github.io/betaup/#system)
 
-## 🚀 本地运行 / Running Locally
+## Run locally
 
-### 后端 Backend
+With JDK 21, Flutter, and Chrome installed, run the API and client in separate terminals from the repository root.
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
-# API 运行在 http://localhost:8080
 ```
-
-### Flutter 前端 Frontend
 
 ```bash
 cd mobile_flutter
 flutter pub get
-flutter run -d chrome   # Web 演示
-# 或
-flutter run             # 连接 Android / iOS 设备
+flutter run -d chrome --dart-define=BETAUP_API_BASE_URL=http://localhost:8080/api
 ```
 
-> Flutter Web 需要 Chrome，后端默认使用 H2 内存数据库，无需额外配置 MySQL 即可启动演示。
-
----
-
-## 👥 团队 / Team — CPT208 · Group C2-6
-
-| 成员 | 角色 | 主要贡献 |
-|------|------|---------|
-| **Cao Yuhan 曹雨涵** | Lead Developer | 全栈开发：Spring Boot REST API（70+ 端点）、Flutter 全部页面（15+ 屏）、JWT 认证、游戏化引擎、AI 语音助手、社区模块、教练系统、管理后台、地图集成、数据库设计 |
-| **Yang Renyu 杨仁雨** | User Research | 用户访谈、问卷设计、Persona 建立、用户旅程地图 |
-| **Chen Zixi 陈子熹** | UI/UX Design | Figma 原型（低保真 + 高保真）、视觉风格指南、探索页前端、数据库 Schema 审查 |
-| **Yang Mengxi 杨梦溪** | Evaluation | 可用性测试、SUS 问卷、项目海报设计、演示视频制作 |
-
----
-
-## 🌐 Live Demo
-
-| Link | Description |
-|------|-------------|
-| **[Portfolio](https://alinayuhan.github.io/betaup/)** | Process portfolio (GitHub Pages) |
-| **[Live System](https://frontend-production-3b88.up.railway.app/)** | Deployed BetaUp app (Railway) |
-
-> **Note**: VPN may be required to access the live system.  
-> **Demo account**: Username `cpt208` / Password `cpt208`  
-> **Browser tip**: Use Chrome for best voice assistant compatibility.
-
----
-
-## 🤖 AI Development Logs
-
-AI-assisted development logs are documented in [`/ai-logs`](./ai-logs/), as required by the CPT208 Vibe Coding policy. Each file records the prompt used, the AI tool, outcome, and human modifications made.
-
----
-
-## 🔗 Links
-
-- **Portfolio**: [alinayuhan.github.io/betaup](https://alinayuhan.github.io/betaup)
-- **GitHub**: [github.com/AlinaYuhan/betaup](https://github.com/AlinaYuhan/betaup)
-- **CPT208** · University of Liverpool / XJTLU · 2025–2026
+The default development profile uses a local H2 database. Set `BETAUP_DEEPSEEK_API_KEY` in the backend environment to enable DeepSeek requests. The course project’s [AI development logs](./ai-logs/) are also available.
